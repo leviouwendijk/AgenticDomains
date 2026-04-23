@@ -4,20 +4,15 @@ import Position
 import Primitives
 
 public struct ReadSwiftStructureTool: AgentTool {
-    public let definition: AgentToolDefinition
-    public let selector: SwiftStructuralSelector
+    public static let identifier: AgentToolIdentifier = "read_swift_structure"
+    public static let description = "Read Swift declarations, types, members, imports, or the enclosing scope from a Swift source file in the workspace."
+    public static let risk: ActionRisk = .observe
 
-    public var actionRisk: ActionRisk {
-        .observe
-    }
+    public let selector: SwiftStructuralSelector
 
     public init(
         selector: SwiftStructuralSelector = .init()
     ) {
-        self.definition = .init(
-            name: "read_swift_structure",
-            description: "Read Swift declarations, types, members, imports, or the enclosing scope from a Swift source file in the workspace."
-        )
         self.selector = selector
     }
 
@@ -32,13 +27,19 @@ public struct ReadSwiftStructureTool: AgentTool {
 
         _ = try decoded.structuralQuery()
 
+        let renderedPath = try AgenticSwiftToolSupport.resolvedPreflightPath(
+            decoded.path,
+            workspace: workspace
+        )
+
         return .init(
-            toolName: definition.name,
-            actionRisk: actionRisk,
+            toolName: name,
+            risk: risk,
             workspaceRoot: workspace?.rootURL.path,
-            targetPaths: [decoded.path],
+            targetPaths: [renderedPath],
             summary: summary(
-                for: decoded
+                for: decoded,
+                renderedPath: renderedPath
             )
         )
     }
@@ -49,7 +50,7 @@ public struct ReadSwiftStructureTool: AgentTool {
     ) async throws -> JSONValue {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
             workspace,
-            toolName: definition.name
+            toolName: name
         )
         let decoded = try JSONToolBridge.decode(
             ReadSwiftStructureToolInput.self,
@@ -112,32 +113,33 @@ public struct ReadSwiftStructureTool: AgentTool {
 
 private extension ReadSwiftStructureTool {
     func summary(
-        for input: ReadSwiftStructureToolInput
+        for input: ReadSwiftStructureToolInput,
+        renderedPath: String
     ) -> String {
         switch input.queryKind {
         case .declaration:
-            return "Read Swift declaration '\(input.name ?? "")' in \(input.path)"
+            return "Read Swift declaration '\(input.name ?? "")' in \(renderedPath)"
 
         case .type:
-            return "Read Swift type '\(input.name ?? "")' in \(input.path)"
+            return "Read Swift type '\(input.name ?? "")' in \(renderedPath)"
 
         case .member:
             if let parentType = input.parentType,
                !parentType.isEmpty {
-                return "Read Swift member '\(input.name ?? "")' in \(parentType) from \(input.path)"
+                return "Read Swift member '\(input.name ?? "")' in \(parentType) from \(renderedPath)"
             }
 
-            return "Read Swift member '\(input.name ?? "")' in \(input.path)"
+            return "Read Swift member '\(input.name ?? "")' in \(renderedPath)"
 
         case .imports:
-            return "Read Swift imports from \(input.path)"
+            return "Read Swift imports from \(renderedPath)"
 
         case .enclosing_scope:
             if let column = input.column {
-                return "Read enclosing Swift scope at \(input.path):\(input.line ?? 0):\(column)"
+                return "Read enclosing Swift scope at \(renderedPath):\(input.line ?? 0):\(column)"
             }
 
-            return "Read enclosing Swift scope at \(input.path):\(input.line ?? 0)"
+            return "Read enclosing Swift scope at \(renderedPath):\(input.line ?? 0)"
         }
     }
 }
@@ -154,6 +156,21 @@ enum AgenticSwiftToolSupport {
         }
 
         return workspace
+    }
+
+    static func resolvedPreflightPath(
+        _ rawPath: String,
+        workspace: AgentWorkspace?
+    ) throws -> String {
+        guard let workspace else {
+            return rawPath
+        }
+
+        return try workspace.resolve(
+            rawPath
+        ).presentingRelative(
+            filetype: true
+        )
     }
 
     static func renderLines(

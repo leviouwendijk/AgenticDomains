@@ -345,10 +345,14 @@ private final class SwiftStructureVisitor: SyntaxVisitor {
     override func visit(
         _ node: FunctionDeclSyntax
     ) -> SyntaxVisitorContinueKind {
+        let displayName = SwiftCallableDisplayName.function(
+            node
+        )
+
         recordMemberLike(
             node,
             name: node.name.text,
-            summary: "func \(node.name.text)"
+            summary: "func \(displayName)"
         )
 
         return .visitChildren
@@ -357,10 +361,14 @@ private final class SwiftStructureVisitor: SyntaxVisitor {
     override func visit(
         _ node: InitializerDeclSyntax
     ) -> SyntaxVisitorContinueKind {
+        let displayName = SwiftCallableDisplayName.initializer(
+            node
+        )
+
         recordMemberLike(
             node,
             name: "init",
-            summary: "init"
+            summary: displayName
         )
 
         return .visitChildren
@@ -369,10 +377,14 @@ private final class SwiftStructureVisitor: SyntaxVisitor {
     override func visit(
         _ node: SubscriptDeclSyntax
     ) -> SyntaxVisitorContinueKind {
+        let displayName = SwiftCallableDisplayName.subscriptDecl(
+            node
+        )
+
         recordMemberLike(
             node,
             name: "subscript",
-            summary: "subscript"
+            summary: displayName
         )
 
         return .visitChildren

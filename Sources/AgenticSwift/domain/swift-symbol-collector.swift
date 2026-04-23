@@ -149,7 +149,7 @@ private final class SwiftSymbolVisitor: SyntaxVisitor {
             if lhs.lineRange.start == rhs.lineRange.start {
                 if lhs.lineRange.end == rhs.lineRange.end {
                     if lhs.kind == rhs.kind {
-                        return lhs.name < rhs.name
+                        return lhs.displayName < rhs.displayName
                     }
 
                     return lhs.kind.rawValue < rhs.kind.rawValue
@@ -349,12 +349,17 @@ private final class SwiftSymbolVisitor: SyntaxVisitor {
     override func visit(
         _ node: FunctionDeclSyntax
     ) -> SyntaxVisitorContinueKind {
+        let displayName = SwiftCallableDisplayName.function(
+            node
+        )
+
         record(
             node,
             kind: .function,
             name: node.name.text,
+            displayName: displayName,
             parentType: currentTypeName,
-            summary: "func \(node.name.text)"
+            summary: "func \(displayName)"
         )
 
         return .visitChildren
@@ -363,12 +368,17 @@ private final class SwiftSymbolVisitor: SyntaxVisitor {
     override func visit(
         _ node: InitializerDeclSyntax
     ) -> SyntaxVisitorContinueKind {
+        let displayName = SwiftCallableDisplayName.initializer(
+            node
+        )
+
         record(
             node,
             kind: .initializer,
             name: "init",
+            displayName: displayName,
             parentType: currentTypeName,
-            summary: "init"
+            summary: displayName
         )
 
         return .visitChildren
@@ -377,12 +387,17 @@ private final class SwiftSymbolVisitor: SyntaxVisitor {
     override func visit(
         _ node: SubscriptDeclSyntax
     ) -> SyntaxVisitorContinueKind {
+        let displayName = SwiftCallableDisplayName.subscriptDecl(
+            node
+        )
+
         record(
             node,
             kind: .subscript_decl,
             name: "subscript",
+            displayName: displayName,
             parentType: currentTypeName,
-            summary: "subscript"
+            summary: displayName
         )
 
         return .visitChildren
@@ -434,6 +449,7 @@ private extension SwiftSymbolVisitor {
         _ node: some SyntaxProtocol,
         kind: SwiftSymbolKind,
         name: String,
+        displayName: String? = nil,
         parentType: String?,
         summary: String
     ) {
@@ -454,6 +470,7 @@ private extension SwiftSymbolVisitor {
             .init(
                 kind: kind,
                 name: name,
+                displayName: displayName,
                 parentType: parentType,
                 lineRange: lineRange,
                 summary: summary

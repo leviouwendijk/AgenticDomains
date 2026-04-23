@@ -2,20 +2,15 @@ import Agentic
 import Primitives
 
 public struct ListSwiftSymbolsTool: AgentTool {
-    public let definition: AgentToolDefinition
-    public let collector: SwiftSymbolCollector
+    public static let identifier: AgentToolIdentifier = "list_swift_symbols"
+    public static let description = "List Swift symbols discovered in a Swift source file in the workspace."
+    public static let risk: ActionRisk = .observe
 
-    public var actionRisk: ActionRisk {
-        .observe
-    }
+    public let collector: SwiftSymbolCollector
 
     public init(
         collector: SwiftSymbolCollector = .init()
     ) {
-        self.definition = .init(
-            name: "list_swift_symbols",
-            description: "List Swift symbols discovered in a Swift source file in the workspace."
-        )
         self.collector = collector
     }
 
@@ -28,13 +23,19 @@ public struct ListSwiftSymbolsTool: AgentTool {
             from: input
         )
 
+        let renderedPath = try AgenticSwiftToolSupport.resolvedPreflightPath(
+            decoded.path,
+            workspace: workspace
+        )
+
         return .init(
-            toolName: definition.name,
-            actionRisk: actionRisk,
+            toolName: name,
+            risk: risk,
             workspaceRoot: workspace?.rootURL.path,
-            targetPaths: [decoded.path],
+            targetPaths: [renderedPath],
             summary: summary(
-                for: decoded
+                for: decoded,
+                renderedPath: renderedPath
             )
         )
     }
@@ -45,7 +46,7 @@ public struct ListSwiftSymbolsTool: AgentTool {
     ) async throws -> JSONValue {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
             workspace,
-            toolName: definition.name
+            toolName: name
         )
         let decoded = try JSONToolBridge.decode(
             ListSwiftSymbolsToolInput.self,
@@ -93,16 +94,17 @@ public struct ListSwiftSymbolsTool: AgentTool {
 
 private extension ListSwiftSymbolsTool {
     func summary(
-        for input: ListSwiftSymbolsToolInput
+        for input: ListSwiftSymbolsToolInput,
+        renderedPath: String
     ) -> String {
         guard input.filtersByKind else {
-            return "List Swift symbols in \(input.path)"
+            return "List Swift symbols in \(renderedPath)"
         }
 
         let kinds = input.includeKinds.map(\.rawValue).joined(
             separator: ", "
         )
 
-        return "List Swift symbols in \(input.path) filtered to: \(kinds)"
+        return "List Swift symbols in \(renderedPath) filtered to: \(kinds)"
     }
 }
