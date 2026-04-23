@@ -8,7 +8,8 @@ public struct AgenticSwiftToolSet: AgentToolSet {
     ) throws {
         try registry.register(
             [
-                ReadSwiftStructureTool()
+                ReadSwiftStructureTool(),
+                ListSwiftSymbolsTool()
             ]
         )
     }
