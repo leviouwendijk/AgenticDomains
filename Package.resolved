@@ -1,6 +1,15 @@
 {
-  "originHash" : "590183a78f63f4c74ec4f429cfe9e3cb132d56ccb9d50840bd309ffd0a032fd2",
+  "originHash" : "2a6a3204d113118a258dd9040030604797d0a0ac6149a520efc2f50377a377f3",
   "pins" : [
+    {
+      "identity" : "agentic",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Agentic.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "83bc0d4e264d4bd4f8d7dab406307f8942fbd15b"
+      }
+    },
     {
       "identity" : "ansi",
       "kind" : "remoteSourceControl",
@@ -106,7 +115,7 @@
       "location" : "https://github.com/leviouwendijk/Path.git",
       "state" : {
         "branch" : "master",
-        "revision" : "8d70650058bfcec0de6c731298f96e7cb704fe19"
+        "revision" : "b1114458aeae1b6bd58915a3de74ad266dbd3365"
       }
     },
     {
@@ -179,6 +188,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "86a939d7bbb3e25808f88fbcedcee4069a5a5ae1"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
+      "state" : {
+        "revision" : "9de99a78f099e59caf2b2beec65a4c45d54b2081",
+        "version" : "603.0.1"
       }
     },
     {

@@ -10,16 +10,19 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "AgenticDomains",
-            targets: ["AgenticDomains"]
+            name: "AgenticSwift",
+            targets: ["AgenticSwift"]
         ),
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "603.0.1"),
+
         // .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Writers.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Readers.git", branch: "master"),
-        // .package(url: "https://github.com/leviouwendijk/Path.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Path.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Position.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/FileTypes.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Selection.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Concatenation.git", branch: "master"),
@@ -33,17 +36,27 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "AgenticDomains",
+            name: "AgenticSwift",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(
+                    name: "SwiftParser",
+                    package: "swift-syntax"
+                ),
+                .product(
+                    name: "SwiftSyntax",
+                    package: "swift-syntax"
+                ),
+
                 // .product(name: "Primitives", package: "Primitives"),
                 // .product(name: "Writers", package: "Writers"),
                 // .product(name: "Readers", package: "Readers"),
                 // .product(name: "FileTypes", package: "FileTypes"),
-                // .product(name: "Path", package: "Path"),
+                .product(name: "Path", package: "Path"),
                 // .product(name: "PathParsing", package: "Path"),
                 // .product(name: "Selection", package: "Selection"),
                 // .product(name: "SelectionParsing", package: "Selection"),
+                .product(name: "Position", package: "Position"),
                 // .product(name: "Concatenation", package: "Concatenation"),
                 // .product(name: "Interfaces", package: "Interfaces"),
                 // .product(name: "Tokens", package: "Tokens"),
@@ -52,11 +65,11 @@ let package = Package(
                 // .product(name: "Fuzzy", package: "Fuzzy"),
 
                 // .product(name: "Executable", package: "Executable"),
-            ],
+            ]
         ),
-        .testTarget(
-            name: "AgenticDomainsTests",
-            dependencies: ["AgenticDomains"]
-        ),
+        // .testTarget(
+        //     name: "AgenticDomainsTests",
+        //     dependencies: ["AgenticDomains"]
+        // ),
     ]
 )
