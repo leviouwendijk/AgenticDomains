@@ -2,7 +2,7 @@ import Agentic
 import Foundation
 import Primitives
 
-public struct OpenWebResultTool: AgentTool {
+public struct OpenWebResultTool: StaticAgentTool {
     public static let identifier: AgentToolIdentifier = "open_web_result"
     public static let description = "Open one previously returned search result by searchID and resultID and return sandboxed extracted text."
     public static let risk: ActionRisk = .observe

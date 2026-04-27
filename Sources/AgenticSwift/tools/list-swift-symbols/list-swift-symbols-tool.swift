@@ -1,7 +1,7 @@
 import Agentic
 import Primitives
 
-public struct ListSwiftSymbolsTool: AgentTool {
+public struct ListSwiftSymbolsTool: StaticAgentTool {
     public static let identifier: AgentToolIdentifier = "list_swift_symbols"
     public static let description = "List Swift symbols discovered in a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe

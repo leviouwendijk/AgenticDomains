@@ -2,7 +2,7 @@ import Agentic
 import Primitives
 import Path
 
-public struct ReadSwiftSymbolTool: AgentTool {
+public struct ReadSwiftSymbolTool: StaticAgentTool {
     public static let identifier: AgentToolIdentifier = "read_swift_symbol"
     public static let description = "Read one exact Swift symbol from a Swift source file in the workspace, disambiguated by symbol id or display name."
     public static let risk: ActionRisk = .observe

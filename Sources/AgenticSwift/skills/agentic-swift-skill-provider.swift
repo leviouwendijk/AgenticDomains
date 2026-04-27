@@ -60,10 +60,12 @@ public extension AgenticSwiftSkillProvider {
         Editing workflow:
         1. Identify the smallest relevant symbol or enclosing scope.
         2. Read only the relevant symbol/body/range unless broader context is needed.
-        3. Prefer contiguous edits with clear replacement boundaries.
-        4. Preserve access control, Sendable/Codable/Hashable conformances, naming style, and existing file organization.
-        5. After editing, inspect the changed symbol or surrounding scope again if available.
-        6. When a build or test tool exists, use it after non-trivial Swift edits.
+        3. Prefer one coherent `\(MutateFilesTool.identifier.rawValue)` pass for related file changes.
+        4. Use `create_text`, `replace_text`, `edit_text`, or `delete` entries rather than separate write/edit tools.
+        5. For `edit_text`, use contiguous operations with clear replacement boundaries.
+        6. Preserve access control, Sendable/Codable/Hashable conformances, naming style, and existing file organization.
+        7. After editing, inspect the changed symbol or surrounding scope again if available.
+        8. When a build or test tool exists, use it after non-trivial Swift edits.
         """,
         metadata: .init(
             domains: [.swift],
@@ -73,7 +75,8 @@ public extension AgenticSwiftSkillProvider {
                     .tool(ReadSwiftStructureTool.self)
                 ],
                 optional: [
-                    .tool(EditFileTool.self, owner: "Agentic")
+                    .tool(ReadFileTool.self, owner: "Agentic"),
+                    .tool(MutateFilesTool.self, owner: "Agentic")
                 ]
             ),
             tags: [

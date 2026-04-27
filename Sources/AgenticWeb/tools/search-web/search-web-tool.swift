@@ -2,7 +2,7 @@ import Agentic
 import Foundation
 import Primitives
 
-public struct SearchWebTool: AgentTool {
+public struct SearchWebTool: StaticAgentTool {
     public static let identifier: AgentToolIdentifier = "search_web"
     public static let description = "Search the public web and return a small set of sandbox-approved result summaries."
     public static let risk: ActionRisk = .observe
