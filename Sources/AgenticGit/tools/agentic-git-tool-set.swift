@@ -9,6 +9,7 @@ public struct AgenticGitToolSet: AgentToolSet {
         try registry.register(
             [
                 GitRepositoryStateTool(),
+                GitDiffTool(),
                 GitReconciliationPlanTool(),
             ]
         )

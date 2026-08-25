@@ -6,12 +6,28 @@ public enum AgenticGitToolError:
     LocalizedError
 {
     case workspaceRequired(String)
+    case repositoryRootWorkspaceRequired(
+        toolName: String,
+        workspaceRoot: String,
+        repositoryRoot: String
+    )
 
     public var errorDescription: String? {
         switch self {
         case .workspaceRequired(let toolName):
             return """
             \(toolName) requires an Agentic workspace.
+            """
+
+        case .repositoryRootWorkspaceRequired(
+            let toolName,
+            let workspaceRoot,
+            let repositoryRoot
+        ):
+            return """
+            \(toolName) requires the Agentic workspace root to equal the Git repository root.
+            Workspace: \(workspaceRoot)
+            Repository: \(repositoryRoot)
             """
         }
     }
