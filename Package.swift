@@ -18,6 +18,11 @@ let package = Package(
             name: "AgenticWeb",
             targets: ["AgenticWeb"]
         ),
+
+        .library(
+            name: "AgenticGit",
+            targets: ["AgenticGit"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
@@ -34,7 +39,7 @@ let package = Package(
         // .package(url: "https://github.com/leviouwendijk/FileTypes.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Selection.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Concatenation.git", branch: "master"),
-        // .package(url: "https://github.com/leviouwendijk/Interfaces.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Interfaces.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Tokens.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Matching.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Ranking.git", branch: "master"),
@@ -73,6 +78,14 @@ let package = Package(
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "Parsers", package: "Parsers"),
+            ]
+        ),
+
+        .target(
+            name: "AgenticGit",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Interfaces", package: "Interfaces"),
             ]
         ),
 
