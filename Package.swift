@@ -44,7 +44,7 @@ let package = Package(
         // .package(url: "https://github.com/leviouwendijk/Matching.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Ranking.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Fuzzy.git", branch: "master"),
-        // .package(url: "https://github.com/leviouwendijk/Executable.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Executable.git", branch: "master"),
     ],
     targets: [
         .target(
@@ -70,7 +70,7 @@ let package = Package(
                 // .product(name: "Ranking", package: "Ranking"),
                 // .product(name: "Fuzzy", package: "Fuzzy"),
 
-                // .product(name: "Executable", package: "Executable"),
+                .product(name: "Executable", package: "Executable"),
             ]
         ),
         .target(

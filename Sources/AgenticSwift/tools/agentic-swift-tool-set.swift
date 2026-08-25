@@ -11,6 +11,9 @@ public struct AgenticSwiftToolSet: AgentToolSet {
                 ReadSwiftStructureTool(),
                 ListSwiftSymbolsTool(),
                 ReadSwiftSymbolTool(),
+                SwiftExecutableProductsTool(),
+                SwiftBuildTool(),
+                SwiftRunProductTool(),
             ]
         )
     }
