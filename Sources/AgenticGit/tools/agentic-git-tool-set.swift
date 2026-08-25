@@ -11,6 +11,9 @@ public struct AgenticGitToolSet: AgentToolSet {
                 GitRepositoryStateTool(),
                 GitDiffTool(),
                 GitReconciliationPlanTool(),
+                GitPrepareCommitTool(),
+                GitCommitPreparedTool(),
+                GitPushTool(),
             ]
         )
     }
