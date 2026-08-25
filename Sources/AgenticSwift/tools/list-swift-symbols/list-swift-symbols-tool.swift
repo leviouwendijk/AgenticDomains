@@ -6,6 +6,10 @@ public struct ListSwiftSymbolsTool: StaticAgentTool {
     public static let description = "List Swift symbols discovered in a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe
 
+    public static var inputSchema: JSONValue? {
+        ListSwiftSymbolsToolInput.schema
+    }
+
     public let collector: SwiftSymbolCollector
 
     public init(

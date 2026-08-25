@@ -8,6 +8,10 @@ public struct ReadSwiftStructureTool: StaticAgentTool {
     public static let description = "Read Swift declarations, types, members, imports, or the enclosing scope from a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe
 
+    public static var inputSchema: JSONValue? {
+        ReadSwiftStructureToolInput.schema
+    }
+
     public let selector: SwiftStructuralSelector
 
     public init(
