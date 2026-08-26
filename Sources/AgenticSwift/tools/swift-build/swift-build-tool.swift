@@ -283,4 +283,64 @@ public struct SwiftBuildTool:
             )
         }
     }
+
+    public func receipt(
+        input _: JSONValue,
+        output: JSONValue,
+        workspace _: AgentWorkspace?
+    ) -> AgentToolReceipt? {
+        guard let result =
+            try? JSONToolBridge.decode(
+                SwiftBuildToolOutput.self,
+                from: output
+            )
+        else {
+            return nil
+        }
+
+        var items: [AgentToolReceipt.Item] = [
+            .init(
+                label: "configuration",
+                value: result.configuration
+            ),
+            .init(
+                label: "exit",
+                value: "\(result.exitCode)"
+            ),
+            .init(
+                label: "build dir",
+                value: result.buildDirComponent
+            ),
+        ]
+
+        if !result.stdout.isEmpty {
+            items.append(
+                .init(
+                    label: "stdout",
+                    value: result.stdout
+                )
+            )
+        }
+
+        if !result.stderr.isEmpty {
+            items.append(
+                .init(
+                    label: "stderr",
+                    value: result.stderr
+                )
+            )
+        }
+
+        return .init(
+            status:
+                result.isSuccess
+                    ? "passed"
+                    : "failed",
+            summary:
+                result.isSuccess
+                    ? "Swift build completed successfully."
+                    : "Swift build completed with a nonzero exit status.",
+            items: items
+        )
+    }
 }

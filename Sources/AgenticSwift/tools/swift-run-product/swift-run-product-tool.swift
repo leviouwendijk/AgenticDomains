@@ -270,4 +270,74 @@ public struct SwiftRunProductTool:
             )
         )
     }
+
+    public func receipt(
+        input _: JSONValue,
+        output: JSONValue,
+        workspace _: AgentWorkspace?
+    ) -> AgentToolReceipt? {
+        guard let result =
+            try? JSONToolBridge.decode(
+                SwiftRunProductToolOutput.self,
+                from: output
+            )
+        else {
+            return nil
+        }
+
+        var items: [AgentToolReceipt.Item] = [
+            .init(
+                label: "product",
+                value: result.product
+            ),
+        ]
+
+        if let exitCode = result.exitCode {
+            items.append(
+                .init(
+                    label: "exit",
+                    value: "\(exitCode)"
+                )
+            )
+        }
+
+        if let signal = result.signal {
+            items.append(
+                .init(
+                    label: "signal",
+                    value: "\(signal)"
+                )
+            )
+        }
+
+        if !result.stdout.isEmpty {
+            items.append(
+                .init(
+                    label: "stdout",
+                    value: result.stdout
+                )
+            )
+        }
+
+        if !result.stderr.isEmpty {
+            items.append(
+                .init(
+                    label: "stderr",
+                    value: result.stderr
+                )
+            )
+        }
+
+        return .init(
+            status:
+                result.isSuccess
+                    ? "passed"
+                    : "failed",
+            summary:
+                result.isSuccess
+                    ? "Swift product '\(result.product)' completed successfully."
+                    : "Swift product '\(result.product)' completed unsuccessfully.",
+            items: items
+        )
+    }
 }
