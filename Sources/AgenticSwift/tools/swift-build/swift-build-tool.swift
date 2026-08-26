@@ -284,63 +284,68 @@ public struct SwiftBuildTool:
         }
     }
 
-    public func receipt(
+    public func processResult(
         input _: JSONValue,
         output: JSONValue,
         workspace _: AgentWorkspace?
-    ) -> AgentToolReceipt? {
+    ) -> AgentToolResultProcessing {
         guard let result =
             try? JSONToolBridge.decode(
                 SwiftBuildToolOutput.self,
                 from: output
             )
         else {
-            return nil
+            return .none
         }
 
-        var items: [AgentToolReceipt.Item] = [
-            .init(
-                label: "configuration",
-                value: result.configuration
-            ),
-            .init(
-                label: "exit",
-                value: "\(result.exitCode)"
-            ),
-            .init(
-                label: "build dir",
-                value: result.buildDirComponent
-            ),
-        ]
+        var observations: [AgentToolResultObservation] = []
 
         if !result.stdout.isEmpty {
-            items.append(
+            observations.append(
                 .init(
+                    kind: .standard_output,
                     label: "stdout",
-                    value: result.stdout
+                    content: result.stdout
                 )
             )
         }
 
         if !result.stderr.isEmpty {
-            items.append(
+            observations.append(
                 .init(
+                    kind: .standard_error,
                     label: "stderr",
-                    value: result.stderr
+                    content: result.stderr
                 )
             )
         }
 
         return .init(
-            status:
-                result.isSuccess
-                    ? "passed"
-                    : "failed",
-            summary:
-                result.isSuccess
-                    ? "Swift build completed successfully."
-                    : "Swift build completed with a nonzero exit status.",
-            items: items
+            projection: .init(
+                status:
+                    result.isSuccess
+                        ? "passed"
+                        : "failed",
+                summary:
+                    result.isSuccess
+                        ? "Swift build completed successfully."
+                        : "Swift build completed with a nonzero exit status.",
+                facts: [
+                    .init(
+                        label: "configuration",
+                        value: result.configuration
+                    ),
+                    .init(
+                        label: "exit",
+                        value: "\(result.exitCode)"
+                    ),
+                    .init(
+                        label: "build dir",
+                        value: result.buildDirComponent
+                    ),
+                ]
+            ),
+            observations: observations
         )
     }
 }

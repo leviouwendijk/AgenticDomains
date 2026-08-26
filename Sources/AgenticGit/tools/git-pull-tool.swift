@@ -154,21 +154,21 @@ public struct GitPullTool:
         )
     }
 
-    public func receipt(
+    public func processResult(
         input _: JSONValue,
         output: JSONValue,
         workspace _: AgentWorkspace?
-    ) -> AgentToolReceipt? {
+    ) -> AgentToolResultProcessing {
         guard let result =
             try? JSONToolBridge.decode(
                 GitPullToolOutput.self,
                 from: output
             )
         else {
-            return nil
+            return .none
         }
 
-        var items: [AgentToolReceipt.Item] = [
+        var facts: [AgentToolResultProjection.Fact] = [
             .init(
                 label: "branch",
                 value: result.currentBranch
@@ -181,7 +181,7 @@ public struct GitPullTool:
         ]
 
         if let afterHead = result.afterHead {
-            items.append(
+            facts.append(
                 .init(
                     label: "HEAD",
                     value: afterHead
@@ -189,14 +189,28 @@ public struct GitPullTool:
             )
         }
 
+        let observations: [AgentToolResultObservation] =
+            result.output.isEmpty
+                ? []
+                : [
+                    .init(
+                        kind: .detail,
+                        label: "git",
+                        content: result.output
+                    )
+                ]
+
         return .init(
-            status:
-                result.changed
-                    ? "updated"
-                    : "up to date",
-            summary:
-                "\(result.currentBranch) <- \(result.remote)/\(result.upstreamBranch)",
-            items: items
+            projection: .init(
+                status:
+                    result.changed
+                        ? "updated"
+                        : "up to date",
+                summary:
+                    "\(result.currentBranch) <- \(result.remote)/\(result.upstreamBranch)",
+                facts: facts
+            ),
+            observations: observations
         )
     }
 }

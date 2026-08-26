@@ -271,29 +271,29 @@ public struct SwiftRunProductTool:
         )
     }
 
-    public func receipt(
+    public func processResult(
         input _: JSONValue,
         output: JSONValue,
         workspace _: AgentWorkspace?
-    ) -> AgentToolReceipt? {
+    ) -> AgentToolResultProcessing {
         guard let result =
             try? JSONToolBridge.decode(
                 SwiftRunProductToolOutput.self,
                 from: output
             )
         else {
-            return nil
+            return .none
         }
 
-        var items: [AgentToolReceipt.Item] = [
+        var facts: [AgentToolResultProjection.Fact] = [
             .init(
                 label: "product",
                 value: result.product
-            ),
+            )
         ]
 
         if let exitCode = result.exitCode {
-            items.append(
+            facts.append(
                 .init(
                     label: "exit",
                     value: "\(exitCode)"
@@ -302,7 +302,7 @@ public struct SwiftRunProductTool:
         }
 
         if let signal = result.signal {
-            items.append(
+            facts.append(
                 .init(
                     label: "signal",
                     value: "\(signal)"
@@ -310,34 +310,41 @@ public struct SwiftRunProductTool:
             )
         }
 
+        var observations: [AgentToolResultObservation] = []
+
         if !result.stdout.isEmpty {
-            items.append(
+            observations.append(
                 .init(
+                    kind: .standard_output,
                     label: "stdout",
-                    value: result.stdout
+                    content: result.stdout
                 )
             )
         }
 
         if !result.stderr.isEmpty {
-            items.append(
+            observations.append(
                 .init(
+                    kind: .standard_error,
                     label: "stderr",
-                    value: result.stderr
+                    content: result.stderr
                 )
             )
         }
 
         return .init(
-            status:
-                result.isSuccess
-                    ? "passed"
-                    : "failed",
-            summary:
-                result.isSuccess
-                    ? "Swift product '\(result.product)' completed successfully."
-                    : "Swift product '\(result.product)' completed unsuccessfully.",
-            items: items
+            projection: .init(
+                status:
+                    result.isSuccess
+                        ? "passed"
+                        : "failed",
+                summary:
+                    result.isSuccess
+                        ? "Swift product '\(result.product)' completed successfully."
+                        : "Swift product '\(result.product)' completed unsuccessfully.",
+                facts: facts
+            ),
+            observations: observations
         )
     }
 }
