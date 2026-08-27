@@ -20,42 +20,14 @@ public struct SwiftBuildToolInput:
     }
 
     public let configuration:
-        Configuration
+        Configuration?
 
     public init(
         configuration:
-            Configuration = .debug
+            Configuration? = nil
     ) {
         self.configuration =
             configuration
-    }
-
-    private enum CodingKeys:
-        String,
-        CodingKey
-    {
-        case configuration
-    }
-
-    public init(
-        from decoder: Decoder
-    ) throws {
-        let container =
-            try decoder.container(
-                keyedBy:
-                    CodingKeys.self
-            )
-
-        self.init(
-            configuration:
-                try container
-                    .decodeIfPresent(
-                        Configuration.self,
-                        forKey:
-                            .configuration
-                    )
-                    ?? .debug
-        )
     }
 
     public static var schema:
@@ -65,7 +37,7 @@ public struct SwiftBuildToolInput:
             JSONSchema.string(
                 "configuration",
                 description:
-                    "Swift build configuration. Defaults to debug.",
+                    "Optional explicit Swift build configuration. Omit to use the project default, including enabled build-object.pkl compile instructions.",
                 cases:
                     Configuration
                         .allCases
@@ -119,7 +91,7 @@ public struct SwiftBuildTool:
 
     public static let description =
         """
-        Build the current SwiftPM workspace through Executable's typed Build.Request -> Build.resolve -> Build.execute workflow. Agentic disables deployment and built-version bookkeeping.
+        Build the current SwiftPM workspace through Executable's typed Build.Request -> Build.resolve -> Build.execute workflow. Omit configuration to use normal sbm project defaults, including enabled build-object.pkl interception and deployment behavior. Explicit debug/release overrides do not deploy. Agentic disables built-version bookkeeping.
         """
 
     public static let risk:
@@ -150,37 +122,83 @@ public struct SwiftBuildTool:
                     toolName: name
                 )
 
+        let request = try buildRequest(
+            decoded,
+            workspace: workspace
+        )
+
+        var targetPaths = [
+            ".build/",
+        ]
+
+        var sideEffects = [
+            "Writes SwiftPM build artifacts under .build.",
+            "SwiftPM may resolve or fetch package dependencies.",
+            "Package or build-plugin code may execute with the current host permissions.",
+            "Executable built-version snapshot bookkeeping is disabled for this invocation.",
+        ]
+
+        var policyChecks = [
+            "workspace_required",
+            "typed_swift_build",
+            "built_version_snapshot_disabled",
+            "typed_build_request_resolution_execution",
+            "human_review_required",
+        ]
+
+        if request.deploy {
+            targetPaths.append(
+                request.destination.path
+            )
+            sideEffects.append(
+                "Deploys selected executable products according to the resolved Executable build request."
+            )
+            policyChecks.append(
+                "project_build_deployment_enabled"
+            )
+        } else {
+            policyChecks.append(
+                "deployment_disabled"
+            )
+        }
+
+        let summary: String
+        let commandPreview: String
+
+        if let configuration = decoded.configuration {
+            summary =
+                "Build the Swift package in explicit \(configuration.rawValue) configuration without deployment."
+            commandPreview =
+                "swift build -c \(configuration.rawValue)"
+        } else {
+            summary =
+                "Run the project's normal \(request.config.buildDirComponent) build workflow from \(request.source.description)."
+            commandPreview =
+                request.source.arguments.isEmpty
+                    ? "sbm"
+                    : "sbm \(request.source.arguments.joined(separator: " "))"
+        }
+
         return .init(
             toolName: name,
             risk: risk,
             workspaceRoot:
                 workspace.rootURL.path,
-            targetPaths: [
-                ".build/",
-            ],
-            summary:
-                "Build the Swift package in \(decoded.configuration.rawValue) configuration.",
-            commandPreview:
-                "swift build -c \(decoded.configuration.rawValue)",
-            estimatedWriteCount: 1,
+            targetPaths: targetPaths,
+            summary: summary,
+            commandPreview: commandPreview,
+            estimatedWriteCount:
+                request.deploy
+                    ? 2
+                    : 1,
             estimatedRuntimeSeconds: 300,
-            sideEffects: [
-                "Writes SwiftPM build artifacts under .build.",
-                "SwiftPM may resolve or fetch package dependencies.",
-                "Package or build-plugin code may execute with the current host permissions.",
-                "Executable built-version snapshot bookkeeping is disabled for this invocation.",
-                "Executable deployment is disabled for this invocation.",
-            ],
-            policyChecks: [
-                "workspace_required",
-                "typed_swift_build",
-                "built_version_snapshot_disabled",
-                "deployment_disabled",
-                "typed_build_request_resolution_execution",
-                "human_review_required",
-            ],
+            sideEffects: sideEffects,
+            policyChecks: policyChecks,
             warnings: [
-                "SwiftPM build execution is not confined by Agentic PathSandbox."
+                "SwiftPM build execution is not confined by Agentic PathSandbox.",
+                request.deploy
+                    ? "The project-default build request may deploy outside the attached Agentic workspace."
+                    : "No deployment is enabled for this build request.",
             ]
         )
     }
@@ -202,30 +220,9 @@ public struct SwiftBuildTool:
                     toolName: name
                 )
 
-        let mode:
-            Build.Config.Mode =
-                switch decoded.configuration {
-                case .debug:
-                    .debug
-
-                case .release:
-                    .release
-                }
-
-        let config =
-            Build.Config(
-                mode: mode,
-                updateBuiltOnSuccess:
-                    false
-            )
-
-        let request = Build.Request(
-            project: workspace.rootURL,
-            config: config,
-            deploy: false,
-            source: .direct(
-                arguments: []
-            )
+        let request = try buildRequest(
+            decoded,
+            workspace: workspace
         )
 
         let plan = try await Build.resolve(
@@ -242,9 +239,7 @@ public struct SwiftBuildTool:
         return try JSONToolBridge.encode(
             SwiftBuildToolOutput(
                 configuration:
-                    decoded
-                        .configuration
-                        .rawValue,
+                    plan.request.config.buildDirComponent,
                 isSuccess:
                     result.exitCode == 0,
                 exitCode:
@@ -334,6 +329,47 @@ public struct SwiftBuildTool:
                 ]
             ),
             observations: observations
+        )
+    }
+}
+
+private extension SwiftBuildTool {
+    func buildRequest(
+        _ input: SwiftBuildToolInput,
+        workspace: AgentWorkspace
+    ) throws -> Build.Request {
+        guard let configuration = input.configuration else {
+            return try SwiftBuildCommand.projectDefaultRequest(
+                from: workspace.rootURL,
+                updateBuiltOnSuccess: false
+            )
+        }
+
+        let mode:
+            Build.Config.Mode =
+                switch configuration {
+                case .debug:
+                    .debug
+
+                case .release:
+                    .release
+                }
+
+        return Build.Request(
+            project: workspace.rootURL,
+            config: .init(
+                mode: mode,
+                updateBuiltOnSuccess: false
+            ),
+            deploy: false,
+            source: .direct(
+                arguments:
+                    configuration == .debug
+                        ? [
+                            "--debug",
+                        ]
+                        : []
+            )
         )
     }
 }
