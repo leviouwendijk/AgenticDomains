@@ -119,7 +119,7 @@ public struct SwiftBuildTool:
 
     public static let description =
         """
-        Build the current SwiftPM workspace using Executable's governed captured build path. Agentic disables Executable built-version bookkeeping.
+        Build the current SwiftPM workspace through Executable's typed Build.Request -> Build.resolve -> Build.execute workflow. Agentic disables deployment and built-version bookkeeping.
         """
 
     public static let risk:
@@ -169,11 +169,14 @@ public struct SwiftBuildTool:
                 "SwiftPM may resolve or fetch package dependencies.",
                 "Package or build-plugin code may execute with the current host permissions.",
                 "Executable built-version snapshot bookkeeping is disabled for this invocation.",
+                "Executable deployment is disabled for this invocation.",
             ],
             policyChecks: [
                 "workspace_required",
                 "typed_swift_build",
                 "built_version_snapshot_disabled",
+                "deployment_disabled",
+                "typed_build_request_resolution_execution",
                 "human_review_required",
             ],
             warnings: [
@@ -216,72 +219,57 @@ public struct SwiftBuildTool:
                     false
             )
 
-        do {
-            let result =
-                try await Build.captured(
-                    at:
-                        workspace.rootURL,
-                    config:
-                        config
-                )
+        let request = Build.Request(
+            project: workspace.rootURL,
+            config: config,
+            deploy: false,
+            source: .direct(
+                arguments: []
+            )
+        )
 
-            return try JSONToolBridge.encode(
-                SwiftBuildToolOutput(
-                    configuration:
-                        decoded
-                            .configuration
-                            .rawValue,
-                    isSuccess:
-                        result.exitCode == 0,
-                    exitCode:
-                        Int(
-                            result.exitCode
-                        ),
-                    stdout:
-                        String(
-                            decoding:
-                                result.stdout,
-                            as:
-                                UTF8.self
-                        ),
-                    stderr:
-                        String(
-                            decoding:
-                                result.stderr,
-                            as:
-                                UTF8.self
-                        ),
-                    buildDirComponent:
-                        result
-                            .buildDirComponent
-                )
+        let plan = try await Build.resolve(
+            request
+        )
+
+        let execution = try await Build.execute(
+            plan,
+            captureOutput: true
+        )
+
+        let result = execution.build
+
+        return try JSONToolBridge.encode(
+            SwiftBuildToolOutput(
+                configuration:
+                    decoded
+                        .configuration
+                        .rawValue,
+                isSuccess:
+                    result.exitCode == 0,
+                exitCode:
+                    Int(
+                        result.exitCode
+                    ),
+                stdout:
+                    String(
+                        decoding:
+                            result.stdout,
+                        as:
+                            UTF8.self
+                    ),
+                stderr:
+                    String(
+                        decoding:
+                            result.stderr,
+                        as:
+                            UTF8.self
+                    ),
+                buildDirComponent:
+                    result
+                        .buildDirComponent
             )
-        } catch BuildError.swiftFailed(
-            let exitCode,
-            let stdout,
-            let stderr
-        ) {
-            return try JSONToolBridge.encode(
-                SwiftBuildToolOutput(
-                    configuration:
-                        decoded
-                            .configuration
-                            .rawValue,
-                    isSuccess:
-                        false,
-                    exitCode:
-                        exitCode,
-                    stdout:
-                        stdout,
-                    stderr:
-                        stderr,
-                    buildDirComponent:
-                        decoded
-                            .configuration
-                            .rawValue
-                )
-            )
-        }
+        )
     }
 
     public func processResult(

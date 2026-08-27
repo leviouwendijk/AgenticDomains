@@ -196,11 +196,45 @@ enum AgenticSwiftToolSupport {
 
 enum AgenticSwiftToolError: Error, Sendable, LocalizedError {
     case workspaceRequired(String)
+    case operationFailed(
+        toolName: String,
+        operation: String,
+        exitCode: Int?,
+        signal: Int?,
+        detail: String
+    )
 
     var errorDescription: String? {
         switch self {
         case .workspaceRequired(let toolName):
             return "\(toolName) requires an attached AgentWorkspace."
+
+        case .operationFailed(
+            let toolName,
+            let operation,
+            let exitCode,
+            let signal,
+            let detail
+        ):
+            var summary = "\(toolName) failed while attempting to \(operation)."
+
+            if let exitCode {
+                summary += " Exit code: \(exitCode)."
+            }
+
+            if let signal {
+                summary += " Signal: \(signal)."
+            }
+
+            let normalizedDetail = detail.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
+
+            if !normalizedDetail.isEmpty {
+                summary += "\n\(normalizedDetail)"
+            }
+
+            return summary
         }
     }
 }

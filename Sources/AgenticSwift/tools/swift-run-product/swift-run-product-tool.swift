@@ -253,6 +253,26 @@ public struct SwiftRunProductTool:
                     )
             )
 
+        guard result.isSuccess else {
+            throw AgenticSwiftToolError.operationFailed(
+                toolName: name,
+                operation:
+                    "run Swift executable product '\(result.product)'",
+                exitCode:
+                    result.exitCode.map(Int.init),
+                signal:
+                    result.signal.map(Int.init),
+                detail:
+                    String(
+                        (
+                            result.stderrText.isEmpty
+                                ? result.stdoutText
+                                : result.stderrText
+                        ).prefix(16_384)
+                    )
+            )
+        }
+
         return try JSONToolBridge.encode(
             SwiftRunProductToolOutput(
                 product:

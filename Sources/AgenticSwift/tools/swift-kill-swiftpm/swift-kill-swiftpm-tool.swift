@@ -1,0 +1,113 @@
+import Agentic
+import Executable
+import Primitives
+
+public struct SwiftKillSwiftPMToolInput:
+    Sendable,
+    Codable,
+    Hashable
+{
+    public let force: Bool?
+    public let dryRun: Bool?
+
+    public init(
+        force: Bool? = nil,
+        dryRun: Bool? = nil
+    ) {
+        self.force = force
+        self.dryRun = dryRun
+    }
+
+    public static var schema: JSONValue {
+        JSONSchema.object {
+            JSONSchema.boolean(
+                "force",
+                description: "Use SIGKILL immediately. Defaults to false."
+            )
+            JSONSchema.boolean(
+                "dryRun",
+                description: "Only list processes that would be terminated. Defaults to false."
+            )
+        }
+    }
+}
+
+public struct SwiftKillSwiftPMTool: StaticAgentTool {
+    public static let identifier: AgentToolIdentifier = "swift_kill_swiftpm"
+    public static let description =
+        "Inspect and terminate Swift/SwiftPM process trees through Executable.SwiftPMProcesses."
+    public static let risk: ActionRisk = .privileged
+    public static var inputSchema: JSONValue? {
+        SwiftKillSwiftPMToolInput.schema
+    }
+
+    public init() {}
+
+    public func preflight(
+        input: JSONValue,
+        workspace: AgentWorkspace?
+    ) async throws -> ToolPreflight {
+        let decoded = try JSONToolBridge.decode(
+            SwiftKillSwiftPMToolInput.self,
+            from: input
+        )
+        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
+            workspace,
+            toolName: name
+        )
+
+        return .init(
+            toolName: name,
+            risk: risk,
+            workspaceRoot: workspace.rootURL.path,
+            summary: decoded.dryRun == true
+                ? "Inspect SwiftPM processes without signaling them."
+                : "Terminate detected SwiftPM process trees.",
+            commandPreview: decoded.dryRun == true
+                ? "kill-swiftpm --dry-run"
+                : "kill-swiftpm",
+            sideEffects: decoded.dryRun == true
+                ? []
+                : [
+                    "Sends termination signals to detected Swift/SwiftPM process trees.",
+                ],
+            policyChecks: [
+                "workspace_required",
+                "typed_swiftpm_process_management",
+                "human_review_required",
+            ]
+        )
+    }
+
+    public func call(
+        input: JSONValue,
+        workspace: AgentWorkspace?
+    ) async throws -> JSONValue {
+        let decoded = try JSONToolBridge.decode(
+            SwiftKillSwiftPMToolInput.self,
+            from: input
+        )
+        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
+            workspace,
+            toolName: name
+        )
+        let processes = try await SwiftPMProcesses().killAll(
+            force: decoded.force ?? false,
+            dryRun: decoded.dryRun ?? false,
+            cwd: workspace.rootURL
+        )
+
+        return .object([
+            "count": .string(String(processes.count)),
+            "dryRun": .bool(decoded.dryRun ?? false),
+            "processes": .array(
+                processes.map {
+                    .object([
+                        "pid": .string(String($0.pid)),
+                        "command": .string($0.commandLine),
+                    ])
+                }
+            ),
+        ])
+    }
+}

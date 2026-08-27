@@ -10,6 +10,11 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "AgenticDomains",
+            targets: ["AgenticDomains"]
+        ),
+
+        .library(
             name: "AgenticSwift",
             targets: ["AgenticSwift"]
         ),
@@ -45,8 +50,19 @@ let package = Package(
         // .package(url: "https://github.com/leviouwendijk/Ranking.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Fuzzy.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Executable.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Version.git", branch: "master"),
     ],
     targets: [
+        .target(
+            name: "AgenticDomains",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                "AgenticSwift",
+                "AgenticWeb",
+                "AgenticGit",
+            ]
+        ),
+
         .target(
             name: "AgenticSwift",
             dependencies: [
@@ -71,6 +87,7 @@ let package = Package(
                 // .product(name: "Fuzzy", package: "Fuzzy"),
 
                 .product(name: "Executable", package: "Executable"),
+                .product(name: "Version", package: "Version"),
             ]
         ),
         .target(
