@@ -28,6 +28,10 @@ let package = Package(
             name: "AgenticGit",
             targets: ["AgenticGit"]
         ),
+        .executable(
+            name: "domtest",
+            targets: ["AgenticDomainsTestFlows"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
@@ -51,6 +55,8 @@ let package = Package(
         // .package(url: "https://github.com/leviouwendijk/Fuzzy.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Executable.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Version.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/TestFlows.git", branch: "master"),
     ],
     targets: [
         .target(
@@ -114,21 +120,15 @@ let package = Package(
         //     ]
         // ),
 
-        // .testTarget(
-        //     name: "AgenticSwiftTests",
-        //     dependencies: [
-        //         .product(name: "Agentic", package: "Agentic"),
-        //         .product(
-        //             name: "SwiftParser",
-        //             package: "swift-syntax"
-        //         ),
-        //         .product(
-        //             name: "SwiftSyntax",
-        //             package: "swift-syntax"
-        //         ),
-        //         .product(name: "Path", package: "Path"),
-        //         .product(name: "Position", package: "Position"),
-        //     ]
-        // ),
+        .executableTarget(
+            name: "AgenticDomainsTestFlows",
+            dependencies: [
+                "AgenticSwift",
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Executable", package: "Executable"),
+                .product(name: "Primitives", package: "Primitives"),
+                .product(name: "TestFlows", package: "TestFlows"),
+            ]
+        ),
     ]
 )

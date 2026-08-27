@@ -80,7 +80,7 @@ public struct SwiftRemoveDeployedTool: StaticAgentTool {
         input: JSONValue,
         workspace: AgentWorkspace?
     ) async throws -> JSONValue {
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
+        _ = try AgenticSwiftToolSupport.requireWorkspace(
             workspace,
             toolName: name
         )

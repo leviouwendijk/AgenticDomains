@@ -1,0 +1,61 @@
+{
+  "failed" : 0,
+  "failed_names" : [
+
+  ],
+  "generated_at" : "2026-08-27T14:57:52Z",
+  "passed" : 4,
+  "results" : [
+    {
+      "display_name" : "agentic-swift-tool-surface",
+      "duration_seconds" : 0.0030831098556518555,
+      "name" : "agentic-swift-tool-surface",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "registration",
+        "swift",
+        "tools"
+      ]
+    },
+    {
+      "display_name" : "agentic-swift-parse-fixture",
+      "duration_seconds" : 0.11078298091888428,
+      "name" : "agentic-swift-parse-fixture",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "fixture",
+        "parse",
+        "swift"
+      ]
+    },
+    {
+      "display_name" : "agentic-swift-deployment-defaults",
+      "duration_seconds" : 0.0026389360427856445,
+      "name" : "agentic-swift-deployment-defaults",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "deployment",
+        "preflight",
+        "swift"
+      ]
+    },
+    {
+      "display_name" : "agentic-swift-package-tool-names",
+      "duration_seconds" : 0.0005899667739868164,
+      "name" : "agentic-swift-package-tool-names",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "package",
+        "preflight",
+        "swift"
+      ]
+    }
+  ],
+  "skipped" : 0,
+  "title" : "AgenticDomains flow tests",
+  "total" : 4
+}
