@@ -25,8 +25,8 @@ public enum AgenticGitToolError:
             let repositoryRoot
         ):
             return """
-            \(toolName) requires the Agentic workspace root to equal the Git repository root.
-            Workspace: \(workspaceRoot)
+            \(toolName) requires the selected Git working directory to equal the Git repository root.
+            Working directory: \(workspaceRoot)
             Repository: \(repositoryRoot)
             """
         }

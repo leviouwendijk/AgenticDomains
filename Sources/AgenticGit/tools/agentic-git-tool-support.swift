@@ -22,10 +22,23 @@ enum AgenticGitToolSupport {
         _ workspace: AgentWorkspace,
         toolName: String
     ) async throws {
+        try await requireRepositoryRoot(
+            workspace.rootURL,
+            toolName: toolName
+        )
+    }
+
+    static func requireRepositoryRoot(
+        _ workingDirectory: URL,
+        toolName: String
+    ) async throws {
+        let workingDirectory =
+            workingDirectory
+                .standardizedFileURL
         let state =
             try await GitManagerRepositoryInspector
                 .state(
-                    at: workspace.rootURL,
+                    at: workingDirectory,
                     fetch: false
                 )
 
@@ -34,22 +47,18 @@ enum AgenticGitToolSupport {
                 .standardizedFileURL
         else {
             throw GitManagerError.notGitRepository(
-                workspace.rootURL.path
+                workingDirectory.path
             )
         }
 
-        let workspaceRoot =
-            workspace.rootURL
-                .standardizedFileURL
-
         guard repositoryRoot.path
-            == workspaceRoot.path
+            == workingDirectory.path
         else {
             throw AgenticGitToolError
                 .repositoryRootWorkspaceRequired(
                     toolName: toolName,
                     workspaceRoot:
-                        workspaceRoot.path,
+                        workingDirectory.path,
                     repositoryRoot:
                         repositoryRoot.path
                 )
