@@ -138,10 +138,12 @@ let package = Package(
             name: "AgenticDomainsTestFlows",
             dependencies: [
                 "AgenticSwift",
+                "AgenticGit",
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "Executable", package: "Executable"),
+                .product(name: "Interfaces", package: "Interfaces"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "TestFlows", package: "TestFlows"),
             ]

@@ -5,7 +5,7 @@ import Foundation
 import Interfaces
 import Primitives
 
-private struct GitWorkspaceExecution {
+struct GitWorkspaceExecution {
     let workspace: AgentWorkspace
     let repositoryRoot: URL
 

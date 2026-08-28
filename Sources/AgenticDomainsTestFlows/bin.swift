@@ -57,5 +57,50 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
         ) {
             try await AgenticDomainsFlowTesting.runPackageToolNames()
         },
+        TestFlow(
+            "agentic-git-tool-surface",
+            tags: [
+                "agentic-domains",
+                "git",
+                "tools",
+                "registration",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticGitToolSurface()
+        },
+        TestFlow(
+            "agentic-git-worktree-lifecycle",
+            tags: [
+                "agentic-domains",
+                "git",
+                "worktree",
+                "isolation",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticGitWorktreeLifecycle()
+        },
+        TestFlow(
+            "agentic-git-integration-preparation",
+            tags: [
+                "agentic-domains",
+                "git",
+                "integration",
+                "prepare",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticGitIntegrationPreparation()
+        },
+        TestFlow(
+            "agentic-git-integration-promotion-cleanup",
+            tags: [
+                "agentic-domains",
+                "git",
+                "integration",
+                "promotion",
+                "cleanup",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticGitIntegrationPromotionAndCleanup()
+        },
     ]
 }
