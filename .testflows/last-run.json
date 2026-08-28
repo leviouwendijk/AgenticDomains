@@ -3,12 +3,12 @@
   "failed_names" : [
 
   ],
-  "generated_at" : "2026-08-28T15:58:10Z",
+  "generated_at" : "2026-08-28T19:39:39Z",
   "passed" : 4,
   "results" : [
     {
       "display_name" : "agentic-swift-tool-surface",
-      "duration_seconds" : 0.0027660131454467773,
+      "duration_seconds" : 0.0029230117797851562,
       "name" : "agentic-swift-tool-surface",
       "status" : "passed",
       "tags" : [
@@ -20,7 +20,7 @@
     },
     {
       "display_name" : "agentic-swift-parse-fixture",
-      "duration_seconds" : 0.12465500831604004,
+      "duration_seconds" : 0.14133799076080322,
       "name" : "agentic-swift-parse-fixture",
       "status" : "passed",
       "tags" : [
@@ -32,7 +32,7 @@
     },
     {
       "display_name" : "agentic-swift-deployment-defaults",
-      "duration_seconds" : 0.0037250518798828125,
+      "duration_seconds" : 0.002125978469848633,
       "name" : "agentic-swift-deployment-defaults",
       "status" : "passed",
       "tags" : [
@@ -44,7 +44,7 @@
     },
     {
       "display_name" : "agentic-swift-package-tool-names",
-      "duration_seconds" : 0.0005429983139038086,
+      "duration_seconds" : 0.000538945198059082,
       "name" : "agentic-swift-package-tool-names",
       "status" : "passed",
       "tags" : [
