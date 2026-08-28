@@ -103,12 +103,12 @@ public struct SwiftParseTool: StaticAgentTool {
             SwiftParseToolInput.self,
             from: input
         )
-        let scoped = try workspace.resolve(
+        let path = try workspace.resolve(
             decoded.path,
             type: .file
         )
         let file = try workspace.absoluteURL(
-            for: scoped,
+            for: path,
             type: .file
         )
         let result = try await SwiftCompiler.parse(
@@ -130,7 +130,7 @@ public struct SwiftParseTool: StaticAgentTool {
 
         return try JSONToolBridge.encode(
             SwiftParseToolOutput(
-                path: scoped.presentingRelative(
+                path: path.presentingRelative(
                     filetype: true
                 ),
                 stdout: result.stdoutText,

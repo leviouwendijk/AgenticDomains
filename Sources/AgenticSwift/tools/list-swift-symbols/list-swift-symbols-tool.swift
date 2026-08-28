@@ -58,12 +58,12 @@ public struct ListSwiftSymbolsTool: StaticAgentTool {
             ListSwiftSymbolsToolInput.self,
             from: input
         )
-        let scopedPath = try workspace.resolve(
+        let path = try workspace.resolve(
             decoded.path
         )
 
         var symbols = try collector.collect(
-            in: scopedPath
+            in: path
         )
 
         if decoded.filtersByKind {
@@ -86,7 +86,7 @@ public struct ListSwiftSymbolsTool: StaticAgentTool {
 
         return try JSONToolBridge.encode(
             ListSwiftSymbolsToolOutput(
-                path: scopedPath.presentingRelative(
+                path: path.presentingRelative(
                     filetype: true
                 ),
                 totalSymbolCount: totalSymbolCount,

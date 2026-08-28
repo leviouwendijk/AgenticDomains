@@ -9,7 +9,7 @@ public struct SwiftSymbolCollector: Sendable {
     public init() {}
 
     public func collect(
-        in file: ScopedPath
+        in file: DescendantPath
     ) throws -> [SwiftSymbolSummary] {
         let relativePath = file.presentingRelative(
             filetype: true
@@ -43,7 +43,7 @@ public struct SwiftSymbolCollector: Sendable {
 
 private extension SwiftSymbolCollector {
     func absoluteURL(
-        for path: ScopedPath
+        for path: DescendantPath
     ) -> URL {
         URL(
             fileURLWithPath: path.absolute.render(

@@ -68,15 +68,15 @@ public struct ReadSwiftSymbolTool: StaticAgentTool {
             throw ReadSwiftSymbolToolError.missingLookup
         }
 
-        let scopedPath = try workspace.resolve(
+        let path = try workspace.resolve(
             decoded.path
         )
         let symbol = try resolveSymbol(
             for: decoded,
-            in: scopedPath
+            in: path
         )
         let read = try workspace.readSlice(
-            scopedPath,
+            path,
             range: symbol.lineRange
         )
 
@@ -93,7 +93,7 @@ public struct ReadSwiftSymbolTool: StaticAgentTool {
 
         return try JSONToolBridge.encode(
             ReadSwiftSymbolToolOutput(
-                path: scopedPath.presentingRelative(
+                path: path.presentingRelative(
                     filetype: true
                 ),
                 id: symbol.id,
@@ -113,10 +113,10 @@ public struct ReadSwiftSymbolTool: StaticAgentTool {
 private extension ReadSwiftSymbolTool {
     func resolveSymbol(
         for input: ReadSwiftSymbolToolInput,
-        in scopedPath: ScopedPath
+        in path: DescendantPath
     ) throws -> SwiftSymbolSummary {
         let symbols = try collector.collect(
-            in: scopedPath
+            in: path
         )
 
         let candidates: [SwiftSymbolSummary]
@@ -151,7 +151,7 @@ private extension ReadSwiftSymbolTool {
             return symbol
         }
 
-        let path = scopedPath.presentingRelative(
+        let path = path.presentingRelative(
             filetype: true
         )
         let lookup = lookupDescription(

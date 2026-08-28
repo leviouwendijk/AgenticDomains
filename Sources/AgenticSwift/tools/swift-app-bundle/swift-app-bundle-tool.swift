@@ -123,12 +123,12 @@ public struct SwiftAppBundleTool: StaticAgentTool {
 
         let plist: URL?
         if let raw = decoded.plist {
-            let scoped = try workspace.resolve(
+            let path = try workspace.resolve(
                 raw,
                 type: .file
             )
             plist = try workspace.absoluteURL(
-                for: scoped,
+                for: path,
                 type: .file
             )
         } else {

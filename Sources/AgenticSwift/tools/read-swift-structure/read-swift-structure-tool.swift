@@ -63,12 +63,12 @@ public struct ReadSwiftStructureTool: StaticAgentTool {
             from: input
         )
         let query = try decoded.structuralQuery()
-        let scopedPath = try workspace.resolve(
+        let path = try workspace.resolve(
             decoded.path
         )
 
         let selections = try await selector.selections(
-            in: scopedPath,
+            in: path,
             query: query
         )
         let limitedSelections = Array(
@@ -79,7 +79,7 @@ public struct ReadSwiftStructureTool: StaticAgentTool {
 
         let matches = try limitedSelections.map { selection in
             let read = try workspace.readSlice(
-                scopedPath,
+                path,
                 range: selection.lineRange
             )
 
@@ -106,7 +106,7 @@ public struct ReadSwiftStructureTool: StaticAgentTool {
 
         return try JSONToolBridge.encode(
             ReadSwiftStructureToolOutput(
-                path: scopedPath.presentingRelative(
+                path: path.presentingRelative(
                     filetype: true
                 ),
                 queryKind: decoded.queryKind.rawValue,

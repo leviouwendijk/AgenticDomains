@@ -10,7 +10,7 @@ public struct SwiftStructuralSelector: StructuralSelector {
     public init() {}
 
     public func selections(
-        in file: ScopedPath,
+        in file: DescendantPath,
         query: StructuralQuery
     ) async throws -> [StructuralSelection] {
         let relativePath = file.presentingRelative(
@@ -47,7 +47,7 @@ public struct SwiftStructuralSelector: StructuralSelector {
 
 private extension SwiftStructuralSelector {
     func absoluteURL(
-        for path: ScopedPath
+        for path: DescendantPath
     ) -> URL {
         URL(
             fileURLWithPath: path.absolute.render(
@@ -142,7 +142,7 @@ private struct StructuralMatch: Sendable {
 }
 
 private final class SwiftStructureVisitor: SyntaxVisitor {
-    private let path: ScopedPath
+    private let path: DescendantPath
     private let query: StructuralQuery
     private let mapper: SourceLineMapper
 
@@ -150,7 +150,7 @@ private final class SwiftStructureVisitor: SyntaxVisitor {
     private var typeStack: [String] = []
 
     init(
-        path: ScopedPath,
+        path: DescendantPath,
         query: StructuralQuery,
         mapper: SourceLineMapper
     ) {
