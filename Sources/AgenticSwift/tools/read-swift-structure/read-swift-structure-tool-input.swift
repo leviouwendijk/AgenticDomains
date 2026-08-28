@@ -1,4 +1,5 @@
 import Agentic
+import AgenticWorkspace
 import Primitives
 
 public struct ReadSwiftStructureToolInput: Sendable, Codable, Hashable {

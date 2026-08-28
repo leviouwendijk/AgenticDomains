@@ -1,4 +1,5 @@
 import Agentic
+import AgenticExecution
 import AgenticGit
 import AgenticSwift
 import AgenticWeb

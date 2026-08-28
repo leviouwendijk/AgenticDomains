@@ -1,4 +1,5 @@
 import Agentic
+import AgenticExecution
 
 public struct AgenticWebToolSet: AgentToolSet {
     public let provider: any WebSearchProvider

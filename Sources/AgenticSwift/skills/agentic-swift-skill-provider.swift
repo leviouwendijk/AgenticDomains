@@ -1,4 +1,5 @@
 import Agentic
+import AgenticIO
 
 public struct AgenticSwiftSkillProvider: AgentSkillProvider {
     public init() {}
@@ -39,7 +40,7 @@ public extension AgenticSwiftSkillProvider {
                     .tool(ReadSwiftStructureTool.self)
                 ],
                 optional: [
-                    .tool(ReadFileTool.self, owner: "Agentic")
+                    .tool(ReadFileTool.identifier)
                 ]
             ),
             tags: [
@@ -75,8 +76,8 @@ public extension AgenticSwiftSkillProvider {
                     .tool(ReadSwiftStructureTool.self)
                 ],
                 optional: [
-                    .tool(ReadFileTool.self, owner: "Agentic"),
-                    .tool(MutateFilesTool.self, owner: "Agentic")
+                    .tool(ReadFileTool.identifier),
+                    .tool(MutateFilesTool.identifier)
                 ]
             ),
             tags: [

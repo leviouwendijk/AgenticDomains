@@ -1,4 +1,5 @@
 import Agentic
+import AgenticWorkspace
 import Foundation
 import Path
 import Position

@@ -1,4 +1,6 @@
 import Agentic
+import AgenticExecution
+import AgenticWorkspace
 import Foundation
 import Primitives
 

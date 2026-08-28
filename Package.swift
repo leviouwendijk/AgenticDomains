@@ -35,6 +35,9 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/AgenticExecution.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/AgenticWorkspace.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/AgenticIO.git", branch: "master"),
         .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "603.0.1"),
 
         .package(url: "https://github.com/leviouwendijk/Path.git", branch: "master"),
@@ -63,6 +66,7 @@ let package = Package(
             name: "AgenticDomains",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticExecution", package: "AgenticExecution"),
                 "AgenticSwift",
                 "AgenticWeb",
                 "AgenticGit",
@@ -73,6 +77,10 @@ let package = Package(
             name: "AgenticSwift",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticExecution", package: "AgenticExecution"),
+                .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
+                .product(name: "AgenticIO", package: "AgenticIO"),
+                .product(name: "Primitives", package: "Primitives"),
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "Path", package: "Path"),
@@ -100,6 +108,9 @@ let package = Package(
             name: "AgenticWeb",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticExecution", package: "AgenticExecution"),
+                .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
+                .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Parsers", package: "Parsers"),
             ]
         ),
@@ -108,6 +119,9 @@ let package = Package(
             name: "AgenticGit",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticExecution", package: "AgenticExecution"),
+                .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
+                .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Interfaces", package: "Interfaces"),
             ]
         ),
@@ -125,6 +139,8 @@ let package = Package(
             dependencies: [
                 "AgenticSwift",
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticExecution", package: "AgenticExecution"),
+                .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "Executable", package: "Executable"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "TestFlows", package: "TestFlows"),

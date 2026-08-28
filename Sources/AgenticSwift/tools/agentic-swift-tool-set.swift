@@ -1,4 +1,5 @@
 import Agentic
+import AgenticExecution
 
 public struct AgenticSwiftToolSet: AgentToolSet {
     public init() {}
