@@ -3,13 +3,18 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftKillSwiftPMToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Use SIGKILL immediately. Defaults to false.
     public let force: Bool?
+
+    /// Only list processes that would be terminated. Defaults to false.
     public let dryRun: Bool?
 
     public init(
@@ -19,19 +24,6 @@ public struct SwiftKillSwiftPMToolInput:
         self.force = force
         self.dryRun = dryRun
     }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.boolean(
-                "force",
-                description: "Use SIGKILL immediately. Defaults to false."
-            )
-            JSONSchema.boolean(
-                "dryRun",
-                description: "Only list processes that would be terminated. Defaults to false."
-            )
-        }
-    }
 }
 
 public struct SwiftKillSwiftPMTool: StaticAgentTool {
@@ -40,7 +32,7 @@ public struct SwiftKillSwiftPMTool: StaticAgentTool {
         "Inspect and terminate Swift/SwiftPM process trees through Executable.SwiftPMProcesses."
     public static let risk: ActionRisk = .privileged
     public static var inputSchema: JSONValue? {
-        SwiftKillSwiftPMToolInput.schema
+        SwiftKillSwiftPMToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

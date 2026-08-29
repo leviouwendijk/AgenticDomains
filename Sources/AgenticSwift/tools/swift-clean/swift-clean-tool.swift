@@ -3,6 +3,7 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 
 public struct SwiftCleanTool: StaticAgentTool {
     public static let identifier: AgentToolIdentifier = "swift_clean"
@@ -10,7 +11,7 @@ public struct SwiftCleanTool: StaticAgentTool {
         "Clean the current SwiftPM workspace through Executable.Build.clean."
     public static let risk: ActionRisk = .privileged
     public static var inputSchema: JSONValue? {
-        JSONSchema.object {}
+        AgenticSwiftEmptyToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

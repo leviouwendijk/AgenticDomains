@@ -3,6 +3,7 @@ import AgenticExecution
 import AgenticWorkspace
 import Interfaces
 import Primitives
+import Schema
 
 public struct GitRepositoryStateTool: StaticAgentTool {
     public static let identifier: AgentToolIdentifier =
@@ -16,7 +17,7 @@ public struct GitRepositoryStateTool: StaticAgentTool {
     public static let risk: ActionRisk = .observe
 
     public static var inputSchema: JSONValue? {
-        JSONSchema.object {}
+        AgenticGitEmptyToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

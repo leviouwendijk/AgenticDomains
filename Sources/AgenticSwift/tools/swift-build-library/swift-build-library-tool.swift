@@ -3,13 +3,18 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftBuildLibraryToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Library build configuration. Defaults to release.
     public let configuration: SwiftBuildToolInput.Configuration?
+
+    /// Keep artifacts in .build instead of exporting. Defaults to false.
     public let local: Bool?
 
     public init(
@@ -19,20 +24,6 @@ public struct SwiftBuildLibraryToolInput:
         self.configuration = configuration
         self.local = local
     }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.string(
-                "configuration",
-                description: "Library build configuration. Defaults to release.",
-                cases: SwiftBuildToolInput.Configuration.allCases.map(\.rawValue)
-            )
-            JSONSchema.boolean(
-                "local",
-                description: "Keep artifacts in .build instead of exporting. Defaults to false."
-            )
-        }
-    }
 }
 
 public struct SwiftBuildLibraryTool: StaticAgentTool {
@@ -41,7 +32,7 @@ public struct SwiftBuildLibraryTool: StaticAgentTool {
         "Build library products with module interfaces through Executable.BuildLibrary."
     public static let risk: ActionRisk = .privileged
     public static var inputSchema: JSONValue? {
-        SwiftBuildLibraryToolInput.schema
+        SwiftBuildLibraryToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

@@ -3,13 +3,19 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftRunProductToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Exact executable SwiftPM product name returned by swift_executable_products.
     public let product: String
+
+    /// When true, append the fixed --verbose argument. Intended for TestFlows and other products that support it. Defaults to true.
+    @Schema(required: false)
     public let verbose: Bool
 
     public init(
@@ -19,16 +25,20 @@ public struct SwiftRunProductToolInput:
         self.product = product
         self.verbose = verbose
     }
+}
 
-    private enum CodingKeys:
+private extension SwiftRunProductToolInput {
+    enum CodingKeys:
         String,
         CodingKey
     {
         case product
         case verbose
     }
+}
 
-    public init(
+public extension SwiftRunProductToolInput {
+    init(
         from decoder: Decoder
     ) throws {
         let container =
@@ -53,25 +63,6 @@ public struct SwiftRunProductToolInput:
                     )
                     ?? true
         )
-    }
-
-    public static var schema:
-        JSONValue
-    {
-        JSONSchema.object {
-            JSONSchema.string(
-                "product",
-                required: true,
-                description:
-                    "Exact executable SwiftPM product name returned by swift_executable_products."
-            )
-
-            JSONSchema.boolean(
-                "verbose",
-                description:
-                    "When true, append the fixed --verbose argument. Intended for TestFlows and other products that support it. Defaults to true."
-            )
-        }
     }
 }
 
@@ -122,7 +113,7 @@ public struct SwiftRunProductTool:
     public static var inputSchema:
         JSONValue?
     {
-        SwiftRunProductToolInput.schema
+        SwiftRunProductToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

@@ -2,6 +2,7 @@ import Agentic
 import AgenticExecution
 import AgenticWorkspace
 import Primitives
+import Schema
 
 public struct ListSwiftSymbolsTool: StaticAgentTool {
     public static let identifier: AgentToolIdentifier = "list_swift_symbols"
@@ -9,7 +10,7 @@ public struct ListSwiftSymbolsTool: StaticAgentTool {
     public static let risk: ActionRisk = .observe
 
     public static var inputSchema: JSONValue? {
-        ListSwiftSymbolsToolInput.schema
+        ListSwiftSymbolsToolInput.jsonschema.jsonvalue
     }
 
     public let collector: SwiftSymbolCollector

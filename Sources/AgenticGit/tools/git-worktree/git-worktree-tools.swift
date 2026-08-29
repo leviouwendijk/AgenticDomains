@@ -4,6 +4,7 @@ import AgenticWorkspace
 import Foundation
 import Interfaces
 import Primitives
+import Schema
 
 public struct GitWorktreeListTool: StaticAgentTool {
     public static let identifier: AgentToolIdentifier =
@@ -15,7 +16,7 @@ public struct GitWorktreeListTool: StaticAgentTool {
     public static let risk: ActionRisk = .observe
 
     public static var inputSchema: JSONValue? {
-        JSONSchema.object {}
+        AgenticGitEmptyToolInput.jsonschema.jsonvalue
     }
 
     public init() {}
@@ -72,12 +73,18 @@ public struct GitWorktreeListTool: StaticAgentTool {
     }
 }
 
+/// Create an Agentic-managed isolated Git worktree on a new semantic branch.
+/// The destination path is derived by Agentic and cannot be supplied directly.
+@JSONSchema
 public struct GitWorktreeCreateToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Stable semantic identity for the isolated task or pass.
     public let semanticKey: String
+
+    /// Git ref to isolate from. Defaults to HEAD.
     public let baseRef: String?
 
     public init(
@@ -86,22 +93,6 @@ public struct GitWorktreeCreateToolInput:
     ) {
         self.semanticKey = semanticKey
         self.baseRef = baseRef
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object(
-            description: "Create an Agentic-managed isolated Git worktree on a new semantic branch. The destination path is derived by Agentic and cannot be supplied directly."
-        ) {
-            JSONSchema.string(
-                "semanticKey",
-                required: true,
-                description: "Stable semantic identity for the isolated task or pass."
-            )
-            JSONSchema.string(
-                "baseRef",
-                description: "Git ref to isolate from. Defaults to HEAD."
-            )
-        }
     }
 
     func isolationID() throws -> GitManagerIsolationID {
@@ -141,7 +132,10 @@ public struct GitWorktreeCreateToolOutput:
     }
 }
 
-public struct GitWorktreeCreateTool: StaticAgentTool {
+public struct GitWorktreeCreateTool: TypedAgentTool {
+    public typealias Input = GitWorktreeCreateToolInput
+    public typealias Output = GitWorktreeCreateToolOutput
+
     public static let identifier: AgentToolIdentifier =
         "git_worktree_create"
 
@@ -149,10 +143,6 @@ public struct GitWorktreeCreateTool: StaticAgentTool {
         "Create an isolated Agentic-managed Git worktree and durable semantic branch from an exact resolved base commit. The model does not choose the filesystem destination."
 
     public static let risk: ActionRisk = .boundedmutate
-
-    public static var inputSchema: JSONValue? {
-        GitWorktreeCreateToolInput.schema
-    }
 
     public init() {}
 
@@ -257,29 +247,21 @@ public struct GitWorktreeCreateTool: StaticAgentTool {
     }
 }
 
+/// Remove one Agentic-managed task worktree while preserving its branch.
+/// Arbitrary worktree paths and forced removal are not exposed.
+@JSONSchema
 public struct GitWorktreeRemoveToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Exact path returned by git_worktree_create or git_worktree_list for an Agentic-managed task worktree.
     public let path: String
 
     public init(
         path: String
     ) {
         self.path = path
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object(
-            description: "Remove one Agentic-managed task worktree while preserving its branch. Arbitrary worktree paths and forced removal are not exposed."
-        ) {
-            JSONSchema.string(
-                "path",
-                required: true,
-                description: "Exact path returned by git_worktree_create or git_worktree_list for an Agentic-managed task worktree."
-            )
-        }
     }
 }
 
@@ -310,7 +292,7 @@ public struct GitWorktreeRemoveTool: StaticAgentTool {
     public static let risk: ActionRisk = .boundedmutate
 
     public static var inputSchema: JSONValue? {
-        GitWorktreeRemoveToolInput.schema
+        GitWorktreeRemoveToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

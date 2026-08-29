@@ -4,14 +4,22 @@ import AgenticWorkspace
 import Foundation
 import Interfaces
 import Primitives
+import Schema
 
+/// Analyze integration of one Git source ref into one target ref without mutating either ref or worktree.
+@JSONSchema
 public struct GitIntegrationPlanToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Source branch, commit, or other Git ref to integrate.
     public let sourceRef: String
+
+    /// Target branch, commit, or other Git ref to receive the source.
     public let targetRef: String
+
+    /// Optional previously observed exact target commit. Drift is reported in the plan.
     public let expectedTargetCommit: String?
 
     public init(
@@ -22,27 +30,6 @@ public struct GitIntegrationPlanToolInput:
         self.sourceRef = sourceRef
         self.targetRef = targetRef
         self.expectedTargetCommit = expectedTargetCommit
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object(
-            description: "Analyze integration of one Git source ref into one target ref without mutating either ref or worktree."
-        ) {
-            JSONSchema.string(
-                "sourceRef",
-                required: true,
-                description: "Source branch, commit, or other Git ref to integrate."
-            )
-            JSONSchema.string(
-                "targetRef",
-                required: true,
-                description: "Target branch, commit, or other Git ref to receive the source."
-            )
-            JSONSchema.string(
-                "expectedTargetCommit",
-                description: "Optional previously observed exact target commit. Drift is reported in the plan."
-            )
-        }
     }
 }
 
@@ -73,7 +60,7 @@ public struct GitIntegrationPlanTool: StaticAgentTool {
     public static let risk: ActionRisk = .observe
 
     public static var inputSchema: JSONValue? {
-        GitIntegrationPlanToolInput.schema
+        GitIntegrationPlanToolInput.jsonschema.jsonvalue
     }
 
     public init() {}
@@ -167,12 +154,18 @@ private extension GitIntegrationPlanTool {
     }
 }
 
+/// Prepare a previously planned integration in a disposable Agentic-managed integration worktree.
+/// Interfaces revalidates exact source and target commits before merging.
+@JSONSchema
 public struct GitIntegrationPrepareToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Exact receipt returned by git_integration_plan.
     public let planReceipt: String
+
+    /// Stable semantic identity for this integration attempt.
     public let semanticKey: String
 
     public init(
@@ -181,23 +174,6 @@ public struct GitIntegrationPrepareToolInput:
     ) {
         self.planReceipt = planReceipt
         self.semanticKey = semanticKey
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object(
-            description: "Prepare a previously planned integration in a disposable Agentic-managed integration worktree. Interfaces revalidates exact source and target commits before merging."
-        ) {
-            JSONSchema.string(
-                "planReceipt",
-                required: true,
-                description: "Exact receipt returned by git_integration_plan."
-            )
-            JSONSchema.string(
-                "semanticKey",
-                required: true,
-                description: "Stable semantic identity for this integration attempt."
-            )
-        }
     }
 }
 
@@ -228,7 +204,7 @@ public struct GitIntegrationPrepareTool: StaticAgentTool {
     public static let risk: ActionRisk = .boundedmutate
 
     public static var inputSchema: JSONValue? {
-        GitIntegrationPrepareToolInput.schema
+        GitIntegrationPrepareToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

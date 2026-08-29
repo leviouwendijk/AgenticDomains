@@ -3,27 +3,21 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftBuildObjectModernizeToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Write build-object.pkl.bak before modernization. Defaults to true.
     public let backup: Bool?
 
     public init(
         backup: Bool? = nil
     ) {
         self.backup = backup
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.boolean(
-                "backup",
-                description: "Write build-object.pkl.bak before modernization. Defaults to true."
-            )
-        }
     }
 }
 
@@ -33,7 +27,7 @@ public struct SwiftBuildObjectModernizeTool: StaticAgentTool {
         "Modernize a legacy build-object.pkl through Executable.BuildObjectLifecycle."
     public static let risk: ActionRisk = .boundedmutate
     public static var inputSchema: JSONValue? {
-        SwiftBuildObjectModernizeToolInput.schema
+        SwiftBuildObjectModernizeToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

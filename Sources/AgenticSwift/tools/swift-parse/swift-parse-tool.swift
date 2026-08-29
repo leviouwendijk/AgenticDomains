@@ -4,28 +4,21 @@ import AgenticWorkspace
 import Executable
 import Foundation
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftParseToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Workspace-relative Swift source file to parse with swiftc -parse.
     public let path: String
 
     public init(
         path: String
     ) {
         self.path = path
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.string(
-                "path",
-                required: true,
-                description: "Workspace-relative Swift source file to parse with swiftc -parse."
-            )
-        }
     }
 }
 
@@ -55,7 +48,7 @@ public struct SwiftParseTool: StaticAgentTool {
         "Parse one Swift source file with the compiler parser through Executable.SwiftCompiler."
     public static let risk: ActionRisk = .observe
     public static var inputSchema: JSONValue? {
-        SwiftParseToolInput.schema
+        SwiftParseToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

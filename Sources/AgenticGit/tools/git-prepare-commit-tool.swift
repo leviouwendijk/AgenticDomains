@@ -4,12 +4,18 @@ import AgenticWorkspace
 import Foundation
 import Interfaces
 import Primitives
+import Schema
 
+/// Stage an explicit set of repository-relative paths in the current Agentic workspace for a later commit.
+/// This modifies only the Git index. It does not create a commit or push anything.
+/// Pass ["."] explicitly when the intended scope is the whole repository.
+@JSONSchema
 public struct GitPrepareCommitToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Explicit repository-relative paths to stage. At least one path is required. Pass '.' explicitly to stage the whole repository.
     public let paths: [String]
 
     public init(
@@ -20,25 +26,7 @@ public struct GitPrepareCommitToolInput:
 }
 
 public extension GitPrepareCommitToolInput {
-    static var schema: JSONValue {
-        JSONSchema.object(
-            description:
-                """
-                Stage an explicit set of repository-relative paths in the current Agentic workspace for a later commit.
-                This modifies only the Git index. It does not create a commit or push anything.
-                Pass [\".\"] explicitly when the intended scope is the whole repository.
-                """
-        ) {
-            JSONSchema.array(
-                "paths",
-                required: true,
-                description:
-                    "Explicit repository-relative paths to stage. At least one path is required. Pass '.' explicitly to stage the whole repository.",
-                items:
-                    JSONSchema.Value.string()
-            )
-        }
-    }
+
 
     func validatedPaths(
         in workspace: AgentWorkspace
@@ -108,7 +96,7 @@ public struct GitPrepareCommitTool:
     public static var inputSchema:
         JSONValue?
     {
-        GitPrepareCommitToolInput.schema
+        GitPrepareCommitToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

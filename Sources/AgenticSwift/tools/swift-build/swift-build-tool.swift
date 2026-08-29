@@ -4,23 +4,36 @@ import AgenticWorkspace
 import Executable
 import Foundation
 import Primitives
+import Schema
 
+/// Configure a Swift package build invocation.
+@JSONSchema
 public struct SwiftBuildToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Swift build configuration.
     public enum Configuration:
         String,
         Sendable,
         Codable,
         Hashable,
-        CaseIterable
+        CaseIterable,
+        JSONSchemaProviding
     {
         case debug
         case release
+
+        public static var jsonschema: JSONSchema {
+            .string(
+                cases: allCases.map(\.rawValue)
+            )
+        }
     }
 
+    /// Optional explicit Swift build configuration. Omit to use the project default,
+    /// including enabled build-object.pkl compile instructions.
     public let configuration:
         Configuration?
 
@@ -30,22 +43,6 @@ public struct SwiftBuildToolInput:
     ) {
         self.configuration =
             configuration
-    }
-
-    public static var schema:
-        JSONValue
-    {
-        JSONSchema.object {
-            JSONSchema.string(
-                "configuration",
-                description:
-                    "Optional explicit Swift build configuration. Omit to use the project default, including enabled build-object.pkl compile instructions.",
-                cases:
-                    Configuration
-                        .allCases
-                        .map(\.rawValue)
-            )
-        }
     }
 }
 
@@ -85,8 +82,14 @@ public struct SwiftBuildToolOutput:
 }
 
 public struct SwiftBuildTool:
-    StaticAgentTool
+    TypedAgentTool
 {
+    public typealias Input =
+        SwiftBuildToolInput
+
+    public typealias Output =
+        SwiftBuildToolOutput
+
     public static let identifier:
         AgentToolIdentifier =
             "swift_build"
@@ -98,12 +101,6 @@ public struct SwiftBuildTool:
 
     public static let risk:
         ActionRisk = .privileged
-
-    public static var inputSchema:
-        JSONValue?
-    {
-        SwiftBuildToolInput.schema
-    }
 
     public init() {}
 
@@ -227,46 +224,67 @@ public struct SwiftBuildTool:
             workspace: workspace
         )
 
-        let plan = try await Build.resolve(
-            request
-        )
-
-        let execution = try await Build.execute(
-            plan,
-            captureOutput: true
-        )
-
-        let result = execution.build
-
-        return try JSONToolBridge.encode(
-            SwiftBuildToolOutput(
-                configuration:
-                    plan.request.config.buildDirComponent,
-                isSuccess:
-                    result.exitCode == 0,
-                exitCode:
-                    Int(
-                        result.exitCode
-                    ),
-                stdout:
-                    String(
-                        decoding:
-                            result.stdout,
-                        as:
-                            UTF8.self
-                    ),
-                stderr:
-                    String(
-                        decoding:
-                            result.stderr,
-                        as:
-                            UTF8.self
-                    ),
-                buildDirComponent:
-                    result
-                        .buildDirComponent
+        do {
+            let plan = try await Build.resolve(
+                request
             )
-        )
+
+            let execution = try await Build.execute(
+                plan,
+                captureOutput: true
+            )
+
+            let result = execution.build
+
+            return try JSONToolBridge.encode(
+                SwiftBuildToolOutput(
+                    configuration:
+                        plan.request.config.buildDirComponent,
+                    isSuccess:
+                        result.exitCode == 0,
+                    exitCode:
+                        Int(
+                            result.exitCode
+                        ),
+                    stdout:
+                        String(
+                            decoding:
+                                result.stdout,
+                            as:
+                                UTF8.self
+                        ),
+                    stderr:
+                        String(
+                            decoding:
+                                result.stderr,
+                            as:
+                                UTF8.self
+                        ),
+                    buildDirComponent:
+                        result
+                            .buildDirComponent
+                )
+            )
+        } catch BuildError.swiftFailed(
+            let exitCode,
+            let stdout,
+            let stderr
+        ) {
+            throw AgentToolReportedFailure(
+                output: try JSONToolBridge.encode(
+                    SwiftBuildToolOutput(
+                        configuration:
+                            request.config.buildDirComponent,
+                        isSuccess: false,
+                        exitCode: exitCode,
+                        stdout: stdout,
+                        stderr: stderr,
+                        buildDirComponent:
+                            request.config.buildDirComponent
+                    )
+                )
+            )
+        }
     }
 
     public func processResult(

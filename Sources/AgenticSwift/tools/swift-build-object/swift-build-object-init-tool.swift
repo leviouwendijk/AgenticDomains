@@ -3,18 +3,33 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftBuildObjectInitToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Create minimal empty build-object/compiled files. Defaults to false.
     public let empty: Bool?
+
+    /// Build object name. Defaults to workspace folder name.
     public let name: String?
+
+    /// Executable object types. Defaults to [binary].
     public let types: [String]?
+
+    /// Optional build-object details.
     public let details: String?
+
+    /// Optional author. Defaults to current user.
     public let author: String?
+
+    /// Optional update URL.
     public let update: String?
+
+    /// Also create compiled.pkl when missing. Defaults to true.
     public let createCompiled: Bool?
 
     public init(
@@ -34,40 +49,6 @@ public struct SwiftBuildObjectInitToolInput:
         self.update = update
         self.createCompiled = createCompiled
     }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.boolean(
-                "empty",
-                description: "Create minimal empty build-object/compiled files. Defaults to false."
-            )
-            JSONSchema.string(
-                "name",
-                description: "Build object name. Defaults to workspace folder name."
-            )
-            JSONSchema.array(
-                "types",
-                description: "Executable object types. Defaults to [binary].",
-                items: JSONSchema.Value.string()
-            )
-            JSONSchema.string(
-                "details",
-                description: "Optional build-object details."
-            )
-            JSONSchema.string(
-                "author",
-                description: "Optional author. Defaults to current user."
-            )
-            JSONSchema.string(
-                "update",
-                description: "Optional update URL."
-            )
-            JSONSchema.boolean(
-                "createCompiled",
-                description: "Also create compiled.pkl when missing. Defaults to true."
-            )
-        }
-    }
 }
 
 public struct SwiftBuildObjectInitTool: StaticAgentTool {
@@ -76,7 +57,7 @@ public struct SwiftBuildObjectInitTool: StaticAgentTool {
         "Initialize build-object.pkl and optionally compiled.pkl through Executable.BuildObjectLifecycle."
     public static let risk: ActionRisk = .boundedmutate
     public static var inputSchema: JSONValue? {
-        SwiftBuildObjectInitToolInput.schema
+        SwiftBuildObjectInitToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

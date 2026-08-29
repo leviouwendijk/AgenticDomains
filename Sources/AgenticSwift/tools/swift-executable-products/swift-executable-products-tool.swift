@@ -3,6 +3,7 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 
 public struct SwiftExecutableProductsToolOutput:
     Sendable,
@@ -50,10 +51,8 @@ public struct SwiftExecutableProductsTool:
     public static let risk:
         ActionRisk = .observe
 
-    public static var inputSchema:
-        JSONValue?
-    {
-        JSONSchema.object {}
+    public static var inputSchema: JSONValue? {
+        AgenticSwiftEmptyToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

@@ -4,13 +4,21 @@ import AgenticWorkspace
 import Foundation
 import Interfaces
 import Primitives
+import Schema
 
+/// Promote an exact prepared integration to a local target branch.
+/// Interfaces requires the prepared integration worktree and target branch to remain unchanged
+/// and performs only a fast-forward promotion.
+@JSONSchema
 public struct GitIntegrationPromoteToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Exact receipt returned by git_integration_prepare.
     public let executionReceipt: String
+
+    /// Local target branch to advance to the exact prepared integration HEAD. Must exactly match the target ref reviewed by git_integration_plan.
     public let targetBranch: String
 
     public init(
@@ -19,23 +27,6 @@ public struct GitIntegrationPromoteToolInput:
     ) {
         self.executionReceipt = executionReceipt
         self.targetBranch = targetBranch
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object(
-            description: "Promote an exact prepared integration to a local target branch. Interfaces requires the prepared integration worktree and target branch to remain unchanged and performs only a fast-forward promotion."
-        ) {
-            JSONSchema.string(
-                "executionReceipt",
-                required: true,
-                description: "Exact receipt returned by git_integration_prepare."
-            )
-            JSONSchema.string(
-                "targetBranch",
-                required: true,
-                description: "Local target branch to advance to the exact prepared integration HEAD. Must exactly match the target ref reviewed by git_integration_plan."
-            )
-        }
     }
 }
 
@@ -49,7 +40,7 @@ public struct GitIntegrationPromoteTool: StaticAgentTool {
     public static let risk: ActionRisk = .privileged
 
     public static var inputSchema: JSONValue? {
-        GitIntegrationPromoteToolInput.schema
+        GitIntegrationPromoteToolInput.jsonschema.jsonvalue
     }
 
     public init() {}
@@ -169,12 +160,19 @@ private extension GitIntegrationPromoteTool {
     }
 }
 
+/// Remove the disposable integration worktree and branch represented by a preparation receipt.
+/// Without discard, Interfaces only cleans a successful integration already contained in the target.
+/// Conflict or abandoned cleanup requires discard=true.
+@JSONSchema
 public struct GitIntegrationCleanupToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Exact receipt returned by git_integration_prepare.
     public let executionReceipt: String
+
+    /// Explicitly discard an unpromoted or conflicted disposable integration. Defaults to false.
     public let discard: Bool?
 
     public init(
@@ -183,22 +181,6 @@ public struct GitIntegrationCleanupToolInput:
     ) {
         self.executionReceipt = executionReceipt
         self.discard = discard
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object(
-            description: "Remove the disposable integration worktree and branch represented by a preparation receipt. Without discard, Interfaces only cleans a successful integration already contained in the target. Conflict or abandoned cleanup requires discard=true."
-        ) {
-            JSONSchema.string(
-                "executionReceipt",
-                required: true,
-                description: "Exact receipt returned by git_integration_prepare."
-            )
-            JSONSchema.boolean(
-                "discard",
-                description: "Explicitly discard an unpromoted or conflicted disposable integration. Defaults to false."
-            )
-        }
     }
 
     var resolvedDiscard: Bool {
@@ -236,7 +218,7 @@ public struct GitIntegrationCleanupTool: StaticAgentTool {
     public static let risk: ActionRisk = .privileged
 
     public static var inputSchema: JSONValue? {
-        GitIntegrationCleanupToolInput.schema
+        GitIntegrationCleanupToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

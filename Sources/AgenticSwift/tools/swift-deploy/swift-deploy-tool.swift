@@ -4,13 +4,20 @@ import AgenticWorkspace
 import Executable
 import Foundation
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftDeployToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Built Swift configuration to deploy. Defaults to debug.
+    @Schema(required: false)
     public let configuration: SwiftBuildToolInput.Configuration
+
+    /// Optional executable product names to deploy. Omit or pass an empty array to deploy every executable product.
+    @Schema(required: false)
     public let products: [String]
 
     public init(
@@ -20,16 +27,20 @@ public struct SwiftDeployToolInput:
         self.configuration = configuration
         self.products = products
     }
+}
 
-    private enum CodingKeys:
+private extension SwiftDeployToolInput {
+    enum CodingKeys:
         String,
         CodingKey
     {
         case configuration
         case products
     }
+}
 
-    public init(
+public extension SwiftDeployToolInput {
+    init(
         from decoder: Decoder
     ) throws {
         let container = try decoder.container(
@@ -46,24 +57,6 @@ public struct SwiftDeployToolInput:
                 forKey: .products
             ) ?? []
         )
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.string(
-                "configuration",
-                description: "Built Swift configuration to deploy. Defaults to debug.",
-                cases: SwiftBuildToolInput.Configuration
-                    .allCases
-                    .map(\.rawValue)
-            )
-
-            JSONSchema.array(
-                "products",
-                description: "Optional executable product names to deploy. Omit or pass an empty array to deploy every executable product.",
-                items: JSONSchema.Value.string()
-            )
-        }
     }
 }
 
@@ -99,7 +92,7 @@ public struct SwiftDeployTool: StaticAgentTool {
     public static let risk: ActionRisk = .privileged
 
     public static var inputSchema: JSONValue? {
-        SwiftDeployToolInput.schema
+        SwiftDeployToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

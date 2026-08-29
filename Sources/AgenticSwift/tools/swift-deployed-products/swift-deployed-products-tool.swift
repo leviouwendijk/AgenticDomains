@@ -3,27 +3,21 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftDeployedProductsToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Read deployment metadata sidecars. Defaults to true.
     public let includeDetails: Bool?
 
     public init(
         includeDetails: Bool? = nil
     ) {
         self.includeDetails = includeDetails
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.boolean(
-                "includeDetails",
-                description: "Read deployment metadata sidecars. Defaults to true."
-            )
-        }
     }
 }
 
@@ -73,7 +67,7 @@ public struct SwiftDeployedProductsTool: StaticAgentTool {
         "List deployed Swift binaries through Executable.DeployedList."
     public static let risk: ActionRisk = .observe
     public static var inputSchema: JSONValue? {
-        SwiftDeployedProductsToolInput.schema
+        SwiftDeployedProductsToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

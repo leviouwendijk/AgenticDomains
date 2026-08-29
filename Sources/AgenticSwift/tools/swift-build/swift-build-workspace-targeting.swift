@@ -124,37 +124,58 @@ extension SwiftBuildTool:
             decoded,
             project: project
         )
-        let plan = try await Build.resolve(
-            request
-        )
-        let execution = try await Build.execute(
-            plan,
-            captureOutput: true
-        )
-        let result = execution.build
-
-        return try JSONToolBridge.encode(
-            SwiftBuildToolOutput(
-                configuration:
-                    plan.request.config.buildDirComponent,
-                isSuccess:
-                    result.exitCode == 0,
-                exitCode:
-                    Int(result.exitCode),
-                stdout:
-                    String(
-                        decoding: result.stdout,
-                        as: UTF8.self
-                    ),
-                stderr:
-                    String(
-                        decoding: result.stderr,
-                        as: UTF8.self
-                    ),
-                buildDirComponent:
-                    result.buildDirComponent
+        do {
+            let plan = try await Build.resolve(
+                request
             )
-        )
+            let execution = try await Build.execute(
+                plan,
+                captureOutput: true
+            )
+            let result = execution.build
+
+            return try JSONToolBridge.encode(
+                SwiftBuildToolOutput(
+                    configuration:
+                        plan.request.config.buildDirComponent,
+                    isSuccess:
+                        result.exitCode == 0,
+                    exitCode:
+                        Int(result.exitCode),
+                    stdout:
+                        String(
+                            decoding: result.stdout,
+                            as: UTF8.self
+                        ),
+                    stderr:
+                        String(
+                            decoding: result.stderr,
+                            as: UTF8.self
+                        ),
+                    buildDirComponent:
+                        result.buildDirComponent
+                )
+            )
+        } catch BuildError.swiftFailed(
+            let exitCode,
+            let stdout,
+            let stderr
+        ) {
+            throw AgentToolReportedFailure(
+                output: try JSONToolBridge.encode(
+                    SwiftBuildToolOutput(
+                        configuration:
+                            request.config.buildDirComponent,
+                        isSuccess: false,
+                        exitCode: exitCode,
+                        stdout: stdout,
+                        stderr: stderr,
+                        buildDirComponent:
+                            request.config.buildDirComponent
+                    )
+                )
+            )
+        }
     }
 
     private func targetedBuildRequest(

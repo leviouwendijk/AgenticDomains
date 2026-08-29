@@ -1,3 +1,6 @@
+import Schema
+
+@JSONSchema
 public enum SwiftSymbolKind: String, Sendable, Codable, Hashable, CaseIterable {
     case `import`
     case `struct`

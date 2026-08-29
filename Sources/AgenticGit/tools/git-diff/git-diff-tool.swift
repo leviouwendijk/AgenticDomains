@@ -3,15 +3,32 @@ import AgenticExecution
 import AgenticWorkspace
 import Interfaces
 import Primitives
+import Schema
 
+/// Observe tracked Git differences for the current Agentic workspace repository.
+/// The workspace must be the Git repository root.
+/// No fetching or mutation is performed.
+/// Untracked file contents are not included.
+@JSONSchema
 public struct GitDiffToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Diff scope. Defaults to both.
+    @Schema(required: false)
     public let scope: GitManagerDiffScope
+
+    /// Optional literal repository-relative paths to restrict the diff. Parent traversal and absolute paths are rejected.
+    @Schema(required: false)
     public let paths: [String]
+
+    /// Optional unified-diff context line count. Defaults to 3 and is clamped by Interfaces to 0...20.
+    @Schema(required: false)
     public let contextLines: Int
+
+    /// Optional maximum returned patch bytes per diff section. Defaults to 262144 and is clamped by Interfaces to 1...1048576.
+    @Schema(required: false)
     public let maxPatchBytes: Int
 
     public init(
@@ -25,8 +42,10 @@ public struct GitDiffToolInput:
         self.contextLines = contextLines
         self.maxPatchBytes = maxPatchBytes
     }
+}
 
-    private enum CodingKeys:
+private extension GitDiffToolInput {
+    enum CodingKeys:
         String,
         CodingKey
     {
@@ -35,8 +54,10 @@ public struct GitDiffToolInput:
         case contextLines
         case maxPatchBytes
     }
+}
 
-    public init(
+public extension GitDiffToolInput {
+    init(
         from decoder: Decoder
     ) throws {
         let container =
@@ -70,47 +91,7 @@ public struct GitDiffToolInput:
 }
 
 public extension GitDiffToolInput {
-    static var schema: JSONValue {
-        JSONSchema.object(
-            description:
-                """
-                Observe tracked Git differences for the current Agentic workspace repository.
-                The workspace must be the Git repository root.
-                No fetching or mutation is performed.
-                Untracked file contents are not included.
-                """
-        ) {
-            JSONSchema.string(
-                "scope",
-                description:
-                    "Diff scope. Defaults to both.",
-                cases:
-                    GitManagerDiffScope
-                        .allCases
-                        .map(\.rawValue)
-            )
 
-            JSONSchema.array(
-                "paths",
-                description:
-                    "Optional literal repository-relative paths to restrict the diff. Parent traversal and absolute paths are rejected.",
-                items:
-                    JSONSchema.Value.string()
-            )
-
-            JSONSchema.integer(
-                "contextLines",
-                description:
-                    "Optional unified-diff context line count. Defaults to 3 and is clamped by Interfaces to 0...20."
-            )
-
-            JSONSchema.integer(
-                "maxPatchBytes",
-                description:
-                    "Optional maximum returned patch bytes per diff section. Defaults to 262144 and is clamped by Interfaces to 1...1048576."
-            )
-        }
-    }
 
     var request: GitManagerDiffRequest {
         .init(
@@ -141,7 +122,7 @@ public struct GitDiffTool:
     public static var inputSchema:
         JSONValue?
     {
-        GitDiffToolInput.schema
+        GitDiffToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

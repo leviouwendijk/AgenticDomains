@@ -1,13 +1,30 @@
 import Agentic
 import Foundation
 import Primitives
+import Schema
 
+/// Read one exact Swift symbol.
+/// Supply either id or displayName.
+/// When using displayName, parentType and kind may further disambiguate the symbol.
+@JSONSchema
 public struct ReadSwiftSymbolToolInput: Sendable, Codable, Hashable {
+    /// Swift source file path relative to the current Agentic workspace.
     public let path: String
+
+    /// Exact symbol identifier returned by list_swift_symbols. Supply id or displayName.
     public let id: String?
+
+    /// Exact symbol display name returned by list_swift_symbols. Supply displayName or id.
     public let displayName: String?
+
+    /// Optional parent type used when disambiguating displayName.
     public let parentType: String?
+
+    /// Optional symbol kind used when disambiguating displayName.
     public let kind: SwiftSymbolKind?
+
+    /// Whether returned source content includes line-number prefixes. Defaults to true.
+    @Schema(required: false)
     public let includeLineNumbers: Bool
 
     public init(
@@ -25,8 +42,10 @@ public struct ReadSwiftSymbolToolInput: Sendable, Codable, Hashable {
         self.kind = kind
         self.includeLineNumbers = includeLineNumbers
     }
+}
 
-    private enum CodingKeys:
+private extension ReadSwiftSymbolToolInput {
+    enum CodingKeys:
         String,
         CodingKey
     {
@@ -37,8 +56,10 @@ public struct ReadSwiftSymbolToolInput: Sendable, Codable, Hashable {
         case kind
         case includeLineNumbers
     }
+}
 
-    public init(
+public extension ReadSwiftSymbolToolInput {
+    init(
         from decoder: Decoder
     ) throws {
         let container = try decoder.container(
@@ -75,55 +96,7 @@ public struct ReadSwiftSymbolToolInput: Sendable, Codable, Hashable {
 }
 
 public extension ReadSwiftSymbolToolInput {
-    static var schema: JSONValue {
-        JSONSchema.object(
-            description:
-                """
-                Read one exact Swift symbol.
-                Supply either id or displayName.
-                When using displayName, parentType and kind may further disambiguate the symbol.
-                """
-        ) {
-            JSONSchema.string(
-                "path",
-                required: true,
-                description:
-                    "Swift source file path relative to the current Agentic workspace."
-            )
 
-            JSONSchema.string(
-                "id",
-                description:
-                    "Exact symbol identifier returned by list_swift_symbols. Supply id or displayName."
-            )
-
-            JSONSchema.string(
-                "displayName",
-                description:
-                    "Exact symbol display name returned by list_swift_symbols. Supply displayName or id."
-            )
-
-            JSONSchema.string(
-                "parentType",
-                description:
-                    "Optional parent type used when disambiguating displayName."
-            )
-
-            JSONSchema.string(
-                "kind",
-                description:
-                    "Optional symbol kind used when disambiguating displayName.",
-                cases:
-                    SwiftSymbolKind.allCases.map(\.rawValue)
-            )
-
-            JSONSchema.boolean(
-                "includeLineNumbers",
-                description:
-                    "Whether returned source content includes line-number prefixes. Defaults to true."
-            )
-        }
-    }
 
     var normalizedID: String? {
         normalized(id)

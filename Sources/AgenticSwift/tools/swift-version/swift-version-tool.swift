@@ -3,6 +3,7 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 import Version
 
 public struct SwiftVersionToolOutput:
@@ -40,7 +41,7 @@ public struct SwiftVersionTool: StaticAgentTool {
         "Inspect build-object and compiled Swift project versions through Executable."
     public static let risk: ActionRisk = .observe
     public static var inputSchema: JSONValue? {
-        JSONSchema.object {}
+        AgenticSwiftEmptyToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

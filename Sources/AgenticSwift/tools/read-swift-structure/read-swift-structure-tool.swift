@@ -4,6 +4,7 @@ import AgenticWorkspace
 import Foundation
 import Position
 import Primitives
+import Schema
 
 public struct ReadSwiftStructureTool: StaticAgentTool {
     public static let identifier: AgentToolIdentifier = "read_swift_structure"
@@ -11,7 +12,7 @@ public struct ReadSwiftStructureTool: StaticAgentTool {
     public static let risk: ActionRisk = .observe
 
     public static var inputSchema: JSONValue? {
-        ReadSwiftStructureToolInput.schema
+        ReadSwiftStructureToolInput.jsonschema.jsonvalue
     }
 
     public let selector: SwiftStructuralSelector

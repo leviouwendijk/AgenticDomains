@@ -4,17 +4,30 @@ import AgenticWorkspace
 import Executable
 import Foundation
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftAppBundleToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Previously built configuration. Defaults to release.
     public let configuration: SwiftBuildToolInput.Configuration?
+
+    /// App bundle name. Defaults from target/package.
     public let appName: String?
+
+    /// Executable target name.
     public let target: String?
+
+    /// Optional workspace-relative Info.plist path.
     public let plist: String?
+
+    /// Symlink explicit Info.plist instead of copying. Defaults to true.
     public let plistSymlink: Bool?
+
+    /// Optional resources bundle name.
     public let resourcesBundle: String?
 
     public init(
@@ -32,36 +45,6 @@ public struct SwiftAppBundleToolInput:
         self.plistSymlink = plistSymlink
         self.resourcesBundle = resourcesBundle
     }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.string(
-                "configuration",
-                description: "Previously built configuration. Defaults to release.",
-                cases: SwiftBuildToolInput.Configuration.allCases.map(\.rawValue)
-            )
-            JSONSchema.string(
-                "appName",
-                description: "App bundle name. Defaults from target/package."
-            )
-            JSONSchema.string(
-                "target",
-                description: "Executable target name."
-            )
-            JSONSchema.string(
-                "plist",
-                description: "Optional workspace-relative Info.plist path."
-            )
-            JSONSchema.boolean(
-                "plistSymlink",
-                description: "Symlink explicit Info.plist instead of copying. Defaults to true."
-            )
-            JSONSchema.string(
-                "resourcesBundle",
-                description: "Optional resources bundle name."
-            )
-        }
-    }
 }
 
 public struct SwiftAppBundleTool: StaticAgentTool {
@@ -70,7 +53,7 @@ public struct SwiftAppBundleTool: StaticAgentTool {
         "Create or refresh a .app bundle around already-built Swift artifacts through Executable.AppBundleCreation."
     public static let risk: ActionRisk = .boundedmutate
     public static var inputSchema: JSONValue? {
-        SwiftAppBundleToolInput.schema
+        SwiftAppBundleToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

@@ -4,12 +4,17 @@ import AgenticWorkspace
 import Foundation
 import Interfaces
 import Primitives
+import Schema
 
+/// Create one local Git commit from the already-prepared staged index.
+/// This tool does not stage additional paths and does not push.
+@JSONSchema
 public struct GitCommitPreparedToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Commit message for the exact currently staged changes.
     public let message: String
 
     public init(
@@ -20,22 +25,7 @@ public struct GitCommitPreparedToolInput:
 }
 
 public extension GitCommitPreparedToolInput {
-    static var schema: JSONValue {
-        JSONSchema.object(
-            description:
-                """
-                Create one local Git commit from the already-prepared staged index.
-                This tool does not stage additional paths and does not push.
-                """
-        ) {
-            JSONSchema.string(
-                "message",
-                required: true,
-                description:
-                    "Commit message for the exact currently staged changes."
-            )
-        }
-    }
+
 
     func validatedMessage() throws -> String {
         let normalized = message.trimmingCharacters(
@@ -92,7 +82,7 @@ public struct GitCommitPreparedTool:
     public static var inputSchema:
         JSONValue?
     {
-        GitCommitPreparedToolInput.schema
+        GitCommitPreparedToolInput.jsonschema.jsonvalue
     }
 
     public init() {}
@@ -214,6 +204,43 @@ public struct GitCommitPreparedTool:
                 branch: state.branch,
                 committedPaths: paths,
                 output: output
+            )
+        )
+    }
+
+    public func processResult(
+        input _: JSONValue,
+        output: JSONValue,
+        workspace _: AgentWorkspace?
+    ) -> AgentToolResultProcessing {
+        guard let result = try? JSONToolBridge.decode(
+            GitCommitPreparedToolOutput.self,
+            from: output
+        ) else {
+            return .none
+        }
+
+        return .init(
+            projection: .init(
+                status: "passed",
+                summary:
+                    "Created local Git commit: \(result.message)",
+                facts: [
+                    .init(
+                        label: "message",
+                        value: result.message
+                    ),
+                    .init(
+                        label: "branch",
+                        value: result.branch ?? "unknown"
+                    ),
+                    .init(
+                        label: "paths",
+                        value: result.committedPaths.joined(
+                            separator: ", "
+                        )
+                    ),
+                ]
             )
         )
     }

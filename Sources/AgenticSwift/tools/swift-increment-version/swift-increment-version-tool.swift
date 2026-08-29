@@ -3,29 +3,21 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 import Version
 
+@JSONSchema
 public struct SwiftIncrementVersionToolInput:
     Sendable,
     Codable
 {
+    /// Release version component to increment.
     public let level: ObjectVersionLevel
 
     public init(
         level: ObjectVersionLevel
     ) {
         self.level = level
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.string(
-                "level",
-                required: true,
-                description: "Release version component to increment.",
-                cases: ObjectVersionLevel.allCases.map(\.rawValue)
-            )
-        }
     }
 }
 
@@ -35,7 +27,7 @@ public struct SwiftIncrementVersionTool: StaticAgentTool {
         "Increment the build-object release version through Executable."
     public static let risk: ActionRisk = .boundedmutate
     public static var inputSchema: JSONValue? {
-        SwiftIncrementVersionToolInput.schema
+        SwiftIncrementVersionToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

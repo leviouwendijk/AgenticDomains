@@ -1,23 +1,60 @@
 import Agentic
 import AgenticWorkspace
 import Primitives
+import Schema
 
+/// Read a semantic Swift structure from one source file.
+/// declaration/type/member require name.
+/// member optionally accepts parentType.
+/// enclosing_scope requires a positive 1-based line and optionally a positive 1-based column.
+/// imports needs no additional query fields.
+@JSONSchema
 public struct ReadSwiftStructureToolInput: Sendable, Codable, Hashable {
-    public enum QueryKind: String, Sendable, Codable, Hashable, CaseIterable {
+    /// Semantic structure query kind.
+    public enum QueryKind:
+        String,
+        Sendable,
+        Codable,
+        Hashable,
+        CaseIterable,
+        JSONSchemaProviding
+    {
         case declaration
         case type
         case member
         case imports
         case enclosing_scope
+
+        public static var jsonschema: JSONSchema {
+            .string(
+                cases: allCases.map(\.rawValue)
+            )
+        }
     }
 
+    /// Swift source file path relative to the current Agentic workspace.
     public let path: String
+
+    /// Semantic structure query kind.
     public let queryKind: QueryKind
+
+    /// Required for declaration, type, and member queries.
     public let name: String?
+
+    /// Optional parent type used to disambiguate a member query.
     public let parentType: String?
+
+    /// Required positive 1-based line for enclosing_scope.
     public let line: Int?
+
+    /// Optional positive 1-based column for enclosing_scope.
     public let column: Int?
+
+    /// Optional maximum number of matches. Defaults to 8 and is clamped to at least 1.
     public let maxMatches: Int?
+
+    /// Whether returned source content includes line-number prefixes. Defaults to true.
+    @Schema(required: false)
     public let includeLineNumbers: Bool
 
     public init(
@@ -39,8 +76,10 @@ public struct ReadSwiftStructureToolInput: Sendable, Codable, Hashable {
         self.maxMatches = maxMatches
         self.includeLineNumbers = includeLineNumbers
     }
+}
 
-    private enum CodingKeys:
+private extension ReadSwiftStructureToolInput {
+    enum CodingKeys:
         String,
         CodingKey
     {
@@ -53,8 +92,10 @@ public struct ReadSwiftStructureToolInput: Sendable, Codable, Hashable {
         case maxMatches
         case includeLineNumbers
     }
+}
 
-    public init(
+public extension ReadSwiftStructureToolInput {
+    init(
         from decoder: Decoder
     ) throws {
         let container = try decoder.container(
@@ -99,70 +140,7 @@ public struct ReadSwiftStructureToolInput: Sendable, Codable, Hashable {
 }
 
 public extension ReadSwiftStructureToolInput {
-    static var schema: JSONValue {
-        JSONSchema.object(
-            description:
-                """
-                Read a semantic Swift structure from one source file.
-                declaration/type/member require name.
-                member optionally accepts parentType.
-                enclosing_scope requires a positive 1-based line and optionally a positive 1-based column.
-                imports needs no additional query fields.
-                """
-        ) {
-            JSONSchema.string(
-                "path",
-                required: true,
-                description:
-                    "Swift source file path relative to the current Agentic workspace."
-            )
 
-            JSONSchema.string(
-                "queryKind",
-                required: true,
-                description:
-                    "Semantic structure query kind.",
-                cases:
-                    QueryKind.allCases.map(\.rawValue)
-            )
-
-            JSONSchema.string(
-                "name",
-                description:
-                    "Required for declaration, type, and member queries."
-            )
-
-            JSONSchema.string(
-                "parentType",
-                description:
-                    "Optional parent type used to disambiguate a member query."
-            )
-
-            JSONSchema.integer(
-                "line",
-                description:
-                    "Required positive 1-based line for enclosing_scope."
-            )
-
-            JSONSchema.integer(
-                "column",
-                description:
-                    "Optional positive 1-based column for enclosing_scope."
-            )
-
-            JSONSchema.integer(
-                "maxMatches",
-                description:
-                    "Optional maximum number of matches. Defaults to 8 and is clamped to at least 1."
-            )
-
-            JSONSchema.boolean(
-                "includeLineNumbers",
-                description:
-                    "Whether returned source content includes line-number prefixes. Defaults to true."
-            )
-        }
-    }
 
     func structuralQuery() throws -> StructuralQuery {
         switch queryKind {

@@ -4,14 +4,26 @@ import AgenticWorkspace
 import Foundation
 import Interfaces
 import Primitives
+import Schema
 
+/// Push committed Git history for the current Agentic workspace repository.
+/// Omit both remote and branch to use the repository's configured/default upstream resolution.
+/// Supply both remote and branch to approve an explicit push destination.
+/// This tool never checks out or changes branches.
+@JSONSchema
 public struct GitPushToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Optional explicit Git remote name. Must be supplied together with branch.
     public let remote: String?
+
+    /// Optional explicit local branch or HEAD to push. Must be supplied together with remote. This does not switch branches.
     public let branch: String?
+
+    /// When an explicit remote and branch are supplied, whether to set that destination as upstream. Defaults to true.
+    @Schema(required: false)
     public let setUpstream: Bool
 
     public init(
@@ -23,8 +35,10 @@ public struct GitPushToolInput:
         self.branch = branch
         self.setUpstream = setUpstream
     }
+}
 
-    private enum CodingKeys:
+private extension GitPushToolInput {
+    enum CodingKeys:
         String,
         CodingKey
     {
@@ -32,8 +46,10 @@ public struct GitPushToolInput:
         case branch
         case setUpstream
     }
+}
 
-    public init(
+public extension GitPushToolInput {
+    init(
         from decoder: Decoder
     ) throws {
         let container =
@@ -62,35 +78,7 @@ public struct GitPushToolInput:
 }
 
 public extension GitPushToolInput {
-    static var schema: JSONValue {
-        JSONSchema.object(
-            description:
-                """
-                Push committed Git history for the current Agentic workspace repository.
-                Omit both remote and branch to use the repository's configured/default upstream resolution.
-                Supply both remote and branch to approve an explicit push destination.
-                This tool never checks out or changes branches.
-                """
-        ) {
-            JSONSchema.string(
-                "remote",
-                description:
-                    "Optional explicit Git remote name. Must be supplied together with branch."
-            )
 
-            JSONSchema.string(
-                "branch",
-                description:
-                    "Optional explicit local branch or HEAD to push. Must be supplied together with remote. This does not switch branches."
-            )
-
-            JSONSchema.boolean(
-                "setUpstream",
-                description:
-                    "When an explicit remote and branch are supplied, whether to set that destination as upstream. Defaults to true."
-            )
-        }
-    }
 
     func validatedTarget()
         throws -> (remote: String, branch: String)?
@@ -238,7 +226,7 @@ public struct GitPushTool:
     public static var inputSchema:
         JSONValue?
     {
-        GitPushToolInput.schema
+        GitPushToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

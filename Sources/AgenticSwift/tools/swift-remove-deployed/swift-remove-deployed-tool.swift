@@ -3,28 +3,21 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Primitives
+import Schema
 
+@JSONSchema
 public struct SwiftRemoveDeployedToolInput:
     Sendable,
     Codable,
     Hashable
 {
+    /// Deployed product name to remove.
     public let product: String
 
     public init(
         product: String
     ) {
         self.product = product
-    }
-
-    public static var schema: JSONValue {
-        JSONSchema.object {
-            JSONSchema.string(
-                "product",
-                required: true,
-                description: "Deployed product name to remove."
-            )
-        }
     }
 }
 
@@ -34,7 +27,7 @@ public struct SwiftRemoveDeployedTool: StaticAgentTool {
         "Remove one deployed Swift binary and its metadata through Executable.Remove."
     public static let risk: ActionRisk = .privileged
     public static var inputSchema: JSONValue? {
-        SwiftRemoveDeployedToolInput.schema
+        SwiftRemoveDeployedToolInput.jsonschema.jsonvalue
     }
 
     public init() {}

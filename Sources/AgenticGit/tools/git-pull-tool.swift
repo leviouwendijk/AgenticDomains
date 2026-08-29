@@ -4,6 +4,18 @@ import AgenticWorkspace
 import Foundation
 import Interfaces
 import Primitives
+import Schema
+
+/// Pull the configured upstream for the current repository.
+/// This tool intentionally accepts no remote, branch, force, rebase, merge, or checkout parameters.
+@JSONSchema
+public struct GitPullToolInput:
+    Sendable,
+    Codable,
+    Hashable
+{
+}
+
 
 public struct GitPullToolOutput:
     Sendable,
@@ -53,15 +65,8 @@ public struct GitPullTool:
         ActionRisk =
             .privileged
 
-    public static var inputSchema:
-        JSONValue?
-    {
-        JSONSchema.object(
-            description:
-                """
-                Pull the configured upstream for the current repository. This tool intentionally accepts no remote, branch, force, rebase, merge, or checkout parameters.
-                """
-        ) {}
+    public static var inputSchema: JSONValue? {
+        GitPullToolInput.jsonschema.jsonvalue
     }
 
     public init() {}
