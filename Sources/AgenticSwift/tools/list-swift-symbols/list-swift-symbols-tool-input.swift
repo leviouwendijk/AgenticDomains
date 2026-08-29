@@ -1,6 +1,7 @@
 import Agentic
 import Primitives
 import Schema
+import SchemaMacros
 
 @JSONSchema
 public struct ListSwiftSymbolsToolInput: Sendable, Codable, Hashable {

@@ -1,4 +1,5 @@
 import Schema
+import SchemaMacros
 import Version
 
 @JSONSchema

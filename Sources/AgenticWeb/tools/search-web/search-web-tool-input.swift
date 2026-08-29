@@ -1,4 +1,5 @@
 import Schema
+import SchemaMacros
 
 /// Search the public web through the configured bounded provider.
 @JSONSchema

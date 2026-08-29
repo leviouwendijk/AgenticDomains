@@ -1,5 +1,6 @@
 import Interfaces
 import Schema
+import SchemaMacros
 
 @JSONSchema
 public struct AgenticGitEmptyToolInput:

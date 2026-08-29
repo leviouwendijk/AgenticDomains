@@ -4,6 +4,7 @@ import AgenticWorkspace
 import Executable
 import Primitives
 import Schema
+import SchemaMacros
 
 @JSONSchema
 public struct SwiftDeployedProductsToolInput:

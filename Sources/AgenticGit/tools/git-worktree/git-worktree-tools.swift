@@ -5,6 +5,7 @@ import Foundation
 import Interfaces
 import Primitives
 import Schema
+import SchemaMacros
 
 public struct GitWorktreeListTool: TypedAgentTool {
     public typealias Input = AgenticGitEmptyToolInput

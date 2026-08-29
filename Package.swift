@@ -60,6 +60,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Version.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Schema.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/SchemaMacros.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/TestFlows.git", branch: "master"),
     ],
     targets: [
@@ -83,6 +84,7 @@ let package = Package(
                 .product(name: "AgenticIO", package: "AgenticIO"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
+                .product(name: "SchemaMacros", package: "SchemaMacros"),
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "Path", package: "Path"),
@@ -114,6 +116,7 @@ let package = Package(
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
+                .product(name: "SchemaMacros", package: "SchemaMacros"),
                 .product(name: "Parsers", package: "Parsers"),
             ]
         ),
@@ -126,6 +129,7 @@ let package = Package(
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
+                .product(name: "SchemaMacros", package: "SchemaMacros"),
                 .product(name: "Interfaces", package: "Interfaces"),
             ]
         ),

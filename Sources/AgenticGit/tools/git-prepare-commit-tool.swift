@@ -5,6 +5,7 @@ import Foundation
 import Interfaces
 import Primitives
 import Schema
+import SchemaMacros
 
 /// Stage an explicit set of repository-relative paths in the current Agentic workspace for a later commit.
 /// This modifies only the Git index. It does not create a commit or push anything.

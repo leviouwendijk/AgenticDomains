@@ -5,6 +5,7 @@ import Foundation
 import Interfaces
 import Primitives
 import Schema
+import SchemaMacros
 
 /// Pull the configured upstream for the current repository.
 /// This tool intentionally accepts no remote, branch, force, rebase, merge, or checkout parameters.

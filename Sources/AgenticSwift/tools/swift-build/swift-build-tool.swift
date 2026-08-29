@@ -5,6 +5,7 @@ import Executable
 import Foundation
 import Primitives
 import Schema
+import SchemaMacros
 
 /// Configure a Swift package build invocation.
 @JSONSchema

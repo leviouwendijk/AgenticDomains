@@ -2,6 +2,7 @@ import Agentic
 import Foundation
 import Primitives
 import Schema
+import SchemaMacros
 
 /// Read one exact Swift symbol.
 /// Supply either id or displayName.
