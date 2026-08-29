@@ -50,7 +50,7 @@ public struct GitPullToolOutput:
 }
 
 public struct GitPullTool:
-    StaticSchemaAgentTool
+    TypedAgentTool
 {
     public typealias Input = GitPullToolInput
     public static let identifier:

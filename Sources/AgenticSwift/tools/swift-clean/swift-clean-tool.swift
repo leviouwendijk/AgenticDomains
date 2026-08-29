@@ -5,7 +5,7 @@ import Executable
 import Primitives
 import Schema
 
-public struct SwiftCleanTool: StaticSchemaAgentTool {
+public struct SwiftCleanTool: TypedAgentTool {
     public typealias Input = AgenticSwiftEmptyToolInput
     public static let identifier: AgentToolIdentifier = "swift_clean"
     public static let description =

@@ -21,7 +21,7 @@ public struct SwiftBuildObjectModernizeToolInput:
     }
 }
 
-public struct SwiftBuildObjectModernizeTool: StaticSchemaAgentTool {
+public struct SwiftBuildObjectModernizeTool: TypedAgentTool {
     public typealias Input = SwiftBuildObjectModernizeToolInput
     public static let identifier: AgentToolIdentifier = "swift_build_object_modernize"
     public static let description =

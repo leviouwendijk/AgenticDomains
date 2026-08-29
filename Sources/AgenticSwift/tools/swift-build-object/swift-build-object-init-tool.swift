@@ -51,7 +51,7 @@ public struct SwiftBuildObjectInitToolInput:
     }
 }
 
-public struct SwiftBuildObjectInitTool: StaticSchemaAgentTool {
+public struct SwiftBuildObjectInitTool: TypedAgentTool {
     public typealias Input = SwiftBuildObjectInitToolInput
     public static let identifier: AgentToolIdentifier = "swift_build_object_init"
     public static let description =

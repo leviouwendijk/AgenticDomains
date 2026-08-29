@@ -5,7 +5,7 @@ import Primitives
 import Schema
 import Path
 
-public struct ReadSwiftSymbolTool: StaticSchemaAgentTool {
+public struct ReadSwiftSymbolTool: TypedAgentTool {
     public typealias Input = ReadSwiftSymbolToolInput
     public static let identifier: AgentToolIdentifier = "read_swift_symbol"
     public static let description = "Read one exact Swift symbol from a Swift source file in the workspace, disambiguated by symbol id or display name."

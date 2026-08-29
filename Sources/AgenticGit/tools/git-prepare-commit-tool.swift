@@ -78,7 +78,7 @@ public struct GitPrepareCommitToolOutput:
 }
 
 public struct GitPrepareCommitTool:
-    StaticSchemaAgentTool
+    TypedAgentTool
 {
     public typealias Input = GitPrepareCommitToolInput
     public static let identifier:

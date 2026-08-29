@@ -61,7 +61,7 @@ public struct SwiftDeployedProductsToolOutput:
     }
 }
 
-public struct SwiftDeployedProductsTool: StaticSchemaAgentTool {
+public struct SwiftDeployedProductsTool: TypedAgentTool {
     public typealias Input = SwiftDeployedProductsToolInput
     public static let identifier: AgentToolIdentifier = "swift_deployed_products"
     public static let description =

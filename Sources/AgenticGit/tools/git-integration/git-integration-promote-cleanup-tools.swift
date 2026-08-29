@@ -30,7 +30,7 @@ public struct GitIntegrationPromoteToolInput:
     }
 }
 
-public struct GitIntegrationPromoteTool: StaticSchemaAgentTool {
+public struct GitIntegrationPromoteTool: TypedAgentTool {
     public typealias Input = GitIntegrationPromoteToolInput
     public static let identifier: AgentToolIdentifier =
         "git_integration_promote"
@@ -205,7 +205,7 @@ public struct GitIntegrationCleanupToolOutput:
     }
 }
 
-public struct GitIntegrationCleanupTool: StaticSchemaAgentTool {
+public struct GitIntegrationCleanupTool: TypedAgentTool {
     public typealias Input = GitIntegrationCleanupToolInput
     public static let identifier: AgentToolIdentifier =
         "git_integration_cleanup"

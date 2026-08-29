@@ -4,7 +4,7 @@ import AgenticWorkspace
 import Foundation
 import Primitives
 
-public struct OpenWebResultTool: StaticSchemaAgentTool {
+public struct OpenWebResultTool: TypedAgentTool {
     public typealias Input = OpenWebResultToolInput
     public static let identifier: AgentToolIdentifier = "open_web_result"
     public static let description = "Open one previously returned search result by searchID and resultID and return sandboxed extracted text."

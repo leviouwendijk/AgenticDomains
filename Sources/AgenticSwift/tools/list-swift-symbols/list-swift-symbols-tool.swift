@@ -4,7 +4,7 @@ import AgenticWorkspace
 import Primitives
 import Schema
 
-public struct ListSwiftSymbolsTool: StaticSchemaAgentTool {
+public struct ListSwiftSymbolsTool: TypedAgentTool {
     public typealias Input = ListSwiftSymbolsToolInput
     public static let identifier: AgentToolIdentifier = "list_swift_symbols"
     public static let description = "List Swift symbols discovered in a Swift source file in the workspace."

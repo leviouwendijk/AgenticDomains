@@ -21,7 +21,7 @@ public struct SwiftIncrementVersionToolInput:
     }
 }
 
-public struct SwiftIncrementVersionTool: StaticSchemaAgentTool {
+public struct SwiftIncrementVersionTool: TypedAgentTool {
     public typealias Input = SwiftIncrementVersionToolInput
     public static let identifier: AgentToolIdentifier = "swift_increment_version"
     public static let description =

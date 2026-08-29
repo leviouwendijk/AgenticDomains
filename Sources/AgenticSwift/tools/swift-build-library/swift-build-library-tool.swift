@@ -26,7 +26,7 @@ public struct SwiftBuildLibraryToolInput:
     }
 }
 
-public struct SwiftBuildLibraryTool: StaticSchemaAgentTool {
+public struct SwiftBuildLibraryTool: TypedAgentTool {
     public typealias Input = SwiftBuildLibraryToolInput
     public static let identifier: AgentToolIdentifier = "swift_build_library"
     public static let description =

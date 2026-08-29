@@ -96,7 +96,7 @@ public struct SwiftRunProductToolOutput:
 }
 
 public struct SwiftRunProductTool:
-    StaticSchemaAgentTool
+    TypedAgentTool
 {
     public typealias Input = SwiftRunProductToolInput
     public static let identifier:

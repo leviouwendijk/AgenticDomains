@@ -104,7 +104,7 @@ public extension GitDiffToolInput {
 }
 
 public struct GitDiffTool:
-    StaticSchemaAgentTool
+    TypedAgentTool
 {
     public typealias Input = GitDiffToolInput
     public static let identifier:

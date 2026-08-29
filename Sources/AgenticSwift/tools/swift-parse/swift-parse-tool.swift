@@ -42,7 +42,7 @@ public struct SwiftParseToolOutput:
     }
 }
 
-public struct SwiftParseTool: StaticSchemaAgentTool {
+public struct SwiftParseTool: TypedAgentTool {
     public typealias Input = SwiftParseToolInput
     public static let identifier: AgentToolIdentifier = "swift_parse"
     public static let description =

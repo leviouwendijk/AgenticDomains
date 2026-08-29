@@ -4,7 +4,7 @@ import AgenticWorkspace
 import Executable
 import Primitives
 
-public struct SwiftResolveTool: StaticSchemaAgentTool {
+public struct SwiftResolveTool: TypedAgentTool {
     public typealias Input = AgenticSwiftEmptyToolInput
     public static let identifier: AgentToolIdentifier =
         "swift_package_resolve"

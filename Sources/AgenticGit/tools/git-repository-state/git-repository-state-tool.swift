@@ -5,7 +5,7 @@ import Interfaces
 import Primitives
 import Schema
 
-public struct GitRepositoryStateTool: StaticSchemaAgentTool {
+public struct GitRepositoryStateTool: TypedAgentTool {
     public typealias Input = AgenticGitEmptyToolInput
     public static let identifier: AgentToolIdentifier =
         "git_repository_state"

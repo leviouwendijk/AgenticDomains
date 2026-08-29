@@ -50,7 +50,7 @@ public struct GitIntegrationPlanToolOutput:
     }
 }
 
-public struct GitIntegrationPlanTool: StaticSchemaAgentTool {
+public struct GitIntegrationPlanTool: TypedAgentTool {
     public typealias Input = GitIntegrationPlanToolInput
     public static let identifier: AgentToolIdentifier =
         "git_integration_plan"
@@ -191,7 +191,7 @@ public struct GitIntegrationPrepareToolOutput:
     }
 }
 
-public struct GitIntegrationPrepareTool: StaticSchemaAgentTool {
+public struct GitIntegrationPrepareTool: TypedAgentTool {
     public typealias Input = GitIntegrationPrepareToolInput
     public static let identifier: AgentToolIdentifier =
         "git_integration_prepare"

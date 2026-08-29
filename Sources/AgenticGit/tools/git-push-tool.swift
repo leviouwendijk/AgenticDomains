@@ -208,7 +208,7 @@ public struct GitPushToolOutput:
 }
 
 public struct GitPushTool:
-    StaticSchemaAgentTool
+    TypedAgentTool
 {
     public typealias Input = GitPushToolInput
     public static let identifier:

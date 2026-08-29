@@ -35,7 +35,7 @@ public struct SwiftVersionToolOutput:
     }
 }
 
-public struct SwiftVersionTool: StaticSchemaAgentTool {
+public struct SwiftVersionTool: TypedAgentTool {
     public typealias Input = AgenticSwiftEmptyToolInput
     public static let identifier: AgentToolIdentifier = "swift_version"
     public static let description =

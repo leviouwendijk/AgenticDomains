@@ -37,7 +37,7 @@ public struct SwiftExecutableProductsToolOutput:
 }
 
 public struct SwiftExecutableProductsTool:
-    StaticSchemaAgentTool
+    TypedAgentTool
 {
     public typealias Input = AgenticSwiftEmptyToolInput
     public static let identifier:

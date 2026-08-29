@@ -26,7 +26,7 @@ public struct SwiftKillSwiftPMToolInput:
     }
 }
 
-public struct SwiftKillSwiftPMTool: StaticSchemaAgentTool {
+public struct SwiftKillSwiftPMTool: TypedAgentTool {
     public typealias Input = SwiftKillSwiftPMToolInput
     public static let identifier: AgentToolIdentifier = "swift_kill_swiftpm"
     public static let description =

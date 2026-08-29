@@ -21,7 +21,7 @@ public struct SwiftRemoveDeployedToolInput:
     }
 }
 
-public struct SwiftRemoveDeployedTool: StaticSchemaAgentTool {
+public struct SwiftRemoveDeployedTool: TypedAgentTool {
     public typealias Input = SwiftRemoveDeployedToolInput
     public static let identifier: AgentToolIdentifier = "swift_remove_deployed"
     public static let description =

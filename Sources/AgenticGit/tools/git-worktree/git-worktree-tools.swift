@@ -6,7 +6,7 @@ import Interfaces
 import Primitives
 import Schema
 
-public struct GitWorktreeListTool: StaticSchemaAgentTool {
+public struct GitWorktreeListTool: TypedAgentTool {
     public typealias Input = AgenticGitEmptyToolInput
     public static let identifier: AgentToolIdentifier =
         "git_worktree_list"
@@ -279,7 +279,7 @@ public struct GitWorktreeRemoveToolOutput:
     }
 }
 
-public struct GitWorktreeRemoveTool: StaticSchemaAgentTool {
+public struct GitWorktreeRemoveTool: TypedAgentTool {
     public typealias Input = GitWorktreeRemoveToolInput
     public static let identifier: AgentToolIdentifier =
         "git_worktree_remove"

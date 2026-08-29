@@ -6,7 +6,7 @@ import Position
 import Primitives
 import Schema
 
-public struct ReadSwiftStructureTool: StaticSchemaAgentTool {
+public struct ReadSwiftStructureTool: TypedAgentTool {
     public typealias Input = ReadSwiftStructureToolInput
     public static let identifier: AgentToolIdentifier = "read_swift_structure"
     public static let description = "Read Swift declarations, types, members, imports, or the enclosing scope from a Swift source file in the workspace."

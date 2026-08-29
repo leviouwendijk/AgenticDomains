@@ -80,7 +80,7 @@ public struct SwiftDeployToolOutput:
     }
 }
 
-public struct SwiftDeployTool: StaticSchemaAgentTool {
+public struct SwiftDeployTool: TypedAgentTool {
     public typealias Input = SwiftDeployToolInput
     public static let identifier: AgentToolIdentifier =
         "swift_deploy"

@@ -47,7 +47,7 @@ public struct SwiftAppBundleToolInput:
     }
 }
 
-public struct SwiftAppBundleTool: StaticSchemaAgentTool {
+public struct SwiftAppBundleTool: TypedAgentTool {
     public typealias Input = SwiftAppBundleToolInput
     public static let identifier: AgentToolIdentifier = "swift_app_bundle"
     public static let description =
