@@ -26,15 +26,12 @@ public struct SwiftKillSwiftPMToolInput:
     }
 }
 
-public struct SwiftKillSwiftPMTool: StaticAgentTool {
+public struct SwiftKillSwiftPMTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftKillSwiftPMToolInput
     public static let identifier: AgentToolIdentifier = "swift_kill_swiftpm"
     public static let description =
         "Inspect and terminate Swift/SwiftPM process trees through Executable.SwiftPMProcesses."
     public static let risk: ActionRisk = .privileged
-    public static var inputSchema: JSONValue? {
-        SwiftKillSwiftPMToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

@@ -21,15 +21,12 @@ public struct SwiftBuildObjectModernizeToolInput:
     }
 }
 
-public struct SwiftBuildObjectModernizeTool: StaticAgentTool {
+public struct SwiftBuildObjectModernizeTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftBuildObjectModernizeToolInput
     public static let identifier: AgentToolIdentifier = "swift_build_object_modernize"
     public static let description =
         "Modernize a legacy build-object.pkl through Executable.BuildObjectLifecycle."
     public static let risk: ActionRisk = .boundedmutate
-    public static var inputSchema: JSONValue? {
-        SwiftBuildObjectModernizeToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

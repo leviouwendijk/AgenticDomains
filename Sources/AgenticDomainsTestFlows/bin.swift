@@ -58,6 +58,17 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
             try await AgenticDomainsFlowTesting.runPackageToolNames()
         },
         TestFlow(
+            "agentic-web-tool-surface",
+            tags: [
+                "agentic-domains",
+                "web",
+                "tools",
+                "registration",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticWebToolSurface()
+        },
+        TestFlow(
             "agentic-git-tool-surface",
             tags: [
                 "agentic-domains",

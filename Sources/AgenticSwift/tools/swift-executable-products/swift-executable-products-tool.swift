@@ -37,8 +37,9 @@ public struct SwiftExecutableProductsToolOutput:
 }
 
 public struct SwiftExecutableProductsTool:
-    StaticAgentTool
+    StaticSchemaAgentTool
 {
+    public typealias Input = AgenticSwiftEmptyToolInput
     public static let identifier:
         AgentToolIdentifier =
             "swift_executable_products"
@@ -50,10 +51,6 @@ public struct SwiftExecutableProductsTool:
 
     public static let risk:
         ActionRisk = .observe
-
-    public static var inputSchema: JSONValue? {
-        AgenticSwiftEmptyToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

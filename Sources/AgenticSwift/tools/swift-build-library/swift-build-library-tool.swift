@@ -26,15 +26,12 @@ public struct SwiftBuildLibraryToolInput:
     }
 }
 
-public struct SwiftBuildLibraryTool: StaticAgentTool {
+public struct SwiftBuildLibraryTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftBuildLibraryToolInput
     public static let identifier: AgentToolIdentifier = "swift_build_library"
     public static let description =
         "Build library products with module interfaces through Executable.BuildLibrary."
     public static let risk: ActionRisk = .privileged
-    public static var inputSchema: JSONValue? {
-        SwiftBuildLibraryToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

@@ -30,7 +30,8 @@ public struct GitIntegrationPromoteToolInput:
     }
 }
 
-public struct GitIntegrationPromoteTool: StaticAgentTool {
+public struct GitIntegrationPromoteTool: StaticSchemaAgentTool {
+    public typealias Input = GitIntegrationPromoteToolInput
     public static let identifier: AgentToolIdentifier =
         "git_integration_promote"
 
@@ -38,10 +39,6 @@ public struct GitIntegrationPromoteTool: StaticAgentTool {
         "Promote a ready disposable integration to its reviewed target branch only when all exact-state and clean-worktree checks still hold. Never rebases, force-pushes, or resolves conflicts."
 
     public static let risk: ActionRisk = .privileged
-
-    public static var inputSchema: JSONValue? {
-        GitIntegrationPromoteToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 
@@ -208,7 +205,8 @@ public struct GitIntegrationCleanupToolOutput:
     }
 }
 
-public struct GitIntegrationCleanupTool: StaticAgentTool {
+public struct GitIntegrationCleanupTool: StaticSchemaAgentTool {
+    public typealias Input = GitIntegrationCleanupToolInput
     public static let identifier: AgentToolIdentifier =
         "git_integration_cleanup"
 
@@ -216,10 +214,6 @@ public struct GitIntegrationCleanupTool: StaticAgentTool {
         "Clean up only an Agentic-managed disposable integration worktree and its integration branch. The original task/source branch is never deleted. Explicit discard is required for conflicted or unpromoted state."
 
     public static let risk: ActionRisk = .privileged
-
-    public static var inputSchema: JSONValue? {
-        GitIntegrationCleanupToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

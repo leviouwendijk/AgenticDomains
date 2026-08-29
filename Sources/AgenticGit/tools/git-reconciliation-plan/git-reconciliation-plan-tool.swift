@@ -5,7 +5,8 @@ import Interfaces
 import Primitives
 import Schema
 
-public struct GitReconciliationPlanTool: StaticAgentTool {
+public struct GitReconciliationPlanTool: StaticSchemaAgentTool {
+    public typealias Input = AgenticGitEmptyToolInput
     public static let identifier: AgentToolIdentifier =
         "git_reconciliation_plan"
 
@@ -15,10 +16,6 @@ public struct GitReconciliationPlanTool: StaticAgentTool {
         """
 
     public static let risk: ActionRisk = .observe
-
-    public static var inputSchema: JSONValue? {
-        AgenticGitEmptyToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

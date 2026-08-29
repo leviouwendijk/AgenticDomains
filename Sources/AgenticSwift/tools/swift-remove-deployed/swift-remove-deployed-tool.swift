@@ -21,15 +21,12 @@ public struct SwiftRemoveDeployedToolInput:
     }
 }
 
-public struct SwiftRemoveDeployedTool: StaticAgentTool {
+public struct SwiftRemoveDeployedTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftRemoveDeployedToolInput
     public static let identifier: AgentToolIdentifier = "swift_remove_deployed"
     public static let description =
         "Remove one deployed Swift binary and its metadata through Executable.Remove."
     public static let risk: ActionRisk = .privileged
-    public static var inputSchema: JSONValue? {
-        SwiftRemoveDeployedToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

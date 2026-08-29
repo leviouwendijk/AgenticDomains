@@ -96,8 +96,9 @@ public struct SwiftRunProductToolOutput:
 }
 
 public struct SwiftRunProductTool:
-    StaticAgentTool
+    StaticSchemaAgentTool
 {
+    public typealias Input = SwiftRunProductToolInput
     public static let identifier:
         AgentToolIdentifier =
             "swift_run_product"
@@ -109,12 +110,6 @@ public struct SwiftRunProductTool:
 
     public static let risk:
         ActionRisk = .privileged
-
-    public static var inputSchema:
-        JSONValue?
-    {
-        SwiftRunProductToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

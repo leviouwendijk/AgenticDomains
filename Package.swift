@@ -113,6 +113,7 @@ let package = Package(
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "Primitives", package: "Primitives"),
+                .product(name: "Schema", package: "Schema"),
                 .product(name: "Parsers", package: "Parsers"),
             ]
         ),
@@ -142,6 +143,7 @@ let package = Package(
             dependencies: [
                 "AgenticSwift",
                 "AgenticGit",
+                "AgenticWeb",
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),

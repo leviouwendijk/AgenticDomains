@@ -47,15 +47,12 @@ public struct SwiftAppBundleToolInput:
     }
 }
 
-public struct SwiftAppBundleTool: StaticAgentTool {
+public struct SwiftAppBundleTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftAppBundleToolInput
     public static let identifier: AgentToolIdentifier = "swift_app_bundle"
     public static let description =
         "Create or refresh a .app bundle around already-built Swift artifacts through Executable.AppBundleCreation."
     public static let risk: ActionRisk = .boundedmutate
-    public static var inputSchema: JSONValue? {
-        SwiftAppBundleToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

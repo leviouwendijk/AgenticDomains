@@ -21,15 +21,12 @@ public struct SwiftIncrementVersionToolInput:
     }
 }
 
-public struct SwiftIncrementVersionTool: StaticAgentTool {
+public struct SwiftIncrementVersionTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftIncrementVersionToolInput
     public static let identifier: AgentToolIdentifier = "swift_increment_version"
     public static let description =
         "Increment the build-object release version through Executable."
     public static let risk: ActionRisk = .boundedmutate
-    public static var inputSchema: JSONValue? {
-        SwiftIncrementVersionToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

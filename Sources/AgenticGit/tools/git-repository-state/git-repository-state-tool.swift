@@ -5,7 +5,8 @@ import Interfaces
 import Primitives
 import Schema
 
-public struct GitRepositoryStateTool: StaticAgentTool {
+public struct GitRepositoryStateTool: StaticSchemaAgentTool {
+    public typealias Input = AgenticGitEmptyToolInput
     public static let identifier: AgentToolIdentifier =
         "git_repository_state"
 
@@ -15,10 +16,6 @@ public struct GitRepositoryStateTool: StaticAgentTool {
         """
 
     public static let risk: ActionRisk = .observe
-
-    public static var inputSchema: JSONValue? {
-        AgenticGitEmptyToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

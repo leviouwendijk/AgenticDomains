@@ -80,7 +80,8 @@ public struct SwiftDeployToolOutput:
     }
 }
 
-public struct SwiftDeployTool: StaticAgentTool {
+public struct SwiftDeployTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftDeployToolInput
     public static let identifier: AgentToolIdentifier =
         "swift_deploy"
 
@@ -90,10 +91,6 @@ public struct SwiftDeployTool: StaticAgentTool {
         """
 
     public static let risk: ActionRisk = .privileged
-
-    public static var inputSchema: JSONValue? {
-        SwiftDeployToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

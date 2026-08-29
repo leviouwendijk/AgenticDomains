@@ -208,8 +208,9 @@ public struct GitPushToolOutput:
 }
 
 public struct GitPushTool:
-    StaticAgentTool
+    StaticSchemaAgentTool
 {
+    public typealias Input = GitPushToolInput
     public static let identifier:
         AgentToolIdentifier =
             "git_push"
@@ -222,12 +223,6 @@ public struct GitPushTool:
     public static let risk:
         ActionRisk =
             .privileged
-
-    public static var inputSchema:
-        JSONValue?
-    {
-        GitPushToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

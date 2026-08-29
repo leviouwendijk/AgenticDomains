@@ -35,15 +35,12 @@ public struct SwiftVersionToolOutput:
     }
 }
 
-public struct SwiftVersionTool: StaticAgentTool {
+public struct SwiftVersionTool: StaticSchemaAgentTool {
+    public typealias Input = AgenticSwiftEmptyToolInput
     public static let identifier: AgentToolIdentifier = "swift_version"
     public static let description =
         "Inspect build-object and compiled Swift project versions through Executable."
     public static let risk: ActionRisk = .observe
-    public static var inputSchema: JSONValue? {
-        AgenticSwiftEmptyToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

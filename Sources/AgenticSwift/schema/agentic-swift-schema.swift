@@ -2,7 +2,12 @@ import Schema
 import Version
 
 @JSONSchema
-struct AgenticSwiftEmptyToolInput: Codable {}
+public struct AgenticSwiftEmptyToolInput:
+    Codable,
+    Sendable
+{
+    public init() {}
+}
 
 extension ObjectVersionLevel:
     @retroactive JSONSchemaProviding

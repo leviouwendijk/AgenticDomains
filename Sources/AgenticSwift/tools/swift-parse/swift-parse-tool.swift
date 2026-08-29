@@ -42,15 +42,12 @@ public struct SwiftParseToolOutput:
     }
 }
 
-public struct SwiftParseTool: StaticAgentTool {
+public struct SwiftParseTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftParseToolInput
     public static let identifier: AgentToolIdentifier = "swift_parse"
     public static let description =
         "Parse one Swift source file with the compiler parser through Executable.SwiftCompiler."
     public static let risk: ActionRisk = .observe
-    public static var inputSchema: JSONValue? {
-        SwiftParseToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

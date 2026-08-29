@@ -50,8 +50,9 @@ public struct GitPullToolOutput:
 }
 
 public struct GitPullTool:
-    StaticAgentTool
+    StaticSchemaAgentTool
 {
+    public typealias Input = GitPullToolInput
     public static let identifier:
         AgentToolIdentifier =
             "git_pull"
@@ -64,10 +65,6 @@ public struct GitPullTool:
     public static let risk:
         ActionRisk =
             .privileged
-
-    public static var inputSchema: JSONValue? {
-        GitPullToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

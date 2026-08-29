@@ -78,8 +78,9 @@ public struct GitPrepareCommitToolOutput:
 }
 
 public struct GitPrepareCommitTool:
-    StaticAgentTool
+    StaticSchemaAgentTool
 {
+    public typealias Input = GitPrepareCommitToolInput
     public static let identifier:
         AgentToolIdentifier =
             "git_prepare_commit"
@@ -92,12 +93,6 @@ public struct GitPrepareCommitTool:
     public static let risk:
         ActionRisk =
             .boundedmutate
-
-    public static var inputSchema:
-        JSONValue?
-    {
-        GitPrepareCommitToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

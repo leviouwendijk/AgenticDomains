@@ -50,7 +50,8 @@ public struct GitIntegrationPlanToolOutput:
     }
 }
 
-public struct GitIntegrationPlanTool: StaticAgentTool {
+public struct GitIntegrationPlanTool: StaticSchemaAgentTool {
+    public typealias Input = GitIntegrationPlanToolInput
     public static let identifier: AgentToolIdentifier =
         "git_integration_plan"
 
@@ -58,10 +59,6 @@ public struct GitIntegrationPlanTool: StaticAgentTool {
         "Build an immutable, non-mutating Git integration plan with exact source and target commits, drift detection, changed-path overlap, and merge conflict classification."
 
     public static let risk: ActionRisk = .observe
-
-    public static var inputSchema: JSONValue? {
-        GitIntegrationPlanToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 
@@ -194,7 +191,8 @@ public struct GitIntegrationPrepareToolOutput:
     }
 }
 
-public struct GitIntegrationPrepareTool: StaticAgentTool {
+public struct GitIntegrationPrepareTool: StaticSchemaAgentTool {
+    public typealias Input = GitIntegrationPrepareToolInput
     public static let identifier: AgentToolIdentifier =
         "git_integration_prepare"
 
@@ -202,10 +200,6 @@ public struct GitIntegrationPrepareTool: StaticAgentTool {
         "Revalidate an immutable integration plan and perform the merge only inside a disposable Agentic-managed integration worktree. Canonical target and source branches remain untouched."
 
     public static let risk: ActionRisk = .boundedmutate
-
-    public static var inputSchema: JSONValue? {
-        GitIntegrationPrepareToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

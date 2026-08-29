@@ -51,15 +51,12 @@ public struct SwiftBuildObjectInitToolInput:
     }
 }
 
-public struct SwiftBuildObjectInitTool: StaticAgentTool {
+public struct SwiftBuildObjectInitTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftBuildObjectInitToolInput
     public static let identifier: AgentToolIdentifier = "swift_build_object_init"
     public static let description =
         "Initialize build-object.pkl and optionally compiled.pkl through Executable.BuildObjectLifecycle."
     public static let risk: ActionRisk = .boundedmutate
-    public static var inputSchema: JSONValue? {
-        SwiftBuildObjectInitToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

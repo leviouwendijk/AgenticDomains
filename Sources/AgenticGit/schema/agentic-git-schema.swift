@@ -2,7 +2,12 @@ import Interfaces
 import Schema
 
 @JSONSchema
-struct AgenticGitEmptyToolInput: Codable {}
+public struct AgenticGitEmptyToolInput:
+    Codable,
+    Sendable
+{
+    public init() {}
+}
 
 extension GitManagerDiffScope:
     @retroactive JSONSchemaProviding

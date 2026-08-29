@@ -4,14 +4,11 @@ import AgenticWorkspace
 import Primitives
 import Schema
 
-public struct ListSwiftSymbolsTool: StaticAgentTool {
+public struct ListSwiftSymbolsTool: StaticSchemaAgentTool {
+    public typealias Input = ListSwiftSymbolsToolInput
     public static let identifier: AgentToolIdentifier = "list_swift_symbols"
     public static let description = "List Swift symbols discovered in a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe
-
-    public static var inputSchema: JSONValue? {
-        ListSwiftSymbolsToolInput.jsonschema.jsonvalue
-    }
 
     public let collector: SwiftSymbolCollector
 

@@ -6,14 +6,11 @@ import Position
 import Primitives
 import Schema
 
-public struct ReadSwiftStructureTool: StaticAgentTool {
+public struct ReadSwiftStructureTool: StaticSchemaAgentTool {
+    public typealias Input = ReadSwiftStructureToolInput
     public static let identifier: AgentToolIdentifier = "read_swift_structure"
     public static let description = "Read Swift declarations, types, members, imports, or the enclosing scope from a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe
-
-    public static var inputSchema: JSONValue? {
-        ReadSwiftStructureToolInput.jsonschema.jsonvalue
-    }
 
     public let selector: SwiftStructuralSelector
 

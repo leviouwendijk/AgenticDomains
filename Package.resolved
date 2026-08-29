@@ -1,5 +1,5 @@
 {
-  "originHash" : "50834367c29cdf2f708caaf9ebc0b4cc97bf81411bb8a56819c44cbf45111119",
+  "originHash" : "e7a8da253108d43754f705cce85202c5172b4f00482cd7fda62f9549a88e2348",
   "pins" : [
     {
       "identity" : "agentic",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticExecution.git",
       "state" : {
         "branch" : "master",
-        "revision" : "619e296a04fae3e9fdcc888457738e127b794a1f"
+        "revision" : "6a858bd5034b2d3913c2ce28f05e00e064037428"
       }
     },
     {
@@ -25,7 +25,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "fdbcd3d9e05807fed2e46e640dacdda1a83b901d"
+        "revision" : "6195ad8e9493963630776b40bea06054dcf66458"
       }
     },
     {
@@ -61,7 +61,7 @@
       "location" : "https://github.com/leviouwendijk/Difference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "ca0f33316fcf56ace04f1f5a1bb178667a291abc"
+        "revision" : "3fa70acbc0b96bbaf5a5021e362b48e399ca6c1e"
       }
     },
     {
@@ -214,7 +214,7 @@
       "location" : "https://github.com/leviouwendijk/Schema.git",
       "state" : {
         "branch" : "master",
-        "revision" : "4fb4eba584de6e6714790655d602b6daa3ae4a01"
+        "revision" : "c8c2c3871056cc3bd151ec70081d68baee9eba5a"
       }
     },
     {
@@ -268,7 +268,7 @@
       "location" : "https://github.com/leviouwendijk/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3424fe9a5a13942d9961adbc0dcb44925bce75b7"
+        "revision" : "d11451d89d1617ce912e33723d6194acad384838"
       }
     },
     {

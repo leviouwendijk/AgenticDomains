@@ -104,8 +104,9 @@ public extension GitDiffToolInput {
 }
 
 public struct GitDiffTool:
-    StaticAgentTool
+    StaticSchemaAgentTool
 {
+    public typealias Input = GitDiffToolInput
     public static let identifier:
         AgentToolIdentifier =
             "git_diff"
@@ -118,12 +119,6 @@ public struct GitDiffTool:
     public static let risk:
         ActionRisk =
             .observe
-
-    public static var inputSchema:
-        JSONValue?
-    {
-        GitDiffToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

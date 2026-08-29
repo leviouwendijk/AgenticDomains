@@ -61,15 +61,12 @@ public struct SwiftDeployedProductsToolOutput:
     }
 }
 
-public struct SwiftDeployedProductsTool: StaticAgentTool {
+public struct SwiftDeployedProductsTool: StaticSchemaAgentTool {
+    public typealias Input = SwiftDeployedProductsToolInput
     public static let identifier: AgentToolIdentifier = "swift_deployed_products"
     public static let description =
         "List deployed Swift binaries through Executable.DeployedList."
     public static let risk: ActionRisk = .observe
-    public static var inputSchema: JSONValue? {
-        SwiftDeployedProductsToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

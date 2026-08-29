@@ -4,7 +4,8 @@ import AgenticWorkspace
 import Executable
 import Primitives
 
-public struct SwiftUpdateTool: StaticAgentTool {
+public struct SwiftUpdateTool: StaticSchemaAgentTool {
+    public typealias Input = AgenticSwiftEmptyToolInput
     public static let identifier: AgentToolIdentifier =
         "swift_package_update"
 

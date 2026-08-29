@@ -51,6 +51,20 @@ enum AgenticDomainsFlowTesting {
             )
         }
 
+        let missingSemanticSchemas =
+            registry.capabilities
+                .filter {
+                    $0.semanticInputSchema == nil
+                }
+                .map(\.definition.name)
+                .sorted()
+
+        try Expect.equal(
+            missingSemanticSchemas,
+            [String](),
+            "AgenticSwift registered tools all project semantic input schemas"
+        )
+
         return [
             .field(
                 "registered",

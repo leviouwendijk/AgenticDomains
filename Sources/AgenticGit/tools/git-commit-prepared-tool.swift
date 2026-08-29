@@ -64,8 +64,9 @@ public struct GitCommitPreparedToolOutput:
 }
 
 public struct GitCommitPreparedTool:
-    StaticAgentTool
+    StaticSchemaAgentTool
 {
+    public typealias Input = GitCommitPreparedToolInput
     public static let identifier:
         AgentToolIdentifier =
             "git_commit_prepared"
@@ -78,12 +79,6 @@ public struct GitCommitPreparedTool:
     public static let risk:
         ActionRisk =
             .privileged
-
-    public static var inputSchema:
-        JSONValue?
-    {
-        GitCommitPreparedToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 

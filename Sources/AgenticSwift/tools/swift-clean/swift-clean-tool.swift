@@ -5,15 +5,12 @@ import Executable
 import Primitives
 import Schema
 
-public struct SwiftCleanTool: StaticAgentTool {
+public struct SwiftCleanTool: StaticSchemaAgentTool {
+    public typealias Input = AgenticSwiftEmptyToolInput
     public static let identifier: AgentToolIdentifier = "swift_clean"
     public static let description =
         "Clean the current SwiftPM workspace through Executable.Build.clean."
     public static let risk: ActionRisk = .privileged
-    public static var inputSchema: JSONValue? {
-        AgenticSwiftEmptyToolInput.jsonschema.jsonvalue
-    }
-
     public init() {}
 
     public func preflight(

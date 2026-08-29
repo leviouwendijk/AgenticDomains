@@ -6,7 +6,8 @@ import Interfaces
 import Primitives
 import Schema
 
-public struct GitWorktreeListTool: StaticAgentTool {
+public struct GitWorktreeListTool: StaticSchemaAgentTool {
+    public typealias Input = AgenticGitEmptyToolInput
     public static let identifier: AgentToolIdentifier =
         "git_worktree_list"
 
@@ -14,10 +15,6 @@ public struct GitWorktreeListTool: StaticAgentTool {
         "List Git worktrees for the current Agentic workspace repository without mutating the repository."
 
     public static let risk: ActionRisk = .observe
-
-    public static var inputSchema: JSONValue? {
-        AgenticGitEmptyToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 
@@ -282,7 +279,8 @@ public struct GitWorktreeRemoveToolOutput:
     }
 }
 
-public struct GitWorktreeRemoveTool: StaticAgentTool {
+public struct GitWorktreeRemoveTool: StaticSchemaAgentTool {
+    public typealias Input = GitWorktreeRemoveToolInput
     public static let identifier: AgentToolIdentifier =
         "git_worktree_remove"
 
@@ -290,10 +288,6 @@ public struct GitWorktreeRemoveTool: StaticAgentTool {
         "Remove one clean Agentic-managed task worktree without forcing removal and without deleting its durable branch."
 
     public static let risk: ActionRisk = .boundedmutate
-
-    public static var inputSchema: JSONValue? {
-        GitWorktreeRemoveToolInput.jsonschema.jsonvalue
-    }
 
     public init() {}
 
