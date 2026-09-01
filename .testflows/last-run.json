@@ -3,12 +3,12 @@
   "failed_names" : [
 
   ],
-  "generated_at" : "2026-08-28T19:59:02Z",
-  "passed" : 4,
+  "generated_at" : "2026-08-29T20:34:04Z",
+  "passed" : 9,
   "results" : [
     {
       "display_name" : "agentic-swift-tool-surface",
-      "duration_seconds" : 0.004002094268798828,
+      "duration_seconds" : 0.0028249025344848633,
       "name" : "agentic-swift-tool-surface",
       "status" : "passed",
       "tags" : [
@@ -20,7 +20,7 @@
     },
     {
       "display_name" : "agentic-swift-parse-fixture",
-      "duration_seconds" : 0.13851702213287354,
+      "duration_seconds" : 0.1273670196533203,
       "name" : "agentic-swift-parse-fixture",
       "status" : "passed",
       "tags" : [
@@ -32,7 +32,7 @@
     },
     {
       "display_name" : "agentic-swift-deployment-defaults",
-      "duration_seconds" : 0.0026159286499023438,
+      "duration_seconds" : 0.0025839805603027344,
       "name" : "agentic-swift-deployment-defaults",
       "status" : "passed",
       "tags" : [
@@ -44,7 +44,7 @@
     },
     {
       "display_name" : "agentic-swift-package-tool-names",
-      "duration_seconds" : 0.0006660223007202148,
+      "duration_seconds" : 0.0006400346755981445,
       "name" : "agentic-swift-package-tool-names",
       "status" : "passed",
       "tags" : [
@@ -53,9 +53,70 @@
         "preflight",
         "swift"
       ]
+    },
+    {
+      "display_name" : "agentic-web-tool-surface",
+      "duration_seconds" : 0.00022101402282714844,
+      "name" : "agentic-web-tool-surface",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "registration",
+        "tools",
+        "web"
+      ]
+    },
+    {
+      "display_name" : "agentic-git-tool-surface",
+      "duration_seconds" : 0.0007261037826538086,
+      "name" : "agentic-git-tool-surface",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "git",
+        "registration",
+        "tools"
+      ]
+    },
+    {
+      "display_name" : "agentic-git-worktree-lifecycle",
+      "duration_seconds" : 1.1220630407333374,
+      "name" : "agentic-git-worktree-lifecycle",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "git",
+        "isolation",
+        "worktree"
+      ]
+    },
+    {
+      "display_name" : "agentic-git-integration-preparation",
+      "duration_seconds" : 2.191336989402771,
+      "name" : "agentic-git-integration-preparation",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "git",
+        "integration",
+        "prepare"
+      ]
+    },
+    {
+      "display_name" : "agentic-git-integration-promotion-cleanup",
+      "duration_seconds" : 4.4306640625,
+      "name" : "agentic-git-integration-promotion-cleanup",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "cleanup",
+        "git",
+        "integration",
+        "promotion"
+      ]
     }
   ],
   "skipped" : 0,
   "title" : "AgenticDomains flow tests",
-  "total" : 4
+  "total" : 9
 }
