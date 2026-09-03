@@ -12,7 +12,7 @@ public struct GitRepositoryStateTool: TypedAgentTool {
 
     public static let description =
         """
-        Inspect Git repository state for the current Agentic workspace without fetching or mutating the repository.
+        Inspect read-only Git repository status and state for the current Agentic workspace, including branch, working-tree changes, and untracked files, without fetching or mutating the repository.
         """
 
     public static let risk: ActionRisk = .observe
