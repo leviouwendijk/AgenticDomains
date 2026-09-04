@@ -22,78 +22,41 @@ public struct SwiftIncrementVersionToolInput:
     }
 }
 
-public struct SwiftIncrementVersionTool: TypedAgentTool {
+
+public struct SwiftIncrementVersionToolOutput: Sendable, Codable, Hashable {
+    public let before: String
+    public let after: String
+    public let level: String
+    public let path: String
+
+    public init(before: String, after: String, level: String, path: String) {
+        self.before = before
+        self.after = after
+        self.level = level
+        self.path = path
+    }
+}
+
+public struct SwiftIncrementVersionTool: AgentTool {
     public typealias Input = SwiftIncrementVersionToolInput
+    public typealias Output = SwiftIncrementVersionToolOutput
     public static let identifier: AgentToolIdentifier = "swift_increment_version"
     public static let description =
         "Increment the build-object release version through Executable."
     public static let risk: ActionRisk = .boundedmutate
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftIncrementVersionToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
 
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot: workspace.rootURL.path,
-            targetPaths: [
-                "build-object.pkl",
-            ],
-            summary: "Increment Swift release \(decoded.level.rawValue) version.",
-            estimatedWriteCount: 1,
-            sideEffects: [
-                "Updates the release version in build-object.pkl.",
-            ],
-            policyChecks: [
-                "workspace_required",
-                "typed_executable_version_increment",
-            ]
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftIncrementVersionToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
-        let result = try ExecutableVersion.incrementRelease(
-            at: workspace.rootURL,
-            level: decoded.level
-        )
-
-        return .object([
-            "before": .string(
-                result.before.string(
-                    prefixStyle: .short,
-                    prefixSpace: false
-                )
-            ),
-            "after": .string(
-                result.after.string(
-                    prefixStyle: .short,
-                    prefixSpace: false
-                )
-            ),
-            "level": .string(result.level.rawValue),
-            "path": .string(result.configurationURL.path),
-        ])
-    }
 }

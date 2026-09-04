@@ -35,67 +35,26 @@ public struct SwiftVersionToolOutput:
     }
 }
 
-public struct SwiftVersionTool: TypedAgentTool {
+public struct SwiftVersionTool: AgentTool {
     public typealias Input = AgenticSwiftEmptyToolInput
+    public typealias Output = SwiftVersionToolOutput
     public static let identifier: AgentToolIdentifier = "swift_version"
     public static let description =
         "Inspect build-object and compiled Swift project versions through Executable."
     public static let risk: ActionRisk = .observe
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input _: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
 
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot: workspace.rootURL.path,
-            targetPaths: [
-                "build-object.pkl",
-                "compiled.pkl",
-            ],
-            summary: "Inspect Swift project version state.",
-            sideEffects: [],
-            policyChecks: [
-                "workspace_required",
-                "typed_executable_version_inspection",
-            ]
-        )
-    }
-
-    public func call(
-        input _: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
-        let snapshot = try await ExecutableVersion.inspect(
-            at: workspace.rootURL
-        )
-
-        return try JSONToolBridge.encode(
-            SwiftVersionToolOutput(
-                name: snapshot.name,
-                types: snapshot.types,
-                compiled: snapshot.compiled.string(
-                    prefixStyle: .short,
-                    prefixSpace: false
-                ),
-                release: snapshot.release.string(
-                    prefixStyle: .short,
-                    prefixSpace: false
-                ),
-                ahead: snapshot.ahead,
-                behind: snapshot.behind
-            )
-        )
-    }
 }

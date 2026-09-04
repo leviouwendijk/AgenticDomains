@@ -1,4 +1,3 @@
-import Agentic
 import AgenticExecution
 
 public struct AgenticGitToolSet: AgentToolSet {
@@ -7,23 +6,21 @@ public struct AgenticGitToolSet: AgentToolSet {
     public func register(
         into registry: inout ToolRegistry
     ) throws {
-        try registry.register(
-            [
-                GitRepositoryStateTool(),
-                GitDiffTool(),
-                GitWorktreeListTool(),
-                GitWorktreeCreateTool(),
-                GitWorktreeRemoveTool(),
-                GitIntegrationPlanTool(),
-                GitIntegrationPrepareTool(),
-                GitIntegrationPromoteTool(),
-                GitIntegrationCleanupTool(),
-                GitReconciliationPlanTool(),
-                GitPullTool(),
-                GitPrepareCommitTool(),
-                GitCommitPreparedTool(),
-                GitPushTool(),
-            ]
-        )
+        try registry.register {
+            GitRepositoryStateTool()
+            GitDiffTool()
+            GitWorktreeListTool()
+            GitWorktreeCreateTool()
+            GitWorktreeRemoveTool()
+            GitIntegrationPlanTool()
+            GitIntegrationPrepareTool()
+            GitIntegrationPromoteTool()
+            GitIntegrationCleanupTool()
+            GitReconciliationPlanTool()
+            GitPullTool()
+            GitPrepareCommitTool()
+            GitCommitPreparedTool()
+            GitPushTool()
+        }
     }
 }

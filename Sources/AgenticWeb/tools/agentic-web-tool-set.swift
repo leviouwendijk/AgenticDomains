@@ -19,19 +19,17 @@ public struct AgenticWebToolSet: AgentToolSet {
     public func register(
         into registry: inout ToolRegistry
     ) throws {
-        try registry.register(
-            [
-                SearchWebTool(
-                    provider: provider,
-                    policy: policy,
-                    sessionStore: sessionStore
-                ),
-                OpenWebResultTool(
-                    provider: provider,
-                    policy: policy,
-                    sessionStore: sessionStore
-                )
-            ]
-        )
+        try registry.register {
+            SearchWebTool(
+                provider: provider,
+                policy: policy,
+                sessionStore: sessionStore
+            )
+            OpenWebResultTool(
+                provider: provider,
+                policy: policy,
+                sessionStore: sessionStore
+            )
+        }
     }
 }

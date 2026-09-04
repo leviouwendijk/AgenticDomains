@@ -7,8 +7,9 @@ import Primitives
 import Schema
 import SchemaMacros
 
-public struct GitWorktreeListTool: TypedAgentTool {
+public struct GitWorktreeListTool: AgentTool {
     public typealias Input = AgenticGitEmptyToolInput
+    public typealias Output = [GitManagerWorktreeRecord]
     public static let identifier: AgentToolIdentifier =
         "git_worktree_list"
 
@@ -17,14 +18,26 @@ public struct GitWorktreeListTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .observe
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input _: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let workspace = try AgenticGitToolSupport.requireWorkspace(
-            workspace,
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
             toolName: name
         )
 
@@ -36,7 +49,7 @@ public struct GitWorktreeListTool: TypedAgentTool {
         return .init(
             toolName: name,
             risk: risk,
-            workspaceRoot: workspace.rootURL.path,
+            workspaceRoot: context.workspace?.rootURL.path,
             targetPaths: [workspace.rootURL.path],
             summary: "List Git worktrees for the current repository.",
             sideEffects: [],
@@ -50,11 +63,11 @@ public struct GitWorktreeListTool: TypedAgentTool {
     }
 
     public func call(
-        input _: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let workspace = try AgenticGitToolSupport.requireWorkspace(
-            workspace,
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
             toolName: name
         )
 
@@ -63,11 +76,9 @@ public struct GitWorktreeListTool: TypedAgentTool {
             toolName: name
         )
 
-        return try JSONToolBridge.encode(
-            try await GitManagerWorktree.list(
+        return try await GitManagerWorktree.list(
                 at: workspace.rootURL
             )
-        )
     }
 }
 
@@ -130,7 +141,7 @@ public struct GitWorktreeCreateToolOutput:
     }
 }
 
-public struct GitWorktreeCreateTool: TypedAgentTool {
+public struct GitWorktreeCreateTool: AgentTool {
     public typealias Input = GitWorktreeCreateToolInput
     public typealias Output = GitWorktreeCreateToolOutput
 
@@ -142,18 +153,26 @@ public struct GitWorktreeCreateTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .boundedmutate
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            GitWorktreeCreateToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticGitToolSupport.requireWorkspace(
-            workspace,
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
             toolName: name
         )
 
@@ -162,7 +181,7 @@ public struct GitWorktreeCreateTool: TypedAgentTool {
             toolName: name
         )
 
-        let isolationID = try decoded.isolationID()
+        let isolationID = try input.isolationID()
         let branch = isolationID.branchName()
         let destination = try AgenticGitManagedWorktrees.destination(
             repository: workspace.rootURL,
@@ -173,9 +192,9 @@ public struct GitWorktreeCreateTool: TypedAgentTool {
         return .init(
             toolName: name,
             risk: risk,
-            workspaceRoot: workspace.rootURL.path,
+            workspaceRoot: context.workspace?.rootURL.path,
             targetPaths: [destination.path],
-            summary: "Create isolated branch \(branch) from \(decoded.resolvedBaseRef) in Agentic-managed worktree \(destination.path).",
+            summary: "Create isolated branch \(branch) from \(input.resolvedBaseRef) in Agentic-managed worktree \(destination.path).",
             estimatedWriteCount: 1,
             sideEffects: [
                 "create one local Git branch",
@@ -197,15 +216,11 @@ public struct GitWorktreeCreateTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            GitWorktreeCreateToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticGitToolSupport.requireWorkspace(
-            workspace,
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
             toolName: name
         )
 
@@ -214,7 +229,7 @@ public struct GitWorktreeCreateTool: TypedAgentTool {
             toolName: name
         )
 
-        let isolationID = try decoded.isolationID()
+        let isolationID = try input.isolationID()
         let branch = isolationID.branchName()
         let destination = try AgenticGitManagedWorktrees.destination(
             repository: workspace.rootURL,
@@ -230,18 +245,16 @@ public struct GitWorktreeCreateTool: TypedAgentTool {
             .init(
                 repository: workspace.rootURL,
                 destination: destination,
-                baseRef: decoded.resolvedBaseRef,
+                baseRef: input.resolvedBaseRef,
                 checkout: .newBranch(branch)
             )
         )
 
-        return try JSONToolBridge.encode(
-            GitWorktreeCreateToolOutput(
+        return GitWorktreeCreateToolOutput(
                 isolationID: isolationID,
                 branch: branch,
                 result: result
             )
-        )
     }
 }
 
@@ -280,8 +293,9 @@ public struct GitWorktreeRemoveToolOutput:
     }
 }
 
-public struct GitWorktreeRemoveTool: TypedAgentTool {
+public struct GitWorktreeRemoveTool: AgentTool {
     public typealias Input = GitWorktreeRemoveToolInput
+    public typealias Output = GitWorktreeRemoveToolOutput
     public static let identifier: AgentToolIdentifier =
         "git_worktree_remove"
 
@@ -290,19 +304,30 @@ public struct GitWorktreeRemoveTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .boundedmutate
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            GitWorktreeRemoveToolInput.self,
-            from: input
-        )
         let context = try await resolvedContext(
-            decoded,
-            workspace: workspace
+            input,
+            workspace: try await agenticGitScopedWorkspace(
+                context,
+                toolName: name
+            )
         )
 
         return .init(
@@ -333,16 +358,15 @@ public struct GitWorktreeRemoveTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            GitWorktreeRemoveToolInput.self,
-            from: input
-        )
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
         let context = try await resolvedContext(
-            decoded,
-            workspace: workspace
+            input,
+            workspace: try await agenticGitScopedWorkspace(
+                context,
+                toolName: name
+            )
         )
 
         try await GitManagerWorktree.remove(
@@ -350,12 +374,10 @@ public struct GitWorktreeRemoveTool: TypedAgentTool {
             at: context.workspace.rootURL
         )
 
-        return try JSONToolBridge.encode(
-            GitWorktreeRemoveToolOutput(
+        return GitWorktreeRemoveToolOutput(
                 path: context.worktree.path.path,
                 preservedBranch: context.worktree.branch
             )
-        )
     }
 }
 

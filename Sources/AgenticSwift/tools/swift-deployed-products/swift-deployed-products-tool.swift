@@ -62,20 +62,33 @@ public struct SwiftDeployedProductsToolOutput:
     }
 }
 
-public struct SwiftDeployedProductsTool: TypedAgentTool {
+public struct SwiftDeployedProductsTool: AgentTool {
     public typealias Input = SwiftDeployedProductsToolInput
+    public typealias Output = SwiftDeployedProductsToolOutput
     public static let identifier: AgentToolIdentifier = "swift_deployed_products"
     public static let description =
         "List deployed Swift binaries through Executable.DeployedList."
     public static let risk: ActionRisk = .observe
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
+            context.workspace,
             toolName: name
         )
         return .init(
@@ -95,24 +108,19 @@ public struct SwiftDeployedProductsTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
         _ = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
+            context.workspace,
             toolName: name
-        )
-        let decoded = try JSONToolBridge.decode(
-            SwiftDeployedProductsToolInput.self,
-            from: input
         )
         let products = try DeployedList.listBinaries(
             at: Build.defaultDeploymentDirectory,
-            includeDetails: decoded.includeDetails ?? true
+            includeDetails: input.includeDetails ?? true
         )
 
-        return try JSONToolBridge.encode(
-            SwiftDeployedProductsToolOutput(
+        return SwiftDeployedProductsToolOutput(
                 destination: Build.defaultDeploymentDirectory.path,
                 products: products.map {
                     .init(
@@ -123,6 +131,5 @@ public struct SwiftDeployedProductsTool: TypedAgentTool {
                     )
                 }
             )
-        )
     }
 }

@@ -1,4 +1,5 @@
 import Agentic
+import AgenticExecution
 import Primitives
 
 public struct SwiftPackageOperationToolOutput:
@@ -26,49 +27,32 @@ public struct SwiftPackageOperationToolOutput:
         self.stderr = stderr
     }
 
-    public var processing: AgentToolResultProcessing {
-        var observations: [AgentToolResultObservation] = []
+    public var projection: AgentToolResultProjection {
+        .init(
+            status: isSuccess ? "passed" : "failed",
+            summary: isSuccess
+                ? "Swift package \(operation) completed successfully."
+                : "Swift package \(operation) completed with a nonzero exit status.",
+            facts: [
+                .init(label: "operation", value: operation),
+                .init(label: "exit", value: "\(exitCode)"),
+            ]
+        )
+    }
 
+    public func observe(
+        in context: AgentToolExecutionContext
+    ) async {
         if !stdout.isEmpty {
-            observations.append(
-                .init(
-                    kind: .standard_output,
-                    label: "stdout",
-                    content: stdout
-                )
+            await context.observe(
+                .init(kind: .standard_output, label: "stdout", content: stdout)
             )
         }
 
         if !stderr.isEmpty {
-            observations.append(
-                .init(
-                    kind: .standard_error,
-                    label: "stderr",
-                    content: stderr
-                )
+            await context.observe(
+                .init(kind: .standard_error, label: "stderr", content: stderr)
             )
         }
-
-        return .init(
-            projection: .init(
-                status: isSuccess
-                    ? "passed"
-                    : "failed",
-                summary: isSuccess
-                    ? "Swift package \(operation) completed successfully."
-                    : "Swift package \(operation) completed with a nonzero exit status.",
-                facts: [
-                    .init(
-                        label: "operation",
-                        value: operation
-                    ),
-                    .init(
-                        label: "exit",
-                        value: "\(exitCode)"
-                    ),
-                ]
-            ),
-            observations: observations
-        )
     }
 }

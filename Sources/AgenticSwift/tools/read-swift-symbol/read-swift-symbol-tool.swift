@@ -5,13 +5,26 @@ import Primitives
 import Schema
 import Path
 
-public struct ReadSwiftSymbolTool: TypedAgentTool {
+public struct ReadSwiftSymbolTool: AgentTool {
     public typealias Input = ReadSwiftSymbolToolInput
+    public typealias Output = ReadSwiftSymbolToolOutput
     public static let identifier: AgentToolIdentifier = "read_swift_symbol"
     public static let description = "Read one exact Swift symbol from a Swift source file in the workspace, disambiguated by symbol id or display name."
     public static let risk: ActionRisk = .observe
 
     public let collector: SwiftSymbolCollector
+
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
 
     public init(
         collector: SwiftSymbolCollector = .init()
@@ -20,57 +33,49 @@ public struct ReadSwiftSymbolTool: TypedAgentTool {
     }
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            ReadSwiftSymbolToolInput.self,
-            from: input
-        )
 
-        guard decoded.hasLookup else {
+        guard input.hasLookup else {
             throw ReadSwiftSymbolToolError.missingLookup
         }
 
         let renderedPath = try AgenticSwiftToolSupport.resolvedPreflightPath(
-            decoded.path,
-            workspace: workspace
+            input.path,
+            workspace: context.workspace
         )
 
         return .init(
             toolName: name,
             risk: risk,
-            workspaceRoot: workspace?.rootURL.path,
+            workspaceRoot: context.workspace?.rootURL.path,
             targetPaths: [renderedPath],
             summary: summary(
-                for: decoded,
+                for: input,
                 renderedPath: renderedPath
             )
         )
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
+            context.workspace,
             toolName: name
         )
-        let decoded = try JSONToolBridge.decode(
-            ReadSwiftSymbolToolInput.self,
-            from: input
-        )
 
-        guard decoded.hasLookup else {
+        guard input.hasLookup else {
             throw ReadSwiftSymbolToolError.missingLookup
         }
 
         let path = try workspace.resolve(
-            decoded.path
+            input.path
         )
         let symbol = try resolveSymbol(
-            for: decoded,
+            for: input,
             in: path
         )
         let read = try workspace.readSlice(
@@ -83,14 +88,13 @@ public struct ReadSwiftSymbolTool: TypedAgentTool {
             content = AgenticSwiftToolSupport.renderLines(
                 read.selectedLines,
                 startingAt: range.start,
-                includeLineNumbers: decoded.includeLineNumbers
+                includeLineNumbers: input.includeLineNumbers
             )
         } else {
             content = ""
         }
 
-        return try JSONToolBridge.encode(
-            ReadSwiftSymbolToolOutput(
+        return ReadSwiftSymbolToolOutput(
                 path: path.presentingRelative(
                     filetype: true
                 ),
@@ -104,7 +108,6 @@ public struct ReadSwiftSymbolTool: TypedAgentTool {
                 lineCount: read.lineCount,
                 content: content
             )
-        )
     }
 }
 

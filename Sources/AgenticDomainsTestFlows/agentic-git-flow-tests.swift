@@ -79,16 +79,16 @@ extension AgenticDomainsFlowTesting {
         }
 
         let create = GitWorktreeCreateTool()
-        let createInput = try JSONToolBridge.encode(
-            GitWorktreeCreateToolInput(
+        let createInput = GitWorktreeCreateToolInput(
                 semanticKey: "agentic domains worktree fixture",
                 baseRef: "master"
             )
-        )
 
         let createPreflight = try await create.preflight(
-            input: createInput,
-            workspace: fixture.workspace
+            createInput,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         try Expect.equal(
@@ -97,10 +97,9 @@ extension AgenticDomainsFlowTesting {
             "git_worktree_create risk"
         )
 
-        let createOutput = try JSONToolBridge.decode(
-            GitWorktreeCreateToolOutput.self,
-            from: try await create.call(
-                input: createInput,
+        let createOutput = try await create.call(
+            createInput,
+            context: .init(
                 workspace: fixture.workspace
             )
         )
@@ -121,10 +120,9 @@ extension AgenticDomainsFlowTesting {
         )
 
         let list = GitWorktreeListTool()
-        let listed = try JSONToolBridge.decode(
-            [GitManagerWorktreeRecord].self,
-            from: try await list.call(
-                input: .object([:]),
+        let listed = try await list.call(
+            AgenticGitEmptyToolInput(),
+            context: .init(
                 workspace: fixture.workspace
             )
         )
@@ -138,15 +136,15 @@ extension AgenticDomainsFlowTesting {
         )
 
         let remove = GitWorktreeRemoveTool()
-        let removeInput = try JSONToolBridge.encode(
-            GitWorktreeRemoveToolInput(
+        let removeInput = GitWorktreeRemoveToolInput(
                 path: worktree.path.path
             )
-        )
 
         let removePreflight = try await remove.preflight(
-            input: removeInput,
-            workspace: fixture.workspace
+            removeInput,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         try Expect.equal(
@@ -155,10 +153,9 @@ extension AgenticDomainsFlowTesting {
             "git_worktree_remove risk"
         )
 
-        let removed = try JSONToolBridge.decode(
-            GitWorktreeRemoveToolOutput.self,
-            from: try await remove.call(
-                input: removeInput,
+        let removed = try await remove.call(
+            removeInput,
+            context: .init(
                 workspace: fixture.workspace
             )
         )
@@ -205,15 +202,12 @@ extension AgenticDomainsFlowTesting {
         }
 
         let create = GitWorktreeCreateTool()
-        let source = try JSONToolBridge.decode(
-            GitWorktreeCreateToolOutput.self,
-            from: try await create.call(
-                input: try JSONToolBridge.encode(
-                    GitWorktreeCreateToolInput(
+        let source = try await create.call(
+            GitWorktreeCreateToolInput(
                         semanticKey: "agentic domains integration source",
                         baseRef: "master"
-                    )
-                ),
+                    ),
+            context: .init(
                 workspace: fixture.workspace
             )
         )
@@ -244,15 +238,15 @@ extension AgenticDomainsFlowTesting {
 
         let targetBefore = try await fixture.head()
         let planTool = GitIntegrationPlanTool()
-        let planInput = try JSONToolBridge.encode(
-            GitIntegrationPlanToolInput(
+        let planInput = GitIntegrationPlanToolInput(
                 sourceRef: source.branch,
                 targetRef: "master"
             )
-        )
         let planPreflight = try await planTool.preflight(
-            input: planInput,
-            workspace: fixture.workspace
+            planInput,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         try Expect.equal(
@@ -261,10 +255,9 @@ extension AgenticDomainsFlowTesting {
             "git_integration_plan risk"
         )
 
-        let planned = try JSONToolBridge.decode(
-            GitIntegrationPlanToolOutput.self,
-            from: try await planTool.call(
-                input: planInput,
+        let planned = try await planTool.call(
+            planInput,
+            context: .init(
                 workspace: fixture.workspace
             )
         )
@@ -276,15 +269,15 @@ extension AgenticDomainsFlowTesting {
         )
 
         let prepare = GitIntegrationPrepareTool()
-        let prepareInput = try JSONToolBridge.encode(
-            GitIntegrationPrepareToolInput(
+        let prepareInput = GitIntegrationPrepareToolInput(
                 planReceipt: planned.receipt,
                 semanticKey: "agentic domains integration prepare"
             )
-        )
         let preparePreflight = try await prepare.preflight(
-            input: prepareInput,
-            workspace: fixture.workspace
+            prepareInput,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         try Expect.equal(
@@ -293,10 +286,9 @@ extension AgenticDomainsFlowTesting {
             "git_integration_prepare risk"
         )
 
-        let prepared = try JSONToolBridge.decode(
-            GitIntegrationPrepareToolOutput.self,
-            from: try await prepare.call(
-                input: prepareInput,
+        let prepared = try await prepare.call(
+            prepareInput,
+            context: .init(
                 workspace: fixture.workspace
             )
         )
@@ -345,12 +337,12 @@ extension AgenticDomainsFlowTesting {
 
         let remove = GitWorktreeRemoveTool()
         _ = try await remove.call(
-            input: try JSONToolBridge.encode(
-                GitWorktreeRemoveToolInput(
+            GitWorktreeRemoveToolInput(
                     path: sourcePath.path
-                )
-            ),
-            workspace: fixture.workspace
+                ),
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         return [
@@ -388,15 +380,12 @@ private func proveAgenticGitPromotionAndSafeCleanup() async throws {
     }
 
     let create = GitWorktreeCreateTool()
-    let source = try JSONToolBridge.decode(
-        GitWorktreeCreateToolOutput.self,
-        from: try await create.call(
-            input: try JSONToolBridge.encode(
-                GitWorktreeCreateToolInput(
+    let source = try await create.call(
+        GitWorktreeCreateToolInput(
                     semanticKey: "agentic domains promotion source",
                     baseRef: "master"
-                )
-            ),
+                ),
+        context: .init(
             workspace: fixture.workspace
         )
     )
@@ -427,43 +416,37 @@ private func proveAgenticGitPromotionAndSafeCleanup() async throws {
 
     let targetBefore = try await fixture.head()
     let planTool = GitIntegrationPlanTool()
-    let planned = try JSONToolBridge.decode(
-        GitIntegrationPlanToolOutput.self,
-        from: try await planTool.call(
-            input: try JSONToolBridge.encode(
-                GitIntegrationPlanToolInput(
+    let planned = try await planTool.call(
+        GitIntegrationPlanToolInput(
                     sourceRef: source.branch,
                     targetRef: "master"
-                )
-            ),
+                ),
+        context: .init(
             workspace: fixture.workspace
         )
     )
 
     let prepare = GitIntegrationPrepareTool()
-    let prepared = try JSONToolBridge.decode(
-        GitIntegrationPrepareToolOutput.self,
-        from: try await prepare.call(
-            input: try JSONToolBridge.encode(
-                GitIntegrationPrepareToolInput(
+    let prepared = try await prepare.call(
+        GitIntegrationPrepareToolInput(
                     planReceipt: planned.receipt,
                     semanticKey: "agentic domains promotion integration"
-                )
-            ),
+                ),
+        context: .init(
             workspace: fixture.workspace
         )
     )
 
     let promote = GitIntegrationPromoteTool()
-    let promoteInput = try JSONToolBridge.encode(
-        GitIntegrationPromoteToolInput(
+    let promoteInput = GitIntegrationPromoteToolInput(
             executionReceipt: prepared.receipt,
             targetBranch: "master"
         )
-    )
     let promotePreflight = try await promote.preflight(
-        input: promoteInput,
-        workspace: fixture.workspace
+        promoteInput,
+        context: .init(
+            workspace: fixture.workspace
+        )
     )
 
     try Expect.equal(
@@ -472,10 +455,9 @@ private func proveAgenticGitPromotionAndSafeCleanup() async throws {
         "git_integration_promote risk"
     )
 
-    let promotion = try JSONToolBridge.decode(
-        GitManagerIntegrationPromotion.self,
-        from: try await promote.call(
-            input: promoteInput,
+    let promotion = try await promote.call(
+        promoteInput,
+        context: .init(
             workspace: fixture.workspace
         )
     )
@@ -500,14 +482,14 @@ private func proveAgenticGitPromotionAndSafeCleanup() async throws {
     )
 
     let cleanup = GitIntegrationCleanupTool()
-    let cleanupInput = try JSONToolBridge.encode(
-        GitIntegrationCleanupToolInput(
+    let cleanupInput = GitIntegrationCleanupToolInput(
             executionReceipt: prepared.receipt
         )
-    )
     let cleanupPreflight = try await cleanup.preflight(
-        input: cleanupInput,
-        workspace: fixture.workspace
+        cleanupInput,
+        context: .init(
+            workspace: fixture.workspace
+        )
     )
 
     try Expect.equal(
@@ -517,8 +499,10 @@ private func proveAgenticGitPromotionAndSafeCleanup() async throws {
     )
 
     _ = try await cleanup.call(
-        input: cleanupInput,
-        workspace: fixture.workspace
+        cleanupInput,
+        context: .init(
+            workspace: fixture.workspace
+        )
     )
 
     if let integrationPath = prepared.execution.worktree {
@@ -539,12 +523,12 @@ private func proveAgenticGitPromotionAndSafeCleanup() async throws {
 
     let remove = GitWorktreeRemoveTool()
     _ = try await remove.call(
-        input: try JSONToolBridge.encode(
-            GitWorktreeRemoveToolInput(
+        GitWorktreeRemoveToolInput(
                 path: sourcePath.path
-            )
-        ),
-        workspace: fixture.workspace
+            ),
+        context: .init(
+            workspace: fixture.workspace
+        )
     )
 }
 
@@ -558,15 +542,12 @@ private func proveAgenticGitConflictDiscardGate() async throws {
     }
 
     let create = GitWorktreeCreateTool()
-    let source = try JSONToolBridge.decode(
-        GitWorktreeCreateToolOutput.self,
-        from: try await create.call(
-            input: try JSONToolBridge.encode(
-                GitWorktreeCreateToolInput(
+    let source = try await create.call(
+        GitWorktreeCreateToolInput(
                     semanticKey: "agentic domains conflict source",
                     baseRef: "master"
-                )
-            ),
+                ),
+        context: .init(
             workspace: fixture.workspace
         )
     )
@@ -597,15 +578,12 @@ private func proveAgenticGitConflictDiscardGate() async throws {
 
     let targetBefore = try await fixture.head()
     let planTool = GitIntegrationPlanTool()
-    let planned = try JSONToolBridge.decode(
-        GitIntegrationPlanToolOutput.self,
-        from: try await planTool.call(
-            input: try JSONToolBridge.encode(
-                GitIntegrationPlanToolInput(
+    let planned = try await planTool.call(
+        GitIntegrationPlanToolInput(
                     sourceRef: source.branch,
                     targetRef: "master"
-                )
-            ),
+                ),
+        context: .init(
             workspace: fixture.workspace
         )
     )
@@ -617,15 +595,12 @@ private func proveAgenticGitConflictDiscardGate() async throws {
     )
 
     let prepare = GitIntegrationPrepareTool()
-    let prepared = try JSONToolBridge.decode(
-        GitIntegrationPrepareToolOutput.self,
-        from: try await prepare.call(
-            input: try JSONToolBridge.encode(
-                GitIntegrationPrepareToolInput(
+    let prepared = try await prepare.call(
+        GitIntegrationPrepareToolInput(
                     planReceipt: planned.receipt,
                     semanticKey: "agentic domains conflict integration"
-                )
-            ),
+                ),
+        context: .init(
             workspace: fixture.workspace
         )
     )
@@ -637,18 +612,18 @@ private func proveAgenticGitConflictDiscardGate() async throws {
     )
 
     let cleanup = GitIntegrationCleanupTool()
-    let safeInput = try JSONToolBridge.encode(
-        GitIntegrationCleanupToolInput(
+    let safeInput = GitIntegrationCleanupToolInput(
             executionReceipt: prepared.receipt
         )
-    )
 
     var refused = false
 
     do {
         _ = try await cleanup.call(
-            input: safeInput,
-            workspace: fixture.workspace
+            safeInput,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
     } catch let error as GitManagerIntegrationExecutionError {
         if error == .cleanupRequiresDiscard {
@@ -664,13 +639,13 @@ private func proveAgenticGitConflictDiscardGate() async throws {
     )
 
     _ = try await cleanup.call(
-        input: try JSONToolBridge.encode(
-            GitIntegrationCleanupToolInput(
+        GitIntegrationCleanupToolInput(
                 executionReceipt: prepared.receipt,
                 discard: true
-            )
-        ),
-        workspace: fixture.workspace
+            ),
+        context: .init(
+            workspace: fixture.workspace
+        )
     )
 
     try Expect.equal(
@@ -687,12 +662,12 @@ private func proveAgenticGitConflictDiscardGate() async throws {
 
     let remove = GitWorktreeRemoveTool()
     _ = try await remove.call(
-        input: try JSONToolBridge.encode(
-            GitWorktreeRemoveToolInput(
+        GitWorktreeRemoveToolInput(
                 path: sourcePath.path
-            )
-        ),
-        workspace: fixture.workspace
+            ),
+        context: .init(
+            workspace: fixture.workspace
+        )
     )
 }
 

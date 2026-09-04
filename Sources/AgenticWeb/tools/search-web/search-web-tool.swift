@@ -4,8 +4,9 @@ import AgenticWorkspace
 import Foundation
 import Primitives
 
-public struct SearchWebTool: TypedAgentTool {
+public struct SearchWebTool: AgentTool {
     public typealias Input = SearchWebToolInput
+    public typealias Output = SearchWebToolOutput
     public static let identifier: AgentToolIdentifier = "search_web"
     public static let description = "Search the public web and return a small set of sandbox-approved result summaries."
     public static let risk: ActionRisk = .observe
@@ -13,6 +14,18 @@ public struct SearchWebTool: TypedAgentTool {
     public let provider: any WebSearchProvider
     public let policy: WebAccessPolicy
     public let sessionStore: WebSearchSessionStore
+
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
 
     public init(
         provider: any WebSearchProvider = UnavailableWebSearchProvider(),
@@ -25,20 +38,15 @@ public struct SearchWebTool: TypedAgentTool {
     }
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        _ = workspace
-
-        let decoded = try JSONToolBridge.decode(
-            SearchWebToolInput.self,
-            from: input
-        )
+        _ = context
         let query = try normalizedQuery(
-            decoded.query
+            input.query
         )
         let limit = policy.normalizedResultLimit(
-            decoded.limit
+            input.limit
         )
 
         return .init(
@@ -57,28 +65,23 @@ public struct SearchWebTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        _ = workspace
-
-        let decoded = try JSONToolBridge.decode(
-            SearchWebToolInput.self,
-            from: input
-        )
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
+        _ = context
         let query = try normalizedQuery(
-            decoded.query
+            input.query
         )
         let limit = policy.normalizedResultLimit(
-            decoded.limit
+            input.limit
         )
 
         let response = try await provider.search(
             .init(
                 query: query,
                 limit: limit,
-                siteRestrictions: decoded.siteRestrictions,
-                freshnessDays: decoded.freshnessDays,
+                siteRestrictions: input.siteRestrictions,
+                freshnessDays: input.freshnessDays,
                 safeSearch: true
             )
         )
@@ -94,8 +97,7 @@ public struct SearchWebTool: TypedAgentTool {
             results: approvedResults
         )
 
-        return try JSONToolBridge.encode(
-            SearchWebToolOutput(
+        return SearchWebToolOutput(
                 searchID: record.id,
                 query: response.query,
                 provider: response.provider,
@@ -103,7 +105,6 @@ public struct SearchWebTool: TypedAgentTool {
                 returnedResultCount: approvedResults.count,
                 results: approvedResults
             )
-        )
     }
 }
 

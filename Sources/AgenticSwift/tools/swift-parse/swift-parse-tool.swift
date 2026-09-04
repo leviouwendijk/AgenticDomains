@@ -43,31 +43,40 @@ public struct SwiftParseToolOutput:
     }
 }
 
-public struct SwiftParseTool: TypedAgentTool {
+public struct SwiftParseTool: AgentTool {
     public typealias Input = SwiftParseToolInput
+    public typealias Output = SwiftParseToolOutput
     public static let identifier: AgentToolIdentifier = "swift_parse"
     public static let description =
         "Parse one Swift source file with the compiler parser through Executable.SwiftCompiler."
     public static let risk: ActionRisk = .observe
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftParseToolInput.self,
-            from: input
-        )
         let path = try AgenticSwiftToolSupport.resolvedPreflightPath(
-            decoded.path,
-            workspace: workspace
+            input.path,
+            workspace: context.workspace
         )
 
         return .init(
             toolName: name,
             risk: risk,
-            workspaceRoot: workspace?.rootURL.path,
+            workspaceRoot: context.workspace?.rootURL.path,
             targetPaths: [
                 path,
             ],
@@ -83,19 +92,15 @@ public struct SwiftParseTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
+            context.workspace,
             toolName: name
         )
-        let decoded = try JSONToolBridge.decode(
-            SwiftParseToolInput.self,
-            from: input
-        )
         let path = try workspace.resolve(
-            decoded.path,
+            input.path,
             type: .file
         )
         let file = try workspace.absoluteURL(
@@ -110,7 +115,7 @@ public struct SwiftParseTool: TypedAgentTool {
         guard result.isSuccess else {
             throw AgenticSwiftToolError.operationFailed(
                 toolName: name,
-                operation: "parse Swift source '\(decoded.path)'",
+                operation: "parse Swift source '\(input.path)'",
                 exitCode: result.exitCode.map(Int.init),
                 signal: result.signal.map(Int.init),
                 detail: result.stderrText.isEmpty
@@ -119,14 +124,12 @@ public struct SwiftParseTool: TypedAgentTool {
             )
         }
 
-        return try JSONToolBridge.encode(
-            SwiftParseToolOutput(
+        return SwiftParseToolOutput(
                 path: path.presentingRelative(
                     filetype: true
                 ),
                 stdout: result.stdoutText,
                 stderr: result.stderrText
             )
-        )
     }
 }

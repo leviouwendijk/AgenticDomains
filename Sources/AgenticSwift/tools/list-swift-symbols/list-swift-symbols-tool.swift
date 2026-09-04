@@ -4,13 +4,26 @@ import AgenticWorkspace
 import Primitives
 import Schema
 
-public struct ListSwiftSymbolsTool: TypedAgentTool {
+public struct ListSwiftSymbolsTool: AgentTool {
     public typealias Input = ListSwiftSymbolsToolInput
+    public typealias Output = ListSwiftSymbolsToolOutput
     public static let identifier: AgentToolIdentifier = "list_swift_symbols"
     public static let description = "List Swift symbols discovered in a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe
 
     public let collector: SwiftSymbolCollector
+
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
 
     public init(
         collector: SwiftSymbolCollector = .init()
@@ -19,54 +32,46 @@ public struct ListSwiftSymbolsTool: TypedAgentTool {
     }
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            ListSwiftSymbolsToolInput.self,
-            from: input
-        )
 
         let renderedPath = try AgenticSwiftToolSupport.resolvedPreflightPath(
-            decoded.path,
-            workspace: workspace
+            input.path,
+            workspace: context.workspace
         )
 
         return .init(
             toolName: name,
             risk: risk,
-            workspaceRoot: workspace?.rootURL.path,
+            workspaceRoot: context.workspace?.rootURL.path,
             targetPaths: [renderedPath],
             summary: summary(
-                for: decoded,
+                for: input,
                 renderedPath: renderedPath
             )
         )
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
+            context.workspace,
             toolName: name
         )
-        let decoded = try JSONToolBridge.decode(
-            ListSwiftSymbolsToolInput.self,
-            from: input
-        )
         let path = try workspace.resolve(
-            decoded.path
+            input.path
         )
 
         var symbols = try collector.collect(
             in: path
         )
 
-        if decoded.filtersByKind {
+        if input.filtersByKind {
             let includedKinds = Set(
-                decoded.includeKinds
+                input.includeKinds
             )
             symbols = symbols.filter { symbol in
                 includedKinds.contains(
@@ -78,12 +83,11 @@ public struct ListSwiftSymbolsTool: TypedAgentTool {
         let totalSymbolCount = symbols.count
         let returnedSymbols = Array(
             symbols.prefix(
-                decoded.clampedMaxSymbols
+                input.clampedMaxSymbols
             )
         )
 
-        return try JSONToolBridge.encode(
-            ListSwiftSymbolsToolOutput(
+        return ListSwiftSymbolsToolOutput(
                 path: path.presentingRelative(
                     filetype: true
                 ),
@@ -92,7 +96,6 @@ public struct ListSwiftSymbolsTool: TypedAgentTool {
                 truncated: returnedSymbols.count < totalSymbolCount,
                 symbols: returnedSymbols
             )
-        )
     }
 }
 

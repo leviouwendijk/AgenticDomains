@@ -33,11 +33,12 @@ struct GitWorkspaceExecution {
     }
 }
 
-extension GitRepositoryStateTool:
-    WorkspaceTargetableTool
-{
+extension GitRepositoryStateTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         _ = input
@@ -67,9 +68,9 @@ extension GitRepositoryStateTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
+    ) async throws -> Output {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
             context,
@@ -80,17 +81,16 @@ extension GitRepositoryStateTool:
             fetch: false
         )
 
-        return try JSONToolBridge.encode(
-            state
-        )
+        return state
     }
 }
 
-extension GitReconciliationPlanTool:
-    WorkspaceTargetableTool
-{
+extension GitReconciliationPlanTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         _ = input
@@ -120,9 +120,9 @@ extension GitReconciliationPlanTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
+    ) async throws -> Output {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
             context,
@@ -135,23 +135,18 @@ extension GitReconciliationPlanTool:
             cleanUntracked: false
         )
 
-        return try JSONToolBridge.encode(
-            result
-        )
+        return result
     }
 }
 
-extension GitDiffTool:
-    WorkspaceTargetableTool
-{
+extension GitDiffTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            GitDiffToolInput.self,
-            from: input
-        )
         let execution = try await GitWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -161,9 +156,9 @@ extension GitDiffTool:
             toolName: name,
             risk: risk,
             workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: decoded.paths,
+            targetPaths: input.paths,
             summary:
-                "Observe \(decoded.scope.rawValue) tracked Git differences at the selected workspace location.",
+                "Observe \(input.scope.rawValue) tracked Git differences at the selected workspace location.",
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -178,25 +173,19 @@ extension GitDiffTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            GitDiffToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try await GitWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let result = try await GitManagerDiff.observe(
-            decoded.request,
+            input.request,
             at: execution.repositoryRoot
         )
 
-        return try JSONToolBridge.encode(
-            result
-        )
+        return result
     }
 }
 
@@ -274,22 +263,19 @@ private extension GitPrepareCommitToolInput {
     }
 }
 
-extension GitPrepareCommitTool:
-    WorkspaceTargetableTool
-{
+extension GitPrepareCommitTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            GitPrepareCommitToolInput.self,
-            from: input
-        )
         let execution = try await GitWorkspaceExecution.resolve(
             context,
             toolName: name
         )
-        let paths = try decoded.validatedPaths(
+        let paths = try input.validatedPaths(
             in: execution.workspace,
             repositoryRoot: execution.repositoryRoot
         )
@@ -320,18 +306,14 @@ extension GitPrepareCommitTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            GitPrepareCommitToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try await GitWorkspaceExecution.resolve(
             context,
             toolName: name
         )
-        let paths = try decoded.validatedPaths(
+        let paths = try input.validatedPaths(
             in: execution.workspace,
             repositoryRoot: execution.repositoryRoot
         )
@@ -353,28 +335,23 @@ extension GitPrepareCommitTool:
             )
         ).sorted()
 
-        return try JSONToolBridge.encode(
-            GitPrepareCommitToolOutput(
+        return GitPrepareCommitToolOutput(
                 requestedPaths: paths,
                 stagedPaths: stagedPaths,
                 output: output
             )
-        )
     }
 }
 
-extension GitCommitPreparedTool:
-    WorkspaceTargetableTool
-{
+extension GitCommitPreparedTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            GitCommitPreparedToolInput.self,
-            from: input
-        )
-        let message = try decoded.validatedMessage()
+        let message = try input.validatedMessage()
         let execution = try await GitWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -415,14 +392,10 @@ extension GitCommitPreparedTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            GitCommitPreparedToolInput.self,
-            from: input
-        )
-        let message = try decoded.validatedMessage()
+    ) async throws -> Output {
+        let message = try input.validatedMessage()
         let execution = try await GitWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -446,14 +419,12 @@ extension GitCommitPreparedTool:
             fetch: false
         )
 
-        return try JSONToolBridge.encode(
-            GitCommitPreparedToolOutput(
+        return GitCommitPreparedToolOutput(
                 message: message,
                 branch: state.branch,
                 committedPaths: paths,
                 output: output
             )
-        )
     }
 
     private func targetedStagedPaths(
@@ -536,11 +507,12 @@ private func targetedGitPullContext(
     )
 }
 
-extension GitPullTool:
-    WorkspaceTargetableTool
-{
+extension GitPullTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         _ = input
@@ -588,9 +560,9 @@ extension GitPullTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
+    ) async throws -> Output {
         _ = input
         let pull = try await targetedGitPullContext(
             context,
@@ -606,8 +578,7 @@ extension GitPullTool:
             fetch: false
         )
 
-        return try JSONToolBridge.encode(
-            GitPullToolOutput(
+        let result = GitPullToolOutput(
                 remote: pull.remote,
                 upstreamBranch: pull.upstreamBranch,
                 currentBranch: pull.currentBranch,
@@ -617,23 +588,27 @@ extension GitPullTool:
                     pull.state.localHead
                         != after.localHead,
                 output: output
-            )
         )
+
+        if !result.output.isEmpty {
+            await context.observe(
+                .init(kind: .detail, label: "git", content: result.output)
+            )
+        }
+
+        return result
     }
 }
 
-extension GitPushTool:
-    WorkspaceTargetableTool
-{
+extension GitPushTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            GitPushToolInput.self,
-            from: input
-        )
-        let target = try decoded.validatedTarget()
+        let target = try input.validatedTarget()
         let execution = try await GitWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -663,7 +638,7 @@ extension GitPushTool:
                 target == nil
                     ? "use configured/default upstream resolution"
                     : "push to explicitly supplied remote and branch",
-                target != nil && decoded.setUpstream
+                target != nil && input.setUpstream
                     ? "set the explicit push destination as upstream"
                     : "do not change explicit upstream configuration",
             ],
@@ -681,14 +656,10 @@ extension GitPushTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            GitPushToolInput.self,
-            from: input
-        )
-        let target = try decoded.validatedTarget()
+    ) async throws -> Output {
+        let target = try input.validatedTarget()
         let execution = try await GitWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -703,7 +674,7 @@ extension GitPushTool:
             output = try await GitManagerAction.push(
                 remote: target.remote,
                 branch: target.branch,
-                setUpstream: decoded.setUpstream,
+                setUpstream: input.setUpstream,
                 at: execution.repositoryRoot
             )
         } else {
@@ -712,8 +683,7 @@ extension GitPushTool:
             )
         }
 
-        return try JSONToolBridge.encode(
-            GitPushToolOutput(
+        return GitPushToolOutput(
                 remote: target?.remote,
                 branch: target?.branch,
                 configuredTarget:
@@ -724,9 +694,48 @@ extension GitPushTool:
                 setUpstream:
                     target == nil
                         ? true
-                        : decoded.setUpstream,
+                        : input.setUpstream,
                 output: output
             )
+    }
+}
+
+
+extension GitCommitPreparedTool {
+    public func process(
+        _ output: Output,
+        input _: Input,
+        context _: AgentToolExecutionContext
+    ) -> AgentToolResultProjection? {
+        .init(
+            status: "passed",
+            summary: "Created local Git commit: \(output.message)",
+            facts: [
+                .init(label: "message", value: output.message),
+                .init(label: "branch", value: output.branch ?? "unknown"),
+                .init(label: "paths", value: output.committedPaths.joined(separator: ", ")),
+            ]
+        )
+    }
+}
+
+extension GitPullTool {
+    public func process(
+        _ output: Output,
+        input _: Input,
+        context _: AgentToolExecutionContext
+    ) -> AgentToolResultProjection? {
+        var facts: [AgentToolResultProjection.Fact] = [
+            .init(label: "branch", value: output.currentBranch),
+            .init(label: "upstream", value: "\(output.remote)/\(output.upstreamBranch)"),
+        ]
+        if let afterHead = output.afterHead {
+            facts.append(.init(label: "HEAD", value: afterHead))
+        }
+        return .init(
+            status: output.changed ? "updated" : "up to date",
+            summary: "\(output.currentBranch) <- \(output.remote)/\(output.upstreamBranch)",
+            facts: facts
         )
     }
 }

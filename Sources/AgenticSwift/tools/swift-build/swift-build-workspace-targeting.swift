@@ -5,17 +5,14 @@ import Executable
 import Foundation
 import Primitives
 
-extension SwiftBuildTool:
-    WorkspaceTargetableTool
-{
+extension SwiftBuildTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftBuildToolInput.self,
-            from: input
-        )
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
             context.workspace,
             toolName: name
@@ -23,7 +20,7 @@ extension SwiftBuildTool:
         let project = context.workingDirectoryURL
             ?? workspace.rootURL
         let request = try targetedBuildRequest(
-            decoded,
+            input,
             project: project
         )
 
@@ -69,7 +66,7 @@ extension SwiftBuildTool:
         let summary: String
         let commandPreview: String
 
-        if let configuration = decoded.configuration {
+        if let configuration = input.configuration {
             summary =
                 "Build the selected Swift package in explicit \(configuration.rawValue) configuration without deployment."
             commandPreview =
@@ -107,13 +104,9 @@ extension SwiftBuildTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftBuildToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
             context.workspace,
             toolName: name
@@ -121,7 +114,7 @@ extension SwiftBuildTool:
         let project = context.workingDirectoryURL
             ?? workspace.rootURL
         let request = try targetedBuildRequest(
-            decoded,
+            input,
             project: project
         )
         do {
@@ -134,36 +127,39 @@ extension SwiftBuildTool:
             )
             let result = execution.build
 
-            return try JSONToolBridge.encode(
-                SwiftBuildToolOutput(
-                    configuration:
-                        plan.request.config.buildDirComponent,
-                    isSuccess:
-                        result.exitCode == 0,
-                    exitCode:
-                        Int(result.exitCode),
-                    stdout:
-                        String(
-                            decoding: result.stdout,
-                            as: UTF8.self
-                        ),
-                    stderr:
-                        String(
-                            decoding: result.stderr,
-                            as: UTF8.self
-                        ),
-                    buildDirComponent:
-                        result.buildDirComponent
-                )
+            let output = SwiftBuildToolOutput(
+                configuration:
+                    plan.request.config.buildDirComponent,
+                isSuccess:
+                    result.exitCode == 0,
+                exitCode:
+                    Int(result.exitCode),
+                stdout:
+                    String(
+                        decoding: result.stdout,
+                        as: UTF8.self
+                    ),
+                stderr:
+                    String(
+                        decoding: result.stderr,
+                        as: UTF8.self
+                    ),
+                buildDirComponent:
+                    result.buildDirComponent
             )
+
+            await observeSwiftBuildOutput(
+                output,
+                context: context
+            )
+
+            return output
         } catch BuildError.swiftFailed(
             let exitCode,
             let stdout,
             let stderr
         ) {
-            throw AgentToolReportedFailure(
-                output: try JSONToolBridge.encode(
-                    SwiftBuildToolOutput(
+            let output = SwiftBuildToolOutput(
                         configuration:
                             request.config.buildDirComponent,
                         isSuccess: false,
@@ -173,6 +169,58 @@ extension SwiftBuildTool:
                         buildDirComponent:
                             request.config.buildDirComponent
                     )
+
+            await observeSwiftBuildOutput(
+                output,
+                context: context
+            )
+
+            throw AgentToolReportedFailure(
+                output: try JSONToolBridge.encode(
+                    output
+                )
+            )
+        }
+    }
+
+    public func process(
+        _ output: Output,
+        input _: Input,
+        context _: AgentToolExecutionContext
+    ) -> AgentToolResultProjection? {
+        .init(
+            status: output.isSuccess ? "passed" : "failed",
+            summary: output.isSuccess
+                ? "Swift build completed successfully."
+                : "Swift build completed with a nonzero exit status.",
+            facts: [
+                .init(label: "configuration", value: output.configuration),
+                .init(label: "exit", value: "\(output.exitCode)"),
+                .init(label: "build dir", value: output.buildDirComponent),
+            ]
+        )
+    }
+
+    private func observeSwiftBuildOutput(
+        _ output: Output,
+        context: AgentToolExecutionContext
+    ) async {
+        if !output.stdout.isEmpty {
+            await context.observe(
+                .init(
+                    kind: .standard_output,
+                    label: "stdout",
+                    content: output.stdout
+                )
+            )
+        }
+
+        if !output.stderr.isEmpty {
+            await context.observe(
+                .init(
+                    kind: .standard_error,
+                    label: "stderr",
+                    content: output.stderr
                 )
             )
         }

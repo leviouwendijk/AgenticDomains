@@ -6,13 +6,26 @@ import Position
 import Primitives
 import Schema
 
-public struct ReadSwiftStructureTool: TypedAgentTool {
+public struct ReadSwiftStructureTool: AgentTool {
     public typealias Input = ReadSwiftStructureToolInput
+    public typealias Output = ReadSwiftStructureToolOutput
     public static let identifier: AgentToolIdentifier = "read_swift_structure"
     public static let description = "Read Swift declarations, types, members, imports, or the enclosing scope from a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe
 
     public let selector: SwiftStructuralSelector
+
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
 
     public init(
         selector: SwiftStructuralSelector = .init()
@@ -21,48 +34,40 @@ public struct ReadSwiftStructureTool: TypedAgentTool {
     }
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            ReadSwiftStructureToolInput.self,
-            from: input
-        )
 
-        _ = try decoded.structuralQuery()
+        _ = try input.structuralQuery()
 
         let renderedPath = try AgenticSwiftToolSupport.resolvedPreflightPath(
-            decoded.path,
-            workspace: workspace
+            input.path,
+            workspace: context.workspace
         )
 
         return .init(
             toolName: name,
             risk: risk,
-            workspaceRoot: workspace?.rootURL.path,
+            workspaceRoot: context.workspace?.rootURL.path,
             targetPaths: [renderedPath],
             summary: summary(
-                for: decoded,
+                for: input,
                 renderedPath: renderedPath
             )
         )
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
+            context.workspace,
             toolName: name
         )
-        let decoded = try JSONToolBridge.decode(
-            ReadSwiftStructureToolInput.self,
-            from: input
-        )
-        let query = try decoded.structuralQuery()
+        let query = try input.structuralQuery()
         let path = try workspace.resolve(
-            decoded.path
+            input.path
         )
 
         let selections = try await selector.selections(
@@ -71,7 +76,7 @@ public struct ReadSwiftStructureTool: TypedAgentTool {
         )
         let limitedSelections = Array(
             selections.prefix(
-                decoded.clampedMaxMatches
+                input.clampedMaxMatches
             )
         )
 
@@ -86,7 +91,7 @@ public struct ReadSwiftStructureTool: TypedAgentTool {
                 content = AgenticSwiftToolSupport.renderLines(
                     read.selectedLines,
                     startingAt: range.start,
-                    includeLineNumbers: decoded.includeLineNumbers
+                    includeLineNumbers: input.includeLineNumbers
                 )
             } else {
                 content = ""
@@ -102,16 +107,14 @@ public struct ReadSwiftStructureTool: TypedAgentTool {
             )
         }
 
-        return try JSONToolBridge.encode(
-            ReadSwiftStructureToolOutput(
+        return ReadSwiftStructureToolOutput(
                 path: path.presentingRelative(
                     filetype: true
                 ),
-                queryKind: decoded.queryKind.rawValue,
+                queryKind: input.queryKind.rawValue,
                 matchCount: matches.count,
                 matches: matches
             )
-        )
     }
 }
 

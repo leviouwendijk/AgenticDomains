@@ -104,15 +104,15 @@ enum AgenticDomainsFlowTesting {
         )
 
         let tool = SwiftParseTool()
-        let input = try JSONToolBridge.encode(
-            SwiftParseToolInput(
+        let input = SwiftParseToolInput(
                 path: "Fixture.swift"
             )
-        )
 
         let preflight = try await tool.preflight(
-            input: input,
-            workspace: fixture.workspace
+            input,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         try Expect.equal(
@@ -132,13 +132,12 @@ enum AgenticDomainsFlowTesting {
         )
 
         let encoded = try await tool.call(
-            input: input,
-            workspace: fixture.workspace
+            input,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
-        let output = try JSONToolBridge.decode(
-            SwiftParseToolOutput.self,
-            from: encoded
-        )
+        let output = encoded
 
         try Expect.true(
             output.path.contains("Fixture.swift"),
@@ -166,14 +165,14 @@ enum AgenticDomainsFlowTesting {
         }
 
         let listTool = SwiftDeployedProductsTool()
-        let listInput = try JSONToolBridge.encode(
-            SwiftDeployedProductsToolInput(
+        let listInput = SwiftDeployedProductsToolInput(
                 includeDetails: false
             )
-        )
         let listPreflight = try await listTool.preflight(
-            input: listInput,
-            workspace: fixture.workspace
+            listInput,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         try Expect.equal(
@@ -190,14 +189,14 @@ enum AgenticDomainsFlowTesting {
 
         let removeTool = SwiftRemoveDeployedTool()
         let product = "agentic-domains-fixture-do-not-remove"
-        let removeInput = try JSONToolBridge.encode(
-            SwiftRemoveDeployedToolInput(
+        let removeInput = SwiftRemoveDeployedToolInput(
                 product: product
             )
-        )
         let removePreflight = try await removeTool.preflight(
-            input: removeInput,
-            workspace: fixture.workspace
+            removeInput,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         try Expect.equal(
@@ -239,18 +238,22 @@ enum AgenticDomainsFlowTesting {
             fixture.remove()
         }
 
-        let empty: JSONValue = .object([:])
+        let empty = AgenticSwiftEmptyToolInput()
 
         let update = SwiftUpdateTool()
         let updatePreflight = try await update.preflight(
-            input: empty,
-            workspace: fixture.workspace
+            empty,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         let resolve = SwiftResolveTool()
         let resolvePreflight = try await resolve.preflight(
-            input: empty,
-            workspace: fixture.workspace
+            empty,
+            context: .init(
+                workspace: fixture.workspace
+            )
         )
 
         try Expect.equal(
@@ -273,13 +276,21 @@ enum AgenticDomainsFlowTesting {
             .privileged,
             "package resolve preflight risk"
         )
+        let expectedPackageResolvedPath = fixture.url(
+            "Package.resolved"
+        ).path
+
         try Expect.true(
-            updatePreflight.targetPaths.contains("Package.resolved"),
-            "package update preflight names Package.resolved"
+            updatePreflight.targetPaths.contains(
+                expectedPackageResolvedPath
+            ),
+            "package update preflight resolves Package.resolved in the selected workspace"
         )
         try Expect.true(
-            resolvePreflight.targetPaths.contains("Package.resolved"),
-            "package resolve preflight names Package.resolved"
+            resolvePreflight.targetPaths.contains(
+                expectedPackageResolvedPath
+            ),
+            "package resolve preflight resolves Package.resolved in the selected workspace"
         )
 
         return [

@@ -209,9 +209,10 @@ public struct GitPushToolOutput:
 }
 
 public struct GitPushTool:
-    TypedAgentTool
+    AgentTool
 {
     public typealias Input = GitPushToolInput
+    public typealias Output = GitPushToolOutput
     public static let identifier:
         AgentToolIdentifier =
             "git_push"
@@ -225,147 +226,19 @@ public struct GitPushTool:
         ActionRisk =
             .privileged
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        let decoded =
-            try JSONToolBridge.decode(
-                GitPushToolInput.self,
-                from: input
-            )
 
-        let target =
-            try decoded.validatedTarget()
-
-        let workspace =
-            try AgenticGitToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
-
-        try await AgenticGitToolSupport
-            .requireRepositoryRoot(
-                workspace,
-                toolName: name
-            )
-
-        let state =
-            try await GitManagerRepositoryInspector
-                .state(
-                    at: workspace.rootURL,
-                    fetch: false
-                )
-
-        let destination: String
-
-        if let target {
-            destination =
-                "\(target.remote)/\(target.branch)"
-        } else {
-            destination =
-                state.upstreamDisplay
-                    ?? "configured/default upstream"
-        }
-
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot:
-                workspace.rootURL.path,
-            targetPaths: [],
-            summary:
-                "Push Git history from current branch \(state.branch ?? "unknown") to \(destination).",
-            sideEffects: [
-                "perform a network Git push",
-                target == nil
-                    ? "use configured/default upstream resolution"
-                    : "push to explicitly supplied remote and branch",
-                target != nil && decoded.setUpstream
-                    ? "set the explicit push destination as upstream"
-                    : "do not change explicit upstream configuration",
-            ],
-            policyChecks: [
-                "workspace_required",
-                "repository_root_workspace",
-                "remote_branch_pair_required",
-                "push_target_syntax_validated",
-                "typed_git_push",
-                "no_branch_checkout",
-                "privileged_network_mutation",
-            ]
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded =
-            try JSONToolBridge.decode(
-                GitPushToolInput.self,
-                from: input
-            )
-
-        let target =
-            try decoded.validatedTarget()
-
-        let workspace =
-            try AgenticGitToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
-
-        try await AgenticGitToolSupport
-            .requireRepositoryRoot(
-                workspace,
-                toolName: name
-            )
-
-        let before =
-            try await GitManagerRepositoryInspector
-                .state(
-                    at: workspace.rootURL,
-                    fetch: false
-                )
-
-        let output: String
-
-        if let target {
-            output =
-                try await GitManagerAction.push(
-                    remote: target.remote,
-                    branch: target.branch,
-                    setUpstream:
-                        decoded.setUpstream,
-                    at: workspace.rootURL
-                )
-        } else {
-            output =
-                try await GitManagerAction.push(
-                    at: workspace.rootURL
-                )
-        }
-
-        return try JSONToolBridge.encode(
-            GitPushToolOutput(
-                remote: target?.remote,
-                branch: target?.branch,
-                configuredTarget:
-                    target == nil
-                        ? before.upstreamDisplay
-                        : nil,
-                currentBranch: before.branch,
-                setUpstream:
-                    target == nil
-                        ? true
-                        : decoded.setUpstream,
-                output: output
-            )
-        )
-    }
 }

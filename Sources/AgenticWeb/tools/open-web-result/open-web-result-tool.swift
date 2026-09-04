@@ -4,8 +4,9 @@ import AgenticWorkspace
 import Foundation
 import Primitives
 
-public struct OpenWebResultTool: TypedAgentTool {
+public struct OpenWebResultTool: AgentTool {
     public typealias Input = OpenWebResultToolInput
+    public typealias Output = OpenWebResultToolOutput
     public static let identifier: AgentToolIdentifier = "open_web_result"
     public static let description = "Open one previously returned search result by searchID and resultID and return sandboxed extracted text."
     public static let risk: ActionRisk = .observe
@@ -13,6 +14,18 @@ public struct OpenWebResultTool: TypedAgentTool {
     public let provider: any WebSearchProvider
     public let policy: WebAccessPolicy
     public let sessionStore: WebSearchSessionStore
+
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
 
     public init(
         provider: any WebSearchProvider = UnavailableWebSearchProvider(),
@@ -25,21 +38,16 @@ public struct OpenWebResultTool: TypedAgentTool {
     }
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        _ = workspace
-
-        let decoded = try JSONToolBridge.decode(
-            OpenWebResultToolInput.self,
-            from: input
-        )
+        _ = context
         let record = try await requiredRecord(
-            searchID: decoded.searchID
+            searchID: input.searchID
         )
         let result = try requiredResult(
             in: record,
-            resultID: decoded.resultID
+            resultID: input.resultID
         )
         let url = try policy.validate(
             urlString: result.url
@@ -62,27 +70,22 @@ public struct OpenWebResultTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        _ = workspace
-
-        let decoded = try JSONToolBridge.decode(
-            OpenWebResultToolInput.self,
-            from: input
-        )
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
+        _ = context
         let record = try await requiredRecord(
-            searchID: decoded.searchID
+            searchID: input.searchID
         )
         let result = try requiredResult(
             in: record,
-            resultID: decoded.resultID
+            resultID: input.resultID
         )
         let validatedURL = try policy.validate(
             urlString: result.url
         )
         let characterLimit = policy.normalizedCharacterLimit(
-            decoded.maxCharacters
+            input.maxCharacters
         )
 
         let response = try await provider.fetch(
@@ -101,8 +104,7 @@ public struct OpenWebResultTool: TypedAgentTool {
             string: response.finalURL
         )?.host ?? validatedURL.host ?? result.displayHost
 
-        return try JSONToolBridge.encode(
-            OpenWebResultToolOutput(
+        return OpenWebResultToolOutput(
                 searchID: record.id,
                 resultID: result.id,
                 title: response.title ?? result.title,
@@ -113,7 +115,6 @@ public struct OpenWebResultTool: TypedAgentTool {
                 truncated: truncatedText.truncated,
                 text: truncatedText.text
             )
-        )
     }
 }
 

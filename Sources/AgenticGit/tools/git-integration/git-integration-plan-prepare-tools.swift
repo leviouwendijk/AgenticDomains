@@ -51,8 +51,9 @@ public struct GitIntegrationPlanToolOutput:
     }
 }
 
-public struct GitIntegrationPlanTool: TypedAgentTool {
+public struct GitIntegrationPlanTool: AgentTool {
     public typealias Input = GitIntegrationPlanToolInput
+    public typealias Output = GitIntegrationPlanToolOutput
     public static let identifier: AgentToolIdentifier =
         "git_integration_plan"
 
@@ -61,12 +62,29 @@ public struct GitIntegrationPlanTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .observe
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
+            toolName: name
+        )
+
         let context = try await resolved(
             input,
             workspace: workspace
@@ -94,9 +112,14 @@ public struct GitIntegrationPlanTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
+            toolName: name
+        )
+
         let context = try await resolved(
             input,
             workspace: workspace
@@ -105,12 +128,10 @@ public struct GitIntegrationPlanTool: TypedAgentTool {
             context.plan
         )
 
-        return try JSONToolBridge.encode(
-            GitIntegrationPlanToolOutput(
+        return GitIntegrationPlanToolOutput(
                 plan: context.plan,
                 receipt: receipt
             )
-        )
     }
 }
 
@@ -121,13 +142,9 @@ private extension GitIntegrationPlanTool {
     }
 
     func resolved(
-        _ input: JSONValue,
+        _ input: GitIntegrationPlanToolInput,
         workspace candidate: AgentWorkspace?
     ) async throws -> Context {
-        let decoded = try JSONToolBridge.decode(
-            GitIntegrationPlanToolInput.self,
-            from: input
-        )
         let workspace = try AgenticGitToolSupport.requireWorkspace(
             candidate,
             toolName: name
@@ -139,9 +156,9 @@ private extension GitIntegrationPlanTool {
         )
 
         let plan = try await GitManagerIntegrationPlanner.plan(
-            sourceRef: decoded.sourceRef,
-            targetRef: decoded.targetRef,
-            expectedTargetCommit: decoded.expectedTargetCommit,
+            sourceRef: input.sourceRef,
+            targetRef: input.targetRef,
+            expectedTargetCommit: input.expectedTargetCommit,
             at: workspace.rootURL
         )
 
@@ -192,8 +209,9 @@ public struct GitIntegrationPrepareToolOutput:
     }
 }
 
-public struct GitIntegrationPrepareTool: TypedAgentTool {
+public struct GitIntegrationPrepareTool: AgentTool {
     public typealias Input = GitIntegrationPrepareToolInput
+    public typealias Output = GitIntegrationPrepareToolOutput
     public static let identifier: AgentToolIdentifier =
         "git_integration_prepare"
 
@@ -202,12 +220,29 @@ public struct GitIntegrationPrepareTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .boundedmutate
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
+            toolName: name
+        )
+
         let context = try await resolvedContext(
             input,
             workspace: workspace
@@ -246,15 +281,11 @@ public struct GitIntegrationPrepareTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            GitIntegrationPrepareToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticGitToolSupport.requireWorkspace(
-            workspace,
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
             toolName: name
         )
 
@@ -265,10 +296,10 @@ public struct GitIntegrationPrepareTool: TypedAgentTool {
 
         let plan = try AgenticGitIntegrationReceipt.decode(
             GitManagerIntegrationPlan.self,
-            from: decoded.planReceipt
+            from: input.planReceipt
         )
         let isolationID = try GitManagerIsolationID(
-            decoded.semanticKey
+            input.semanticKey
         )
         let destination = try AgenticGitManagedWorktrees.destination(
             repository: workspace.rootURL,
@@ -290,12 +321,10 @@ public struct GitIntegrationPrepareTool: TypedAgentTool {
             execution
         )
 
-        return try JSONToolBridge.encode(
-            GitIntegrationPrepareToolOutput(
+        return GitIntegrationPrepareToolOutput(
                 execution: execution,
                 receipt: receipt
             )
-        )
     }
 }
 
@@ -307,13 +336,9 @@ private extension GitIntegrationPrepareTool {
     }
 
     func resolvedContext(
-        _ input: JSONValue,
+        _ input: GitIntegrationPrepareToolInput,
         workspace candidate: AgentWorkspace?
     ) async throws -> Context {
-        let decoded = try JSONToolBridge.decode(
-            GitIntegrationPrepareToolInput.self,
-            from: input
-        )
         let workspace = try AgenticGitToolSupport.requireWorkspace(
             candidate,
             toolName: name
@@ -326,7 +351,7 @@ private extension GitIntegrationPrepareTool {
 
         let plan = try AgenticGitIntegrationReceipt.decode(
             GitManagerIntegrationPlan.self,
-            from: decoded.planReceipt
+            from: input.planReceipt
         )
         let current = try await GitManagerIntegrationPlanner.plan(
             sourceRef: plan.source.ref,
@@ -350,7 +375,7 @@ private extension GitIntegrationPrepareTool {
         }
 
         let isolationID = try GitManagerIsolationID(
-            decoded.semanticKey
+            input.semanticKey
         )
         let destination = try AgenticGitManagedWorktrees.destination(
             repository: workspace.rootURL,

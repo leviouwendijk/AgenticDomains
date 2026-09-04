@@ -5,8 +5,9 @@ import Interfaces
 import Primitives
 import Schema
 
-public struct GitRepositoryStateTool: TypedAgentTool {
+public struct GitRepositoryStateTool: AgentTool {
     public typealias Input = AgenticGitEmptyToolInput
+    public typealias Output = GitManagerRepositoryState
     public static let identifier: AgentToolIdentifier =
         "git_repository_state"
 
@@ -17,26 +18,18 @@ public struct GitRepositoryStateTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .observe
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        _ = input
-
-        let workspace = try AgenticGitToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
-
-        let state = try await GitManagerRepositoryInspector.state(
-            at: workspace.rootURL,
-            fetch: false
-        )
-
-        return try JSONToolBridge.encode(
-            state
-        )
-    }
 }

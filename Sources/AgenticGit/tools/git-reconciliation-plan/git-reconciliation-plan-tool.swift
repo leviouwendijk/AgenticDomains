@@ -5,8 +5,9 @@ import Interfaces
 import Primitives
 import Schema
 
-public struct GitReconciliationPlanTool: TypedAgentTool {
+public struct GitReconciliationPlanTool: AgentTool {
     public typealias Input = AgenticGitEmptyToolInput
+    public typealias Output = GitManagerReconciliationResult
     public static let identifier: AgentToolIdentifier =
         "git_reconciliation_plan"
 
@@ -17,28 +18,18 @@ public struct GitReconciliationPlanTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .observe
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        _ = input
-
-        let workspace = try AgenticGitToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
-
-        let result = try await GitManagerReconciler.reconcile(
-            at: workspace.rootURL,
-            fetch: false,
-            apply: false,
-            cleanUntracked: false
-        )
-
-        return try JSONToolBridge.encode(
-            result
-        )
-    }
 }

@@ -105,9 +105,10 @@ public extension GitDiffToolInput {
 }
 
 public struct GitDiffTool:
-    TypedAgentTool
+    AgentTool
 {
     public typealias Input = GitDiffToolInput
+    public typealias Output = GitManagerDiffResult
     public static let identifier:
         AgentToolIdentifier =
             "git_diff"
@@ -121,86 +122,19 @@ public struct GitDiffTool:
         ActionRisk =
             .observe
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        let decoded =
-            try JSONToolBridge.decode(
-                GitDiffToolInput.self,
-                from: input
-            )
 
-        let workspace =
-            try AgenticGitToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
-
-        try await AgenticGitToolSupport
-            .requireRepositoryRoot(
-                workspace,
-                toolName: name
-            )
-
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot:
-                workspace.rootURL.path,
-            targetPaths:
-                decoded.paths,
-            summary:
-                "Observe \(decoded.scope.rawValue) tracked Git differences.",
-            sideEffects: [],
-            policyChecks: [
-                "workspace_required",
-                "repository_root_workspace",
-                "typed_git_diff",
-                "no_fetch",
-                "no_mutation",
-                "tracked_content_only",
-            ]
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded =
-            try JSONToolBridge.decode(
-                GitDiffToolInput.self,
-                from: input
-            )
-
-        let workspace =
-            try AgenticGitToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
-
-        try await AgenticGitToolSupport
-            .requireRepositoryRoot(
-                workspace,
-                toolName: name
-            )
-
-        let result =
-            try await GitManagerDiff
-                .observe(
-                    decoded.request,
-                    at:
-                        workspace.rootURL
-                )
-
-        return try JSONToolBridge
-            .encode(
-                result
-            )
-    }
 }

@@ -51,9 +51,10 @@ public struct GitPullToolOutput:
 }
 
 public struct GitPullTool:
-    TypedAgentTool
+    AgentTool
 {
     public typealias Input = GitPullToolInput
+    public typealias Output = GitPullToolOutput
     public static let identifier:
         AgentToolIdentifier =
             "git_pull"
@@ -67,157 +68,22 @@ public struct GitPullTool:
         ActionRisk =
             .privileged
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        _ = input
 
-        let context = try await resolvedContext(
-            workspace
-        )
 
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot:
-                context.workspace.rootURL.path,
-            summary:
-                "Fast-forward pull current branch \(context.currentBranch) from configured upstream \(context.remote)/\(context.upstreamBranch).",
-            sideEffects: [
-                "perform a network Git pull",
-                "fetch and fast-forward from \(context.remote)/\(context.upstreamBranch)",
-                "update the current branch and working tree only when fast-forwardable",
-                "does not force",
-                "does not rebase",
-                "does not create a merge commit",
-                "does not check out or switch branches",
-            ],
-            policyChecks: [
-                "workspace_required",
-                "repository_root_workspace",
-                "clean_tracked_worktree_required",
-                "no_untracked_files_required",
-                "current_branch_required",
-                "configured_upstream_required",
-                "exact_pull_target_resolved",
-                "typed_git_pull",
-                "fast_forward_only",
-                "no_force",
-                "no_rebase",
-                "no_merge_commit",
-                "no_branch_checkout",
-                "privileged_network_mutation",
-            ]
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        _ = input
-
-        // Re-resolve every state-sensitive invariant at execution time.
-        // Do not rely on a stale preflight snapshot.
-        let context = try await resolvedContext(
-            workspace
-        )
-
-        let output =
-            try await GitManagerAction.pull(
-                remote: context.remote,
-                branch: context.upstreamBranch,
-                at: context.workspace.rootURL
-            )
-
-        let after =
-            try await GitManagerRepositoryInspector
-                .state(
-                    at: context.workspace.rootURL,
-                    fetch: false
-                )
-
-        return try JSONToolBridge.encode(
-            GitPullToolOutput(
-                remote: context.remote,
-                upstreamBranch:
-                    context.upstreamBranch,
-                currentBranch:
-                    context.currentBranch,
-                beforeHead:
-                    context.state.localHead,
-                afterHead:
-                    after.localHead,
-                changed:
-                    context.state.localHead
-                        != after.localHead,
-                output: output
-            )
-        )
-    }
-
-    public func processResult(
-        input _: JSONValue,
-        output: JSONValue,
-        workspace _: AgentWorkspace?
-    ) -> AgentToolResultProcessing {
-        guard let result =
-            try? JSONToolBridge.decode(
-                GitPullToolOutput.self,
-                from: output
-            )
-        else {
-            return .none
-        }
-
-        var facts: [AgentToolResultProjection.Fact] = [
-            .init(
-                label: "branch",
-                value: result.currentBranch
-            ),
-            .init(
-                label: "upstream",
-                value:
-                    "\(result.remote)/\(result.upstreamBranch)"
-            ),
-        ]
-
-        if let afterHead = result.afterHead {
-            facts.append(
-                .init(
-                    label: "HEAD",
-                    value: afterHead
-                )
-            )
-        }
-
-        let observations: [AgentToolResultObservation] =
-            result.output.isEmpty
-                ? []
-                : [
-                    .init(
-                        kind: .detail,
-                        label: "git",
-                        content: result.output
-                    )
-                ]
-
-        return .init(
-            projection: .init(
-                status:
-                    result.changed
-                        ? "updated"
-                        : "up to date",
-                summary:
-                    "\(result.currentBranch) <- \(result.remote)/\(result.upstreamBranch)",
-                facts: facts
-            ),
-            observations: observations
-        )
-    }
 }
 
 private extension GitPullTool {

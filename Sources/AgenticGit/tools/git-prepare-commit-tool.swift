@@ -79,9 +79,10 @@ public struct GitPrepareCommitToolOutput:
 }
 
 public struct GitPrepareCommitTool:
-    TypedAgentTool
+    AgentTool
 {
     public typealias Input = GitPrepareCommitToolInput
+    public typealias Output = GitPrepareCommitToolOutput
     public static let identifier:
         AgentToolIdentifier =
             "git_prepare_commit"
@@ -95,116 +96,19 @@ public struct GitPrepareCommitTool:
         ActionRisk =
             .boundedmutate
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        let decoded =
-            try JSONToolBridge.decode(
-                GitPrepareCommitToolInput.self,
-                from: input
-            )
 
-        let workspace =
-            try AgenticGitToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
-
-        try await AgenticGitToolSupport
-            .requireRepositoryRoot(
-                workspace,
-                toolName: name
-            )
-
-        let paths = try decoded.validatedPaths(
-            in: workspace
-        )
-
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot:
-                workspace.rootURL.path,
-            targetPaths: paths,
-            summary:
-                "Stage \(paths.count) explicit repository path(s) for a later commit.",
-            sideEffects: [
-                "modify the Git index",
-                "does not create a commit",
-                "does not push to a remote",
-            ],
-            policyChecks: [
-                "workspace_required",
-                "repository_root_workspace",
-                "explicit_stage_paths",
-                "workspace_paths_resolved",
-                "typed_git_prepare_commit",
-                "no_commit",
-                "no_push",
-            ]
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded =
-            try JSONToolBridge.decode(
-                GitPrepareCommitToolInput.self,
-                from: input
-            )
-
-        let workspace =
-            try AgenticGitToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
-
-        try await AgenticGitToolSupport
-            .requireRepositoryRoot(
-                workspace,
-                toolName: name
-            )
-
-        let paths = try decoded.validatedPaths(
-            in: workspace
-        )
-
-        let output =
-            try await GitManagerAction
-                .prepareCommit(
-                    paths: paths,
-                    at: workspace.rootURL
-                )
-
-        let staged =
-            try await GitManagerDiff.observe(
-                .init(
-                    scope: .staged
-                ),
-                at: workspace.rootURL
-            )
-
-        let stagedPaths = Array(
-            Set(
-                staged.sections.flatMap {
-                    $0.changedPaths
-                }
-            )
-        ).sorted()
-
-        return try JSONToolBridge.encode(
-            GitPrepareCommitToolOutput(
-                requestedPaths: paths,
-                stagedPaths: stagedPaths,
-                output: output
-            )
-        )
-    }
 }

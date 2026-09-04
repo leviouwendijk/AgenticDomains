@@ -48,93 +48,41 @@ public struct SwiftAppBundleToolInput:
     }
 }
 
-public struct SwiftAppBundleTool: TypedAgentTool {
+
+public struct SwiftAppBundleToolOutput: Sendable, Codable, Hashable {
+    public let app: String
+    public let buildDir: String
+    public let appName: String
+    public let target: String
+
+    public init(app: String, buildDir: String, appName: String, target: String) {
+        self.app = app
+        self.buildDir = buildDir
+        self.appName = appName
+        self.target = target
+    }
+}
+
+public struct SwiftAppBundleTool: AgentTool {
     public typealias Input = SwiftAppBundleToolInput
+    public typealias Output = SwiftAppBundleToolOutput
     public static let identifier: AgentToolIdentifier = "swift_app_bundle"
     public static let description =
         "Create or refresh a .app bundle around already-built Swift artifacts through Executable.AppBundleCreation."
     public static let risk: ActionRisk = .boundedmutate
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftAppBundleToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
 
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot: workspace.rootURL.path,
-            targetPaths: [
-                "\(decoded.appName ?? decoded.target ?? workspace.rootURL.lastPathComponent).app",
-            ],
-            summary: "Create or refresh the workspace app bundle.",
-            estimatedWriteCount: 4,
-            sideEffects: [
-                "Creates or replaces app-bundle symlinks and Info.plist materialization.",
-                "Uses already-built artifacts under .build and does not run a build itself.",
-            ],
-            policyChecks: [
-                "workspace_required",
-                "typed_app_bundle_creation",
-            ]
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftAppBundleToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
-
-        let plist: URL?
-        if let raw = decoded.plist {
-            let path = try workspace.resolve(
-                raw,
-                type: .file
-            )
-            plist = try workspace.absoluteURL(
-                for: path,
-                type: .file
-            )
-        } else {
-            plist = nil
-        }
-
-        let result = try await AppBundleCreation.create(
-            .init(
-                project: workspace.rootURL,
-                appName: decoded.appName,
-                target: decoded.target,
-                configuration: decoded.configuration == .debug
-                    ? .debug
-                    : .release,
-                plist: plist,
-                plistSymlink: decoded.plistSymlink ?? true,
-                resourcesBundle: decoded.resourcesBundle
-            )
-        )
-
-        return .object([
-            "app": .string(result.appDirectory.path),
-            "buildDir": .string(result.buildDirectory.path),
-            "appName": .string(result.appName),
-            "target": .string(result.target),
-        ])
-    }
 }

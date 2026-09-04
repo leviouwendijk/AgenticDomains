@@ -37,9 +37,10 @@ public struct SwiftExecutableProductsToolOutput:
 }
 
 public struct SwiftExecutableProductsTool:
-    TypedAgentTool
+    AgentTool
 {
     public typealias Input = AgenticSwiftEmptyToolInput
+    public typealias Output = SwiftExecutableProductsToolOutput
     public static let identifier:
         AgentToolIdentifier =
             "swift_executable_products"
@@ -52,83 +53,19 @@ public struct SwiftExecutableProductsTool:
     public static let risk:
         ActionRisk = .observe
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        _ = input
 
-        let workspace =
-            try AgenticSwiftToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
-
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot:
-                workspace.rootURL.path,
-            summary:
-                "Discover executable SwiftPM products in the current workspace.",
-            commandPreview:
-                "swift package dump-package",
-            sideEffects: [],
-            policyChecks: [
-                "workspace_required",
-                "swift_package_introspection",
-            ]
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        _ = input
-
-        let workspace =
-            try AgenticSwiftToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
-
-        let discovered:
-            [ExecutableProduct]
-
-        do {
-            discovered =
-                try await Products.executables(
-                    in: workspace.rootURL
-                )
-        } catch ProductsError
-            .noExecutableProductsFound
-        {
-            discovered = []
-        }
-
-        let output =
-            SwiftExecutableProductsToolOutput(
-                products:
-                    discovered
-                        .sorted {
-                            $0.name < $1.name
-                        }
-                        .map {
-                            .init(
-                                name: $0.name,
-                                targets:
-                                    $0.targets.sorted()
-                            )
-                        }
-            )
-
-        return try JSONToolBridge.encode(
-            output
-        )
-    }
 }

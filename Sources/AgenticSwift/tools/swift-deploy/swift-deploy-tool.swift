@@ -81,8 +81,9 @@ public struct SwiftDeployToolOutput:
     }
 }
 
-public struct SwiftDeployTool: TypedAgentTool {
+public struct SwiftDeployTool: AgentTool {
     public typealias Input = SwiftDeployToolInput
+    public typealias Output = SwiftDeployToolOutput
     public static let identifier: AgentToolIdentifier =
         "swift_deploy"
 
@@ -93,124 +94,22 @@ public struct SwiftDeployTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .privileged
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftDeployToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
-        let resolved = try await resolution(
-            decoded,
-            workspace: workspace
-        )
 
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot: workspace.rootURL.path,
-            targetPaths: [
-                resolved.destination.path,
-            ],
-            summary: "Deploy Swift executable product(s): \(resolved.plan.selectedProductNames.joined(separator: ", ")).",
-            commandPreview: "deploy \(decoded.configuration.rawValue) -> \(resolved.destination.path)",
-            estimatedWriteCount: max(
-                1,
-                resolved.plan.selectedProductNames.count * 2
-            ),
-            estimatedRuntimeSeconds: 60,
-            sideEffects: [
-                "Moves built executable artifacts from .build into the deployment destination.",
-                "Replaces existing deployed products when present.",
-                "Writes per-product deployment metadata using Executable.Deploy.",
-            ],
-            policyChecks: [
-                "workspace_required",
-                "typed_swift_deploy",
-                "executable_products_resolved",
-                "shared_executable_deploy_mechanics",
-                "human_review_required",
-            ],
-            warnings: [
-                "The canonical Executable deployment directory is outside the attached Agentic workspace."
-            ]
-        )
-    }
 
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftDeployToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
-        let resolved = try await resolution(
-            decoded,
-            workspace: workspace
-        )
-
-        try Deploy.selected(
-            from: workspace.rootURL,
-            config: resolved.plan.request.config,
-            to: resolved.destination,
-            products: resolved.plan.selectedProductNames,
-            perProductDestinations: resolved.plan.perProductDestinations
-        )
-
-        return try JSONToolBridge.encode(
-            SwiftDeployToolOutput(
-                configuration: decoded.configuration.rawValue,
-                destination: resolved.destination.path,
-                products: resolved.plan.selectedProductNames
-            )
-        )
-    }
-
-    public func processResult(
-        input _: JSONValue,
-        output: JSONValue,
-        workspace _: AgentWorkspace?
-    ) -> AgentToolResultProcessing {
-        guard let result = try? JSONToolBridge.decode(
-            SwiftDeployToolOutput.self,
-            from: output
-        ) else {
-            return .none
-        }
-
-        return .init(
-            projection: .init(
-                status: "passed",
-                summary: "Swift deployment completed successfully.",
-                facts: [
-                    .init(
-                        label: "configuration",
-                        value: result.configuration
-                    ),
-                    .init(
-                        label: "destination",
-                        value: result.destination
-                    ),
-                    .init(
-                        label: "products",
-                        value: result.products.joined(separator: ", ")
-                    ),
-                ]
-            )
-        )
-    }
 }
 
 private extension SwiftDeployTool {

@@ -27,77 +27,39 @@ public struct SwiftBuildLibraryToolInput:
     }
 }
 
-public struct SwiftBuildLibraryTool: TypedAgentTool {
+
+public struct SwiftBuildLibraryToolOutput: Sendable, Codable, Hashable {
+    public let package: String
+    public let artifacts: String
+    public let buildDir: String
+
+    public init(package: String, artifacts: String, buildDir: String) {
+        self.package = package
+        self.artifacts = artifacts
+        self.buildDir = buildDir
+    }
+}
+
+public struct SwiftBuildLibraryTool: AgentTool {
     public typealias Input = SwiftBuildLibraryToolInput
+    public typealias Output = SwiftBuildLibraryToolOutput
     public static let identifier: AgentToolIdentifier = "swift_build_library"
     public static let description =
         "Build library products with module interfaces through Executable.BuildLibrary."
     public static let risk: ActionRisk = .privileged
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftBuildLibraryToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot: workspace.rootURL.path,
-            targetPaths: decoded.local == true
-                ? [".build/"]
-                : [".build/", BuildLibrary.defaultModulesRoot.path],
-            summary: "Build Swift library distribution artifacts.",
-            estimatedRuntimeSeconds: 300,
-            sideEffects: [
-                "Runs SwiftPM builds.",
-                "May export module/library artifacts outside the workspace.",
-            ],
-            policyChecks: [
-                "workspace_required",
-                "typed_build_library",
-                "human_review_required",
-            ]
-        )
-    }
 
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftBuildLibraryToolInput.self,
-            from: input
-        )
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
-            toolName: name
-        )
-        let configuration = decoded.configuration ?? .release
-        let config = Build.Config(
-            mode: configuration == .debug
-                ? .debug
-                : .release,
-            updateBuiltOnSuccess: false
-        )
-        let result = try await BuildLibrary.buildAndExport(
-            at: workspace.rootURL,
-            config: config,
-            local: decoded.local ?? false,
-            modulesRoot: BuildLibrary.defaultModulesRoot
-        )
-
-        return .object([
-            "package": .string(result.packageName),
-            "artifacts": .string(result.artifactsDir.path),
-            "buildDir": .string(result.builtDir.path),
-        ])
-    }
 }

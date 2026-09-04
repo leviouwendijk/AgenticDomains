@@ -31,8 +31,9 @@ public struct GitIntegrationPromoteToolInput:
     }
 }
 
-public struct GitIntegrationPromoteTool: TypedAgentTool {
+public struct GitIntegrationPromoteTool: AgentTool {
     public typealias Input = GitIntegrationPromoteToolInput
+    public typealias Output = GitManagerIntegrationPromotion
     public static let identifier: AgentToolIdentifier =
         "git_integration_promote"
 
@@ -41,12 +42,29 @@ public struct GitIntegrationPromoteTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .privileged
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
+            toolName: name
+        )
+
         let context = try await resolvedContext(
             input,
             workspace: workspace
@@ -88,21 +106,24 @@ public struct GitIntegrationPromoteTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
+            toolName: name
+        )
+
         let context = try await resolvedContext(
             input,
             workspace: workspace
         )
 
-        return try JSONToolBridge.encode(
-            try await GitManagerIntegrationExecutor.promote(
+        return try await GitManagerIntegrationExecutor.promote(
                 context.execution,
                 targetBranch: context.input.targetBranch,
                 at: context.workspace.rootURL
             )
-        )
     }
 }
 
@@ -114,13 +135,9 @@ private extension GitIntegrationPromoteTool {
     }
 
     func resolvedContext(
-        _ input: JSONValue,
+        _ input: GitIntegrationPromoteToolInput,
         workspace candidate: AgentWorkspace?
     ) async throws -> Context {
-        let decoded = try JSONToolBridge.decode(
-            GitIntegrationPromoteToolInput.self,
-            from: input
-        )
         let workspace = try AgenticGitToolSupport.requireWorkspace(
             candidate,
             toolName: name
@@ -133,10 +150,10 @@ private extension GitIntegrationPromoteTool {
 
         let execution = try AgenticGitIntegrationReceipt.decode(
             GitManagerIntegrationExecution.self,
-            from: decoded.executionReceipt
+            from: input.executionReceipt
         )
 
-        guard decoded.targetBranch == execution.plan.target.ref else {
+        guard input.targetBranch == execution.plan.target.ref else {
             throw GitManagerError.unsafeSync(
                 "git_integration_promote targetBranch must exactly match the target ref reviewed in the integration plan: \(execution.plan.target.ref)"
             )
@@ -151,7 +168,7 @@ private extension GitIntegrationPromoteTool {
         }
 
         return .init(
-            input: decoded,
+            input: input,
             workspace: workspace,
             execution: execution
         )
@@ -206,8 +223,9 @@ public struct GitIntegrationCleanupToolOutput:
     }
 }
 
-public struct GitIntegrationCleanupTool: TypedAgentTool {
+public struct GitIntegrationCleanupTool: AgentTool {
     public typealias Input = GitIntegrationCleanupToolInput
+    public typealias Output = GitIntegrationCleanupToolOutput
     public static let identifier: AgentToolIdentifier =
         "git_integration_cleanup"
 
@@ -216,12 +234,29 @@ public struct GitIntegrationCleanupTool: TypedAgentTool {
 
     public static let risk: ActionRisk = .privileged
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
+            toolName: name
+        )
+
         let context = try await resolvedContext(
             input,
             workspace: workspace
@@ -260,9 +295,14 @@ public struct GitIntegrationCleanupTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
+        let workspace = try await agenticGitScopedWorkspace(
+            context,
+            toolName: name
+        )
+
         let context = try await resolvedContext(
             input,
             workspace: workspace
@@ -275,13 +315,11 @@ public struct GitIntegrationCleanupTool: TypedAgentTool {
             at: context.workspace.rootURL
         )
 
-        return try JSONToolBridge.encode(
-            GitIntegrationCleanupToolOutput(
+        return GitIntegrationCleanupToolOutput(
                 status: "cleaned",
                 worktree: worktree,
                 discarded: context.input.resolvedDiscard
             )
-        )
     }
 }
 
@@ -293,13 +331,9 @@ private extension GitIntegrationCleanupTool {
     }
 
     func resolvedContext(
-        _ input: JSONValue,
+        _ input: GitIntegrationCleanupToolInput,
         workspace candidate: AgentWorkspace?
     ) async throws -> Context {
-        let decoded = try JSONToolBridge.decode(
-            GitIntegrationCleanupToolInput.self,
-            from: input
-        )
         let workspace = try AgenticGitToolSupport.requireWorkspace(
             candidate,
             toolName: name
@@ -312,7 +346,7 @@ private extension GitIntegrationCleanupTool {
 
         let execution = try AgenticGitIntegrationReceipt.decode(
             GitManagerIntegrationExecution.self,
-            from: decoded.executionReceipt
+            from: input.executionReceipt
         )
 
         if let worktree = execution.worktree {
@@ -324,7 +358,7 @@ private extension GitIntegrationCleanupTool {
         }
 
         return .init(
-            input: decoded,
+            input: input,
             workspace: workspace,
             execution: execution
         )

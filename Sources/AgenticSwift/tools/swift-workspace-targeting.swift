@@ -107,11 +107,12 @@ private struct SwiftWorkspaceExecution {
     }
 }
 
-extension SwiftExecutableProductsTool:
-    WorkspaceTargetableTool
-{
+extension SwiftExecutableProductsTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         _ = input
@@ -141,9 +142,9 @@ extension SwiftExecutableProductsTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
+    ) async throws -> Output {
         _ = input
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
@@ -159,8 +160,7 @@ extension SwiftExecutableProductsTool:
             discovered = []
         }
 
-        return try JSONToolBridge.encode(
-            SwiftExecutableProductsToolOutput(
+        return SwiftExecutableProductsToolOutput(
                 products:
                     discovered
                         .sorted {
@@ -173,15 +173,15 @@ extension SwiftExecutableProductsTool:
                             )
                         }
             )
-        )
     }
 }
 
-extension SwiftUpdateTool:
-    WorkspaceTargetableTool
-{
+extension SwiftUpdateTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input _: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
@@ -224,9 +224,9 @@ extension SwiftUpdateTool:
     }
 
     public func call(
-        input _: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -250,29 +250,34 @@ extension SwiftUpdateTool:
             )
         }
 
-        return try JSONToolBridge.encode(
-            SwiftPackageOperationToolOutput(
-                operation: "update",
-                isSuccess: true,
-                exitCode: Int(result.exitCode),
-                stdout: String(
-                    decoding: result.stdout,
-                    as: UTF8.self
-                ),
-                stderr: String(
-                    decoding: result.stderr,
-                    as: UTF8.self
-                )
+        let output = SwiftPackageOperationToolOutput(
+            operation: "update",
+            isSuccess: true,
+            exitCode: Int(result.exitCode),
+            stdout: String(
+                decoding: result.stdout,
+                as: UTF8.self
+            ),
+            stderr: String(
+                decoding: result.stderr,
+                as: UTF8.self
             )
         )
+
+        await output.observe(
+            in: context
+        )
+
+        return output
     }
 }
 
-extension SwiftResolveTool:
-    WorkspaceTargetableTool
-{
+extension SwiftResolveTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input _: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
@@ -315,9 +320,9 @@ extension SwiftResolveTool:
     }
 
     public func call(
-        input _: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -341,29 +346,34 @@ extension SwiftResolveTool:
             )
         }
 
-        return try JSONToolBridge.encode(
-            SwiftPackageOperationToolOutput(
-                operation: "resolve",
-                isSuccess: true,
-                exitCode: Int(result.exitCode),
-                stdout: String(
-                    decoding: result.stdout,
-                    as: UTF8.self
-                ),
-                stderr: String(
-                    decoding: result.stderr,
-                    as: UTF8.self
-                )
+        let output = SwiftPackageOperationToolOutput(
+            operation: "resolve",
+            isSuccess: true,
+            exitCode: Int(result.exitCode),
+            stdout: String(
+                decoding: result.stdout,
+                as: UTF8.self
+            ),
+            stderr: String(
+                decoding: result.stderr,
+                as: UTF8.self
             )
         )
+
+        await output.observe(
+            in: context
+        )
+
+        return output
     }
 }
 
-extension SwiftCleanTool:
-    WorkspaceTargetableTool
-{
+extension SwiftCleanTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input _: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
@@ -399,9 +409,9 @@ extension SwiftCleanTool:
     }
 
     public func call(
-        input _: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -411,17 +421,18 @@ extension SwiftCleanTool:
             at: execution.projectRoot
         )
 
-        return .object([
-            "status": .string("passed"),
-        ])
+        return SwiftCleanToolOutput(
+            status: "passed"
+        )
     }
 }
 
-extension SwiftVersionTool:
-    WorkspaceTargetableTool
-{
+extension SwiftVersionTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input _: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
@@ -449,9 +460,9 @@ extension SwiftVersionTool:
     }
 
     public func call(
-        input _: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -460,8 +471,7 @@ extension SwiftVersionTool:
             at: execution.projectRoot
         )
 
-        return try JSONToolBridge.encode(
-            SwiftVersionToolOutput(
+        return SwiftVersionToolOutput(
                 name: snapshot.name,
                 types: snapshot.types,
                 compiled: snapshot.compiled.string(
@@ -475,21 +485,17 @@ extension SwiftVersionTool:
                 ahead: snapshot.ahead,
                 behind: snapshot.behind
             )
-        )
     }
 }
 
-extension SwiftIncrementVersionTool:
-    WorkspaceTargetableTool
-{
+extension SwiftIncrementVersionTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftIncrementVersionToolInput.self,
-            from: input
-        )
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -503,7 +509,7 @@ extension SwiftIncrementVersionTool:
                 execution.projectPath("build-object.pkl").path,
             ],
             summary:
-                "Increment Swift release \(decoded.level.rawValue) version at the selected workspace location.",
+                "Increment Swift release \(input.level.rawValue) version at the selected workspace location.",
             estimatedWriteCount: 1,
             sideEffects: [
                 "Updates the release version in build-object.pkl.",
@@ -517,52 +523,41 @@ extension SwiftIncrementVersionTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftIncrementVersionToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let result = try ExecutableVersion.incrementRelease(
             at: execution.projectRoot,
-            level: decoded.level
+            level: input.level
         )
 
-        return .object([
-            "before": .string(
-                result.before.string(
-                    prefixStyle: .short,
-                    prefixSpace: false
-                )
+        return SwiftIncrementVersionToolOutput(
+            before: result.before.string(
+                prefixStyle: .short,
+                prefixSpace: false
             ),
-            "after": .string(
-                result.after.string(
-                    prefixStyle: .short,
-                    prefixSpace: false
-                )
+            after: result.after.string(
+                prefixStyle: .short,
+                prefixSpace: false
             ),
-            "level": .string(result.level.rawValue),
-            "path": .string(result.configurationURL.path),
-        ])
+            level: result.level.rawValue,
+            path: result.configurationURL.path
+        )
     }
 }
 
-extension SwiftKillSwiftPMTool:
-    WorkspaceTargetableTool
-{
+extension SwiftKillSwiftPMTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftKillSwiftPMToolInput.self,
-            from: input
-        )
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -576,15 +571,15 @@ extension SwiftKillSwiftPMTool:
                 execution.projectRoot.path,
             ],
             summary:
-                decoded.dryRun == true
+                input.dryRun == true
                     ? "Inspect SwiftPM processes for the selected workspace location without signaling them."
                     : "Terminate detected SwiftPM process trees for the selected workspace location.",
             commandPreview:
-                decoded.dryRun == true
+                input.dryRun == true
                     ? "kill-swiftpm --dry-run"
                     : "kill-swiftpm",
             sideEffects:
-                decoded.dryRun == true
+                input.dryRun == true
                     ? []
                     : [
                         "Sends termination signals to detected Swift/SwiftPM process trees.",
@@ -599,49 +594,40 @@ extension SwiftKillSwiftPMTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftKillSwiftPMToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let processes = try await SwiftPMProcesses().killAll(
-            force: decoded.force ?? false,
-            dryRun: decoded.dryRun ?? false,
+            force: input.force ?? false,
+            dryRun: input.dryRun ?? false,
             cwd: execution.projectRoot
         )
 
-        return .object([
-            "count": .string(String(processes.count)),
-            "dryRun": .bool(decoded.dryRun ?? false),
-            "processes": .array(
-                processes.map {
-                    .object([
-                        "pid": .string(String($0.pid)),
-                        "command": .string($0.commandLine),
-                    ])
-                }
-            ),
-        ])
+        return SwiftKillSwiftPMToolOutput(
+            count: String(processes.count),
+            dryRun: input.dryRun ?? false,
+            processes: processes.map { process in
+                .init(
+                    pid: String(process.pid),
+                    command: process.commandLine
+                )
+            }
+        )
     }
 }
 
-extension SwiftBuildLibraryTool:
-    WorkspaceTargetableTool
-{
+extension SwiftBuildLibraryTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftBuildLibraryToolInput.self,
-            from: input
-        )
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -652,7 +638,7 @@ extension SwiftBuildLibraryTool:
             risk: risk,
             workspaceRoot: execution.workspace.rootURL.path,
             targetPaths:
-                decoded.local == true
+                input.local == true
                     ? [
                         execution.projectPath(
                             ".build",
@@ -683,19 +669,15 @@ extension SwiftBuildLibraryTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftBuildLibraryToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let configuration =
-            decoded.configuration
+            input.configuration
                 ?? .release
         let config = Build.Config(
             mode:
@@ -707,23 +689,24 @@ extension SwiftBuildLibraryTool:
         let result = try await BuildLibrary.buildAndExport(
             at: execution.projectRoot,
             config: config,
-            local: decoded.local ?? false,
+            local: input.local ?? false,
             modulesRoot: BuildLibrary.defaultModulesRoot
         )
 
-        return .object([
-            "package": .string(result.packageName),
-            "artifacts": .string(result.artifactsDir.path),
-            "buildDir": .string(result.builtDir.path),
-        ])
+        return SwiftBuildLibraryToolOutput(
+            package: result.packageName,
+            artifacts: result.artifactsDir.path,
+            buildDir: result.builtDir.path
+        )
     }
 }
 
-extension SwiftBuildObjectInitTool:
-    WorkspaceTargetableTool
-{
+extension SwiftBuildObjectInitTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input _: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
@@ -751,13 +734,9 @@ extension SwiftBuildObjectInitTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftBuildObjectInitToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -765,7 +744,7 @@ extension SwiftBuildObjectInitTool:
 
         let result: BuildObjectLifecycle.InitializeResult
 
-        if decoded.empty == true {
+        if input.empty == true {
             result = try BuildObjectLifecycle.initializeEmpty(
                 at: execution.projectRoot
             )
@@ -773,38 +752,35 @@ extension SwiftBuildObjectInitTool:
             result = try BuildObjectLifecycle.initialize(
                 at: execution.projectRoot,
                 request: .init(
-                    name: decoded.name,
-                    types: decoded.types ?? ["binary"],
-                    details: decoded.details ?? "",
-                    author: decoded.author,
-                    update: decoded.update ?? "",
+                    name: input.name,
+                    types: input.types ?? ["binary"],
+                    details: input.details ?? "",
+                    author: input.author,
+                    update: input.update ?? "",
                     createCompiled:
-                        decoded.createCompiled
+                        input.createCompiled
                             ?? true
                 )
             )
         }
 
-        return .object([
-            "configuration": .string(result.configurationURL.path),
-            "compiled": .string(result.compiledURL.path),
-            "createdConfiguration": .bool(result.createdConfiguration),
-            "createdCompiled": .bool(result.createdCompiled),
-        ])
+        return SwiftBuildObjectInitToolOutput(
+            configuration: result.configurationURL.path,
+            compiled: result.compiledURL.path,
+            createdConfiguration: result.createdConfiguration,
+            createdCompiled: result.createdCompiled
+        )
     }
 }
 
-extension SwiftBuildObjectModernizeTool:
-    WorkspaceTargetableTool
-{
+extension SwiftBuildObjectModernizeTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftBuildObjectModernizeToolInput.self,
-            from: input
-        )
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -815,7 +791,7 @@ extension SwiftBuildObjectModernizeTool:
             risk: risk,
             workspaceRoot: execution.workspace.rootURL.path,
             targetPaths:
-                decoded.backup == false
+                input.backup == false
                     ? [
                         execution.projectPath("build-object.pkl").path,
                     ]
@@ -826,7 +802,7 @@ extension SwiftBuildObjectModernizeTool:
             summary:
                 "Modernize legacy Swift build-object configuration at the selected workspace location.",
             estimatedWriteCount:
-                decoded.backup == false
+                input.backup == false
                     ? 1
                     : 2,
             policyChecks: [
@@ -838,54 +814,42 @@ extension SwiftBuildObjectModernizeTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftBuildObjectModernizeToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let result = try BuildObjectLifecycle.modernize(
             at: execution.projectRoot,
-            backup: decoded.backup ?? true
+            backup: input.backup ?? true
         )
 
-        var fields: [String: JSONValue] = [
-            "path": .string(result.configurationURL.path),
-            "name": .string(result.name),
-            "modernized": .bool(result.modernized),
-        ]
-
-        if let backup = result.backupURL {
-            fields["backup"] = .string(backup.path)
-        }
-
-        return .object(fields)
+        return SwiftBuildObjectModernizeToolOutput(
+            path: result.configurationURL.path,
+            name: result.name,
+            modernized: result.modernized,
+            backup: result.backupURL?.path
+        )
     }
 }
 
-extension SwiftAppBundleTool:
-    WorkspaceTargetableTool
-{
+extension SwiftAppBundleTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftAppBundleToolInput.self,
-            from: input
-        )
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let appName =
-            decoded.appName
-                ?? decoded.target
+            input.appName
+                ?? input.target
                 ?? execution.projectRoot.lastPathComponent
 
         return .init(
@@ -914,19 +878,15 @@ extension SwiftAppBundleTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftAppBundleToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let plist =
-            try decoded.plist.map {
+            try input.plist.map {
                 try execution.projectFile(
                     $0
                 )
@@ -934,47 +894,44 @@ extension SwiftAppBundleTool:
         let result = try await AppBundleCreation.create(
             .init(
                 project: execution.projectRoot,
-                appName: decoded.appName,
-                target: decoded.target,
+                appName: input.appName,
+                target: input.target,
                 configuration:
-                    decoded.configuration == .debug
+                    input.configuration == .debug
                         ? .debug
                         : .release,
                 plist: plist,
                 plistSymlink:
-                    decoded.plistSymlink
+                    input.plistSymlink
                         ?? true,
                 resourcesBundle:
-                    decoded.resourcesBundle
+                    input.resourcesBundle
             )
         )
 
-        return .object([
-            "app": .string(result.appDirectory.path),
-            "buildDir": .string(result.buildDirectory.path),
-            "appName": .string(result.appName),
-            "target": .string(result.target),
-        ])
+        return SwiftAppBundleToolOutput(
+            app: result.appDirectory.path,
+            buildDir: result.buildDirectory.path,
+            appName: result.appName,
+            target: result.target
+        )
     }
 }
 
-extension SwiftDeployTool:
-    WorkspaceTargetableTool
-{
+extension SwiftDeployTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftDeployToolInput.self,
-            from: input
-        )
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let resolved = try await targetedDeployResolution(
-            decoded,
+            input,
             project: execution.projectRoot
         )
 
@@ -988,7 +945,7 @@ extension SwiftDeployTool:
             summary:
                 "Deploy Swift executable product(s) from the selected workspace location: \(resolved.plan.selectedProductNames.joined(separator: ", ")).",
             commandPreview:
-                "deploy \(decoded.configuration.rawValue) -> \(resolved.destination.path)",
+                "deploy \(input.configuration.rawValue) -> \(resolved.destination.path)",
             estimatedWriteCount: max(
                 1,
                 resolved.plan.selectedProductNames.count * 2
@@ -1014,19 +971,15 @@ extension SwiftDeployTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftDeployToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let resolved = try await targetedDeployResolution(
-            decoded,
+            input,
             project: execution.projectRoot
         )
 
@@ -1039,13 +992,11 @@ extension SwiftDeployTool:
                 resolved.plan.perProductDestinations
         )
 
-        return try JSONToolBridge.encode(
-            SwiftDeployToolOutput(
-                configuration: decoded.configuration.rawValue,
+        return SwiftDeployToolOutput(
+                configuration: input.configuration.rawValue,
                 destination: resolved.destination.path,
                 products: resolved.plan.selectedProductNames
             )
-        )
     }
 
     private func targetedDeployResolution(
@@ -1090,17 +1041,14 @@ extension SwiftDeployTool:
     }
 }
 
-extension SwiftRunProductTool:
-    WorkspaceTargetableTool
-{
+extension SwiftRunProductTool {
+    public var execution: AgentToolExecutionContract {
+        .targetable
+    }
     public func preflight(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
-        let decoded = try JSONToolBridge.decode(
-            SwiftRunProductToolInput.self,
-            from: input
-        )
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
@@ -1121,16 +1069,16 @@ extension SwiftRunProductTool:
                 .sorted()
 
         guard names.contains(
-            decoded.product
+            input.product
         ) else {
             throw SwiftRunError.productNotFound(
-                product: decoded.product,
+                product: input.product,
                 available: names
             )
         }
 
         let suffix =
-            decoded.verbose
+            input.verbose
                 ? " --verbose"
                 : ""
 
@@ -1145,9 +1093,9 @@ extension SwiftRunProductTool:
                 ).path,
             ],
             summary:
-                "Run Swift executable product '\(decoded.product)' at the selected workspace location.",
+                "Run Swift executable product '\(input.product)' at the selected workspace location.",
             commandPreview:
-                "swift run \(decoded.product)\(suffix)",
+                "swift run \(input.product)\(suffix)",
             estimatedWriteCount: 1,
             estimatedRuntimeSeconds: 300,
             sideEffects: [
@@ -1170,26 +1118,22 @@ extension SwiftRunProductTool:
     }
 
     public func call(
-        input: JSONValue,
+        _ input: Input,
         context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        let decoded = try JSONToolBridge.decode(
-            SwiftRunProductToolInput.self,
-            from: input
-        )
+    ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
             toolName: name
         )
         let arguments =
-            decoded.verbose
+            input.verbose
                 ? [
                     "--verbose",
                 ]
                 : []
         let result = try await SwiftRun.run(
             .init(
-                product: decoded.product,
+                product: input.product,
                 arguments: arguments
             ),
             at: execution.projectRoot,
@@ -1221,15 +1165,92 @@ extension SwiftRunProductTool:
             )
         }
 
-        return try JSONToolBridge.encode(
-            SwiftRunProductToolOutput(
+        let output = SwiftRunProductToolOutput(
                 product: result.product,
                 isSuccess: result.isSuccess,
                 exitCode: result.exitCode,
                 signal: result.signal,
                 stdout: result.stdoutText,
                 stderr: result.stderrText
+        )
+
+        if !output.stdout.isEmpty {
+            await context.observe(
+                .init(kind: .standard_output, label: "stdout", content: output.stdout)
             )
+        }
+        if !output.stderr.isEmpty {
+            await context.observe(
+                .init(kind: .standard_error, label: "stderr", content: output.stderr)
+            )
+        }
+
+        return output
+    }
+}
+
+
+extension SwiftUpdateTool {
+    public func process(
+        _ output: Output,
+        input _: Input,
+        context _: AgentToolExecutionContext
+    ) -> AgentToolResultProjection? {
+        output.projection
+    }
+}
+
+extension SwiftResolveTool {
+    public func process(
+        _ output: Output,
+        input _: Input,
+        context _: AgentToolExecutionContext
+    ) -> AgentToolResultProjection? {
+        output.projection
+    }
+}
+
+extension SwiftDeployTool {
+    public func process(
+        _ output: Output,
+        input _: Input,
+        context _: AgentToolExecutionContext
+    ) -> AgentToolResultProjection? {
+        .init(
+            status: "passed",
+            summary: "Swift deployment completed successfully.",
+            facts: [
+                .init(label: "configuration", value: output.configuration),
+                .init(label: "destination", value: output.destination),
+                .init(label: "products", value: output.products.joined(separator: ", ")),
+            ]
+        )
+    }
+}
+
+extension SwiftRunProductTool {
+    public func process(
+        _ output: Output,
+        input _: Input,
+        context _: AgentToolExecutionContext
+    ) -> AgentToolResultProjection? {
+        var facts: [AgentToolResultProjection.Fact] = [
+            .init(label: "product", value: output.product)
+        ]
+
+        if let exitCode = output.exitCode {
+            facts.append(.init(label: "exit", value: "\(exitCode)"))
+        }
+        if let signal = output.signal {
+            facts.append(.init(label: "signal", value: "\(signal)"))
+        }
+
+        return .init(
+            status: output.isSuccess ? "passed" : "failed",
+            summary: output.isSuccess
+                ? "Swift product '\(output.product)' completed successfully."
+                : "Swift product '\(output.product)' completed unsuccessfully.",
+            facts: facts
         )
     }
 }

@@ -22,25 +22,47 @@ public struct SwiftRemoveDeployedToolInput:
     }
 }
 
-public struct SwiftRemoveDeployedTool: TypedAgentTool {
+
+public struct SwiftRemoveDeployedToolOutput: Sendable, Codable, Hashable {
+    public let product: String
+    public let destination: String
+    public let status: String
+
+    public init(product: String, destination: String, status: String) {
+        self.product = product
+        self.destination = destination
+        self.status = status
+    }
+}
+
+public struct SwiftRemoveDeployedTool: AgentTool {
     public typealias Input = SwiftRemoveDeployedToolInput
+    public typealias Output = SwiftRemoveDeployedToolOutput
     public static let identifier: AgentToolIdentifier = "swift_remove_deployed"
     public static let description =
         "Remove one deployed Swift binary and its metadata through Executable.Remove."
     public static let risk: ActionRisk = .privileged
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
     public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
+        _ input: Input,
+        context: AgentToolExecutionContext
     ) async throws -> ToolPreflight {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
+            context.workspace,
             toolName: name
-        )
-        let decoded = try JSONToolBridge.decode(
-            SwiftRemoveDeployedToolInput.self,
-            from: input
         )
         let destination = Build.defaultDeploymentDirectory
 
@@ -50,13 +72,13 @@ public struct SwiftRemoveDeployedTool: TypedAgentTool {
             workspaceRoot: workspace.rootURL.path,
             targetPaths: [
                 destination.appendingPathComponent(
-                    decoded.product
+                    input.product
                 ).path,
                 destination.appendingPathComponent(
-                    "\(decoded.product).metadata"
+                    "\(input.product).metadata"
                 ).path,
             ],
-            summary: "Remove deployed Swift product '\(decoded.product)'.",
+            summary: "Remove deployed Swift product '\(input.product)'.",
             estimatedWriteCount: 2,
             sideEffects: [
                 "May remove a deployed executable and its metadata outside the workspace.",
@@ -70,28 +92,24 @@ public struct SwiftRemoveDeployedTool: TypedAgentTool {
     }
 
     public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
         _ = try AgenticSwiftToolSupport.requireWorkspace(
-            workspace,
+            context.workspace,
             toolName: name
-        )
-        let decoded = try JSONToolBridge.decode(
-            SwiftRemoveDeployedToolInput.self,
-            from: input
         )
         let destination = Build.defaultDeploymentDirectory
 
         try Remove.deployedBinary(
-            named: decoded.product,
+            named: input.product,
             at: destination
         )
 
-        return .object([
-            "product": .string(decoded.product),
-            "destination": .string(destination.path),
-            "status": .string("passed"),
-        ])
+        return SwiftRemoveDeployedToolOutput(
+            product: input.product,
+            destination: destination.path,
+            status: "passed"
+        )
     }
 }

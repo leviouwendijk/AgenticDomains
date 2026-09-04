@@ -97,9 +97,10 @@ public struct SwiftRunProductToolOutput:
 }
 
 public struct SwiftRunProductTool:
-    TypedAgentTool
+    AgentTool
 {
     public typealias Input = SwiftRunProductToolInput
+    public typealias Output = SwiftRunProductToolOutput
     public static let identifier:
         AgentToolIdentifier =
             "swift_run_product"
@@ -112,248 +113,20 @@ public struct SwiftRunProductTool:
     public static let risk:
         ActionRisk = .privileged
 
+    public var identifier: AgentToolIdentifier {
+        Self.identifier
+    }
+
+    public var description: String {
+        Self.description
+    }
+
+    public var risk: ActionRisk {
+        Self.risk
+    }
+
     public init() {}
 
-    public func preflight(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> ToolPreflight {
-        let decoded =
-            try JSONToolBridge.decode(
-                SwiftRunProductToolInput.self,
-                from: input
-            )
 
-        let workspace =
-            try AgenticSwiftToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
 
-        let available:
-            [ExecutableProduct]
-
-        do {
-            available =
-                try await Products.executables(
-                    in:
-                        workspace.rootURL
-                )
-        } catch ProductsError
-            .noExecutableProductsFound
-        {
-            available = []
-        }
-
-        let names =
-            available
-                .map(\.name)
-                .sorted()
-
-        guard names.contains(
-            decoded.product
-        ) else {
-            throw SwiftRunError.productNotFound(
-                product:
-                    decoded.product,
-                available:
-                    names
-            )
-        }
-
-        let suffix =
-            decoded.verbose
-            ? " --verbose"
-            : ""
-
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot:
-                workspace.rootURL.path,
-            targetPaths: [
-                ".build/",
-            ],
-            summary:
-                "Run Swift executable product '\(decoded.product)'.",
-            commandPreview:
-                "swift run \(decoded.product)\(suffix)",
-            estimatedWriteCount: 1,
-            estimatedRuntimeSeconds: 300,
-            sideEffects: [
-                "May build the selected executable product under .build before execution.",
-                "Executes repository-owned code with the current host filesystem, process, environment, and network permissions.",
-                "Execution is managed by Processes with an output limit and timeout.",
-            ],
-            policyChecks: [
-                "workspace_required",
-                "executable_product_discovered",
-                "no_model_supplied_process_arguments",
-                "managed_process_execution",
-                "human_review_required",
-            ],
-            warnings: [
-                "Executed repository code is not confined by Agentic PathSandbox."
-            ]
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        workspace: AgentWorkspace?
-    ) async throws -> JSONValue {
-        let decoded =
-            try JSONToolBridge.decode(
-                SwiftRunProductToolInput.self,
-                from: input
-            )
-
-        let workspace =
-            try AgenticSwiftToolSupport
-                .requireWorkspace(
-                    workspace,
-                    toolName: name
-                )
-
-        let arguments =
-            decoded.verbose
-            ? [
-                "--verbose",
-            ]
-            : []
-
-        let result =
-            try await SwiftRun.run(
-                .init(
-                    product:
-                        decoded.product,
-                    arguments:
-                        arguments
-                ),
-                at:
-                    workspace.rootURL,
-                options:
-                    .init(
-                        outputLimit:
-                            4 * 1024 * 1024,
-                        timeout:
-                            .seconds(300)
-                    )
-            )
-
-        guard result.isSuccess else {
-            throw AgenticSwiftToolError.operationFailed(
-                toolName: name,
-                operation:
-                    "run Swift executable product '\(result.product)'",
-                exitCode:
-                    result.exitCode.map(Int.init),
-                signal:
-                    result.signal.map(Int.init),
-                detail:
-                    String(
-                        (
-                            result.stderrText.isEmpty
-                                ? result.stdoutText
-                                : result.stderrText
-                        ).prefix(16_384)
-                    )
-            )
-        }
-
-        return try JSONToolBridge.encode(
-            SwiftRunProductToolOutput(
-                product:
-                    result.product,
-                isSuccess:
-                    result.isSuccess,
-                exitCode:
-                    result.exitCode,
-                signal:
-                    result.signal,
-                stdout:
-                    result.stdoutText,
-                stderr:
-                    result.stderrText
-            )
-        )
-    }
-
-    public func processResult(
-        input _: JSONValue,
-        output: JSONValue,
-        workspace _: AgentWorkspace?
-    ) -> AgentToolResultProcessing {
-        guard let result =
-            try? JSONToolBridge.decode(
-                SwiftRunProductToolOutput.self,
-                from: output
-            )
-        else {
-            return .none
-        }
-
-        var facts: [AgentToolResultProjection.Fact] = [
-            .init(
-                label: "product",
-                value: result.product
-            )
-        ]
-
-        if let exitCode = result.exitCode {
-            facts.append(
-                .init(
-                    label: "exit",
-                    value: "\(exitCode)"
-                )
-            )
-        }
-
-        if let signal = result.signal {
-            facts.append(
-                .init(
-                    label: "signal",
-                    value: "\(signal)"
-                )
-            )
-        }
-
-        var observations: [AgentToolResultObservation] = []
-
-        if !result.stdout.isEmpty {
-            observations.append(
-                .init(
-                    kind: .standard_output,
-                    label: "stdout",
-                    content: result.stdout
-                )
-            )
-        }
-
-        if !result.stderr.isEmpty {
-            observations.append(
-                .init(
-                    kind: .standard_error,
-                    label: "stderr",
-                    content: result.stderr
-                )
-            )
-        }
-
-        return .init(
-            projection: .init(
-                status:
-                    result.isSuccess
-                        ? "passed"
-                        : "failed",
-                summary:
-                    result.isSuccess
-                        ? "Swift product '\(result.product)' completed successfully."
-                        : "Swift product '\(result.product)' completed unsuccessfully.",
-                facts: facts
-            ),
-            observations: observations
-        )
-    }
 }

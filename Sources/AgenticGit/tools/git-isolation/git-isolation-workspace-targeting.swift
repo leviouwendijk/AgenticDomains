@@ -1,9 +1,7 @@
-import Agentic
 import AgenticExecution
 import AgenticWorkspace
-import Primitives
 
-private func agenticGitScopedWorkspace(
+func agenticGitScopedWorkspace(
     _ context: AgentToolExecutionContext,
     toolName: String
 ) async throws -> AgentWorkspace {
@@ -17,198 +15,30 @@ private func agenticGitScopedWorkspace(
     )
 }
 
-extension GitWorktreeListTool: WorkspaceTargetableTool {
-    public func preflight(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> ToolPreflight {
-        try await preflight(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        try await call(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
+extension GitWorktreeListTool {
+    public var execution: AgentToolExecutionContract { .targetable }
 }
 
-extension GitWorktreeCreateTool: WorkspaceTargetableTool {
-    public func preflight(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> ToolPreflight {
-        try await preflight(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        try await call(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
+extension GitWorktreeCreateTool {
+    public var execution: AgentToolExecutionContract { .targetable }
 }
 
-extension GitWorktreeRemoveTool: WorkspaceTargetableTool {
-    public func preflight(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> ToolPreflight {
-        try await preflight(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        try await call(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
+extension GitWorktreeRemoveTool {
+    public var execution: AgentToolExecutionContract { .targetable }
 }
 
-extension GitIntegrationPlanTool: WorkspaceTargetableTool {
-    public func preflight(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> ToolPreflight {
-        try await preflight(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        try await call(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
+extension GitIntegrationPlanTool {
+    public var execution: AgentToolExecutionContract { .targetable }
 }
 
-extension GitIntegrationPrepareTool: WorkspaceTargetableTool {
-    public func preflight(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> ToolPreflight {
-        try await preflight(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        try await call(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
+extension GitIntegrationPrepareTool {
+    public var execution: AgentToolExecutionContract { .targetable }
 }
 
-extension GitIntegrationPromoteTool: WorkspaceTargetableTool {
-    public func preflight(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> ToolPreflight {
-        try await preflight(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        try await call(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
+extension GitIntegrationPromoteTool {
+    public var execution: AgentToolExecutionContract { .targetable }
 }
 
-extension GitIntegrationCleanupTool: WorkspaceTargetableTool {
-    public func preflight(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> ToolPreflight {
-        try await preflight(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
-
-    public func call(
-        input: JSONValue,
-        context: AgentToolExecutionContext
-    ) async throws -> JSONValue {
-        try await call(
-            input: input,
-            workspace: try await agenticGitScopedWorkspace(
-                context,
-                toolName: name
-            )
-        )
-    }
+extension GitIntegrationCleanupTool {
+    public var execution: AgentToolExecutionContract { .targetable }
 }
