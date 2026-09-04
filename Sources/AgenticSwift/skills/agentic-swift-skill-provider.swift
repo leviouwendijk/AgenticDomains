@@ -35,9 +35,9 @@ public extension AgenticSwiftSkillProvider {
             domains: [.swift],
             tools: .init(
                 required: [
-                    .tool(ListSwiftSymbolsTool.self),
-                    .tool(ReadSwiftSymbolTool.self),
-                    .tool(ReadSwiftStructureTool.self)
+                    .tool(ListSwiftSymbolsTool.identifier),
+                    .tool(ReadSwiftSymbolTool.identifier),
+                    .tool(ReadSwiftStructureTool.identifier)
                 ],
                 optional: [
                     .tool(ReadFileTool.identifier)
@@ -72,8 +72,8 @@ public extension AgenticSwiftSkillProvider {
             domains: [.swift],
             tools: .init(
                 required: [
-                    .tool(ReadSwiftSymbolTool.self),
-                    .tool(ReadSwiftStructureTool.self)
+                    .tool(ReadSwiftSymbolTool.identifier),
+                    .tool(ReadSwiftStructureTool.identifier)
                 ],
                 optional: [
                     .tool(ReadFileTool.identifier),
