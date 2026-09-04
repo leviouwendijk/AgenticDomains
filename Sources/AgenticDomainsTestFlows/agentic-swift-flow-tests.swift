@@ -308,6 +308,123 @@ enum AgenticDomainsFlowTesting {
             ),
         ]
     }
+
+    static func runSwiftBuildReportedFailure() async throws -> [TestFlowDiagnostic] {
+        let fixture = try AgenticDomainsFixture.make(
+            "swift-build-reported-failure"
+        )
+        defer {
+            fixture.remove()
+        }
+
+        let sources = fixture.url(
+            "Sources/Broken"
+        )
+        try FileManager.default.createDirectory(
+            at: sources,
+            withIntermediateDirectories: true
+        )
+
+        try """
+        // swift-tools-version: 6.2
+
+        import PackageDescription
+
+        let package = Package(
+            name: "Broken",
+            targets: [
+                .executableTarget(
+                    name: "Broken"
+                ),
+            ]
+        )
+        """.write(
+            to: fixture.url(
+                "Package.swift"
+            ),
+            atomically: true,
+            encoding: .utf8
+        )
+
+        try """
+        let = intentionallyInvalidSwift
+        """.write(
+            to: sources.appendingPathComponent(
+                "main.swift"
+            ),
+            atomically: true,
+            encoding: .utf8
+        )
+
+        let tool = SwiftBuildTool()
+        let registry = try ToolRegistry {
+            tool
+        }
+        let call = AgentToolCall(
+            id: "swift-build-reported-failure",
+            name: tool.identifier.rawValue,
+            input: try JSONToolBridge.encode(
+                SwiftBuildToolInput(
+                    configuration: .debug
+                )
+            )
+        )
+        let result = try await registry.execute(
+            call,
+            context: .init(
+                workspace: fixture.workspace
+            )
+        )
+        let output = try JSONToolBridge.decode(
+            SwiftBuildToolOutput.self,
+            from: result.output
+        )
+        let processing = try Expect.notNil(
+            result.processing,
+            "failed Swift build retains registered result processing"
+        )
+        let projection = try Expect.notNil(
+            processing.projection,
+            "failed Swift build retains its semantic projection"
+        )
+
+        try Expect.true(
+            result.isError,
+            "failed Swift build is a model-visible reported failure"
+        )
+        try Expect.true(
+            !output.isSuccess,
+            "failed Swift build preserves typed semantic output"
+        )
+        try Expect.equal(
+            projection.status,
+            "failed",
+            "failed Swift build still runs typed process"
+        )
+        try Expect.true(
+            !processing.observations.isEmpty,
+            "failed Swift build retains captured build observations"
+        )
+
+        return [
+            .field(
+                "is-error",
+                "\(result.isError)"
+            ),
+            .field(
+                "exit",
+                "\(output.exitCode)"
+            ),
+            .field(
+                "projection",
+                projection.status
+            ),
+            .field(
+                "observations",
+                "\(processing.observations.count)"
+            ),
+        ]
+    }
 }
 
 private struct AgenticDomainsFixture {

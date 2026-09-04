@@ -58,6 +58,19 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
             try await AgenticDomainsFlowTesting.runPackageToolNames()
         },
         TestFlow(
+            "agentic-swift-build-reported-failure",
+            tags: [
+                "agentic-domains",
+                "swift",
+                "build",
+                "reported-failure",
+                "processing",
+                "observations",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runSwiftBuildReportedFailure()
+        },
+        TestFlow(
             "agentic-web-tool-surface",
             tags: [
                 "agentic-domains",

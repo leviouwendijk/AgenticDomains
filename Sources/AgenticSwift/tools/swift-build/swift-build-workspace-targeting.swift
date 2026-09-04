@@ -3,7 +3,6 @@ import AgenticExecution
 import AgenticWorkspace
 import Executable
 import Foundation
-import Primitives
 
 extension SwiftBuildTool {
     public var execution: AgentToolExecutionContract {
@@ -176,9 +175,7 @@ extension SwiftBuildTool {
             )
 
             throw AgentToolReportedFailure(
-                output: try JSONToolBridge.encode(
-                    output
-                )
+                output: output
             )
         }
     }
