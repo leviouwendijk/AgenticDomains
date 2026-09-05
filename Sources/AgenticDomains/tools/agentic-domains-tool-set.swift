@@ -1,4 +1,5 @@
 import Agentic
+import AgenticAppleServices
 import AgenticExecution
 import AgenticGit
 import AgenticSwift
@@ -8,11 +9,14 @@ public struct AgenticDomainsToolSet:
     AgentToolSet
 {
     public let web: AgenticWebToolSet
+    public let appleServices: AgenticAppleServicesToolSet
 
     public init(
-        web: AgenticWebToolSet = .init()
+        web: AgenticWebToolSet = .init(),
+        appleServices: AgenticAppleServicesToolSet = .init()
     ) {
         self.web = web
+        self.appleServices = appleServices
     }
 
     public init(
@@ -42,6 +46,10 @@ public struct AgenticDomainsToolSet:
 
         try registry.register(
             web
+        )
+
+        try registry.register(
+            appleServices
         )
     }
 }

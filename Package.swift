@@ -28,6 +28,11 @@ let package = Package(
             name: "AgenticGit",
             targets: ["AgenticGit"]
         ),
+
+        .library(
+            name: "AgenticAppleServices",
+            targets: ["AgenticAppleServices"]
+        ),
         .executable(
             name: "domtest",
             targets: ["AgenticDomainsTestFlows"]
@@ -72,6 +77,7 @@ let package = Package(
                 "AgenticSwift",
                 "AgenticWeb",
                 "AgenticGit",
+                "AgenticAppleServices",
             ]
         ),
 
@@ -134,6 +140,18 @@ let package = Package(
             ]
         ),
 
+        .target(
+            name: "AgenticAppleServices",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticExecution", package: "AgenticExecution"),
+                .product(name: "Primitives", package: "Primitives"),
+                .product(name: "Schema", package: "Schema"),
+                .product(name: "SchemaMacros", package: "SchemaMacros"),
+                .product(name: "Interfaces", package: "Interfaces"),
+            ]
+        ),
+
         // .target(
         //     name: "AgenticAccounting",
         //     dependencies: [
@@ -148,6 +166,7 @@ let package = Package(
                 "AgenticSwift",
                 "AgenticGit",
                 "AgenticWeb",
+                "AgenticAppleServices",
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),

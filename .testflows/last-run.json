@@ -3,12 +3,28 @@
   "failed_names" : [
 
   ],
-  "generated_at" : "2026-09-04T17:02:14Z",
-  "passed" : 10,
+  "generated_at" : "2026-09-05T17:40:13Z",
+  "passed" : 11,
   "results" : [
     {
+      "display_name" : "agentic-apple-services-tool-surface",
+      "duration_seconds" : 0.0044710636138916016,
+      "name" : "agentic-apple-services-tool-surface",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "apple",
+        "calendar",
+        "location",
+        "registration",
+        "reminders",
+        "tools",
+        "weather"
+      ]
+    },
+    {
       "display_name" : "agentic-swift-tool-surface",
-      "duration_seconds" : 0.014690041542053223,
+      "duration_seconds" : 0.0006769895553588867,
       "name" : "agentic-swift-tool-surface",
       "status" : "passed",
       "tags" : [
@@ -20,7 +36,7 @@
     },
     {
       "display_name" : "agentic-swift-parse-fixture",
-      "duration_seconds" : 0.15364503860473633,
+      "duration_seconds" : 0.11674201488494873,
       "name" : "agentic-swift-parse-fixture",
       "status" : "passed",
       "tags" : [
@@ -32,7 +48,7 @@
     },
     {
       "display_name" : "agentic-swift-deployment-defaults",
-      "duration_seconds" : 0.001961946487426758,
+      "duration_seconds" : 0.0015550851821899414,
       "name" : "agentic-swift-deployment-defaults",
       "status" : "passed",
       "tags" : [
@@ -44,7 +60,7 @@
     },
     {
       "display_name" : "agentic-swift-package-tool-names",
-      "duration_seconds" : 0.0011949539184570312,
+      "duration_seconds" : 0.00067901611328125,
       "name" : "agentic-swift-package-tool-names",
       "status" : "passed",
       "tags" : [
@@ -56,7 +72,7 @@
     },
     {
       "display_name" : "agentic-swift-build-reported-failure",
-      "duration_seconds" : 23.785048961639404,
+      "duration_seconds" : 19.95350408554077,
       "name" : "agentic-swift-build-reported-failure",
       "status" : "passed",
       "tags" : [
@@ -70,7 +86,7 @@
     },
     {
       "display_name" : "agentic-web-tool-surface",
-      "duration_seconds" : 0.001067042350769043,
+      "duration_seconds" : 0.0001119375228881836,
       "name" : "agentic-web-tool-surface",
       "status" : "passed",
       "tags" : [
@@ -82,7 +98,7 @@
     },
     {
       "display_name" : "agentic-git-tool-surface",
-      "duration_seconds" : 0.001374959945678711,
+      "duration_seconds" : 0.00020694732666015625,
       "name" : "agentic-git-tool-surface",
       "status" : "passed",
       "tags" : [
@@ -94,7 +110,7 @@
     },
     {
       "display_name" : "agentic-git-worktree-lifecycle",
-      "duration_seconds" : 1.8882839679718018,
+      "duration_seconds" : 1.735382080078125,
       "name" : "agentic-git-worktree-lifecycle",
       "status" : "passed",
       "tags" : [
@@ -106,7 +122,7 @@
     },
     {
       "display_name" : "agentic-git-integration-preparation",
-      "duration_seconds" : 3.20633602142334,
+      "duration_seconds" : 2.9870539903640747,
       "name" : "agentic-git-integration-preparation",
       "status" : "passed",
       "tags" : [
@@ -118,7 +134,7 @@
     },
     {
       "display_name" : "agentic-git-integration-promotion-cleanup",
-      "duration_seconds" : 6.495332956314087,
+      "duration_seconds" : 5.764706015586853,
       "name" : "agentic-git-integration-promotion-cleanup",
       "status" : "passed",
       "tags" : [
@@ -132,5 +148,5 @@
   ],
   "skipped" : 0,
   "title" : "AgenticDomains flow tests",
-  "total" : 10
+  "total" : 11
 }

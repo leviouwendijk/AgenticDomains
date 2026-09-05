@@ -14,6 +14,21 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
 
     static let flows: [TestFlow] = [
         TestFlow(
+            "agentic-apple-services-tool-surface",
+            tags: [
+                "agentic-domains",
+                "apple",
+                "calendar",
+                "reminders",
+                "weather",
+                "location",
+                "tools",
+                "registration",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticAppleServicesToolSurface()
+        },
+        TestFlow(
             "agentic-swift-tool-surface",
             tags: [
                 "agentic-domains",
