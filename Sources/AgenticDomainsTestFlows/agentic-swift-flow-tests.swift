@@ -17,7 +17,7 @@ enum AgenticDomainsFlowTesting {
 
         try Expect.equal(
             registry.count,
-            20,
+            33,
             "AgenticSwift registered tool count"
         )
 
@@ -26,6 +26,23 @@ enum AgenticDomainsFlowTesting {
         )
 
         let expected = [
+            "read_swift_structure",
+            "list_swift_symbols",
+            "read_swift_symbol",
+            "inspect_package_graph",
+            "find_swift_definition",
+            "find_swift_references",
+            "find_swift_implementations",
+            "inspect_swift_diagnostics",
+            "search_swift_symbols",
+            "inspect_swift_symbol",
+            "inspect_swift_hover",
+            "inspect_swift_document_symbols",
+            "inspect_swift_callers",
+            "inspect_swift_callees",
+            "inspect_swift_supertypes",
+            "inspect_swift_subtypes",
+            "swift_executable_products",
             "swift_parse",
             "swift_package_update",
             "swift_package_resolve",
@@ -427,7 +444,7 @@ enum AgenticDomainsFlowTesting {
     }
 }
 
-private struct AgenticDomainsFixture {
+struct AgenticDomainsFixture {
     let root: URL
     let workspace: AgentWorkspace
 

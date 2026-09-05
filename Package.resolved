@@ -1,5 +1,5 @@
 {
-  "originHash" : "d277692a94a7a099297e728262bf5cc1997c9c28c4e1a7bab3064ef6a23eeaf0",
+  "originHash" : "aac845e5773afa733bf9a27f17248290b2643c17de17cc78c7156de536bccc37",
   "pins" : [
     {
       "identity" : "agentic",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticExecution.git",
       "state" : {
         "branch" : "master",
-        "revision" : "867c4823c94838f05e7e460064cb9e38a378e8dc"
+        "revision" : "d173e2005674ac660ba94517f4658d25d96541a6"
       }
     },
     {
@@ -88,7 +88,7 @@
       "location" : "https://github.com/leviouwendijk/DSL.git",
       "state" : {
         "branch" : "master",
-        "revision" : "9efff74e61ff3679fce19f3cbf6df09c3bc23691"
+        "revision" : "30ec6798f883b91f697d060bb001e0e4f7a09225"
       }
     },
     {
@@ -97,7 +97,7 @@
       "location" : "https://github.com/leviouwendijk/Executable.git",
       "state" : {
         "branch" : "master",
-        "revision" : "45ccd7795d8364e4ddcf3c81f2bfacd02d453822"
+        "revision" : "28bda797ca5779cf31bc3b8c4ebc6718b73a844c"
       }
     },
     {
@@ -250,7 +250,7 @@
       "location" : "https://github.com/leviouwendijk/Processes.git",
       "state" : {
         "branch" : "master",
-        "revision" : "b505bf0b5f756ebb301346651e86df9346944cbd"
+        "revision" : "48075baeb34d979ef45a785dedb56b0c590b967c"
       }
     },
     {
@@ -350,6 +350,15 @@
       "state" : {
         "revision" : "869129b7bf4ecc57b97d0193ad29690ca2134750",
         "version" : "1.8.1"
+      }
+    },
+    {
+      "identity" : "swiftsemantics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/SwiftSemantics.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "6f5c7c0028bbe03290d4dc2528ff634942b439c9"
       }
     },
     {

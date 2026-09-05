@@ -29,6 +29,62 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
             try await AgenticDomainsFlowTesting.runAgenticAppleServicesToolSurface()
         },
         TestFlow(
+            "agentic-apple-services-weatherkit-rest-token",
+            tags: [
+                "agentic-domains",
+                "apple",
+                "weather",
+                "weatherkit",
+                "rest",
+                "jwt",
+                "fixture",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runWeatherKitRESTTokenFixture()
+        },
+        TestFlow(
+            "agentic-apple-services-weatherkit-rest-current-fixture",
+            tags: [
+                "agentic-domains",
+                "apple",
+                "weather",
+                "weatherkit",
+                "rest",
+                "http",
+                "fixture",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runWeatherKitRESTCurrentFixture()
+        },
+        TestFlow(
+            "agentic-apple-services-weatherkit-rest-forecast-fixture",
+            tags: [
+                "agentic-domains",
+                "apple",
+                "weather",
+                "weatherkit",
+                "rest",
+                "http",
+                "fixture",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runWeatherKitRESTForecastFixture()
+        },
+        TestFlow(
+            "agentic-apple-services-weatherkit-rest-configuration-boundary",
+            tags: [
+                "agentic-domains",
+                "apple",
+                "weather",
+                "weatherkit",
+                "rest",
+                "environment",
+                "validation",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runWeatherKitRESTConfigurationBoundary()
+        },
+        TestFlow(
             "agentic-swift-tool-surface",
             tags: [
                 "agentic-domains",
@@ -38,6 +94,30 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
             ]
         ) {
             try await AgenticDomainsFlowTesting.runAgenticSwiftToolSurface()
+        },
+        TestFlow(
+            "agentic-swift-structural-semantics-adapter",
+            tags: [
+                "agentic-domains",
+                "swift",
+                "structure",
+                "swift-semantics",
+                "adapter",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticSwiftStructuralSemanticsAdapter()
+        },
+        TestFlow(
+            "agentic-swift-semantic-tool-foundation",
+            tags: [
+                "agentic-domains",
+                "swift",
+                "semantics",
+                "sourcekit-lsp",
+                "tools",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticSwiftSemanticToolFoundation()
         },
         TestFlow(
             "agentic-swift-parse-fixture",
