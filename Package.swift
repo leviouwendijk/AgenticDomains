@@ -92,6 +92,8 @@ let package = Package(
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "AgenticIO", package: "AgenticIO"),
+                .product(name: "AgenticInference", package: "AgenticInference"),
+                .product(name: "AgenticPrograms", package: "AgenticPrograms"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "SchemaMacros", package: "SchemaMacros"),

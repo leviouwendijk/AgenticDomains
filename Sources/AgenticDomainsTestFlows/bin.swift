@@ -60,6 +60,19 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
                 .runCreateReminderProgram()
         },
         TestFlow(
+            "agentic-swift-multi-inference-program",
+            tags: [
+                "agentic-domains",
+                "swift",
+                "program",
+                "inference",
+                "composition",
+                "typed-handoff",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runSwiftChangeProgram()
+        },
+        TestFlow(
             "agentic-apple-services-weatherkit-rest-token",
             tags: [
                 "agentic-domains",
