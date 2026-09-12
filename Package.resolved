@@ -1,5 +1,5 @@
 {
-  "originHash" : "aac845e5773afa733bf9a27f17248290b2643c17de17cc78c7156de536bccc37",
+  "originHash" : "7f2d98756397a26b2554d61a194706cc7ef4bddff6c71cee7b7348121d6caa89",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "8b47dae6140dc551f63a2efb41ecdc8fa30f2abf"
+        "revision" : "6586bbc2fb0b842c82cbf2b189dad6bca2ab0fdc"
       }
     },
     {
@@ -16,7 +16,16 @@
       "location" : "https://github.com/leviouwendijk/AgenticExecution.git",
       "state" : {
         "branch" : "master",
-        "revision" : "d173e2005674ac660ba94517f4658d25d96541a6"
+        "revision" : "798235f854e7275aeafbcf039dca2a5c22159c66"
+      }
+    },
+    {
+      "identity" : "agenticinference",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/AgenticInference.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "397f884a79b519c6766dc2461a754392986ea2df"
       }
     },
     {
@@ -25,7 +34,16 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "024141ce5124d38c2fae9f1648fcb11b4ce92dde"
+        "revision" : "281b7dddad7f5aca9ccf376d349aaf57f7b27d37"
+      }
+    },
+    {
+      "identity" : "agenticprograms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/AgenticPrograms.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "f27d60a926569406f566ccd6525f94ee0a4a41eb"
       }
     },
     {
@@ -232,7 +250,7 @@
       "location" : "https://github.com/leviouwendijk/Position.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c80214283130c1bd4fc1c54dd5f3c574e3e4986c"
+        "revision" : "66a8219a6780a6346e55c9531f8fabaa4ff713d9"
       }
     },
     {
@@ -241,7 +259,7 @@
       "location" : "https://github.com/leviouwendijk/Primitives.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3b9e65785ecb8aa493c55893f61619b6967ce10d"
+        "revision" : "e626fa0746aee024729bf56549e774d13aa17099"
       }
     },
     {
@@ -286,7 +304,7 @@
       "location" : "https://github.com/leviouwendijk/Schema.git",
       "state" : {
         "branch" : "master",
-        "revision" : "f23bd9c256f0d7b428c30db68bcd097a3a19c63a"
+        "revision" : "703253bef3f4ae18e03bb35e68ac6db0d1bc584d"
       }
     },
     {
@@ -367,7 +385,7 @@
       "location" : "https://github.com/leviouwendijk/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "ef6faf11fdedbc727f22f5a6c5e908caaed32459"
+        "revision" : "0b63af5e4049793948d3fe3dbdd47d2b5958250d"
       }
     },
     {
@@ -412,7 +430,7 @@
       "location" : "https://github.com/leviouwendijk/Writers.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c7ff138fa30f6daf3570a03540ab55bfae5767a3"
+        "revision" : "79d6455f5a3248f72fe0bb916b4e51d3ef20bd6d"
       }
     }
   ],
