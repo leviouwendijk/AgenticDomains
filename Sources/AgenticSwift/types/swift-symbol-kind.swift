@@ -1,5 +1,5 @@
 import Schema
-import SchemaMacros
+import Macros
 
 @JSONSchema
 public enum SwiftSymbolKind: String, Sendable, Codable, Hashable, CaseIterable {

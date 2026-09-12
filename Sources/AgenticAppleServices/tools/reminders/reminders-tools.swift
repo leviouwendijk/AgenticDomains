@@ -1,7 +1,7 @@
 import Agentic
 import AgenticExecution
 import Schema
-import SchemaMacros
+import Macros
 
 @JSONSchema
 public struct AppleRemindersEmptyToolInput:

@@ -5,7 +5,7 @@ import Executable
 import Foundation
 import Primitives
 import Schema
-import SchemaMacros
+import Macros
 
 @JSONSchema
 public struct SwiftDeployToolInput:

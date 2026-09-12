@@ -1,6 +1,6 @@
 import Foundation
 import Schema
-import SchemaMacros
+import Macros
 import SwiftSemantics
 
 @JSONSchema

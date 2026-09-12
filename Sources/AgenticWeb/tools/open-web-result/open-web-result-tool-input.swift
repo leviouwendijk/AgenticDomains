@@ -1,5 +1,5 @@
 import Schema
-import SchemaMacros
+import Macros
 
 /// Open one bounded result from a previously recorded web search.
 @JSONSchema

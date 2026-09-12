@@ -5,7 +5,7 @@ import Foundation
 import Interfaces
 import Primitives
 import Schema
-import SchemaMacros
+import Macros
 
 /// Promote an exact prepared integration to a local target branch.
 /// Interfaces requires the prepared integration worktree and target branch to remain unchanged

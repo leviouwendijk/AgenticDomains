@@ -4,7 +4,7 @@ import AgenticWorkspace
 import Interfaces
 import Primitives
 import Schema
-import SchemaMacros
+import Macros
 
 /// Observe tracked Git differences for the current Agentic workspace repository.
 /// The workspace must be the Git repository root.

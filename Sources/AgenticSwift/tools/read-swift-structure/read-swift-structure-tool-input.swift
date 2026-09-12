@@ -2,7 +2,7 @@ import Agentic
 import AgenticWorkspace
 import Primitives
 import Schema
-import SchemaMacros
+import Macros
 
 /// Read a semantic Swift structure from one source file.
 /// declaration/type/member require name.

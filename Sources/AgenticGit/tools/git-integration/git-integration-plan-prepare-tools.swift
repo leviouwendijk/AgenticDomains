@@ -5,7 +5,7 @@ import Foundation
 import Interfaces
 import Primitives
 import Schema
-import SchemaMacros
+import Macros
 
 /// Analyze integration of one Git source ref into one target ref without mutating either ref or worktree.
 @JSONSchema

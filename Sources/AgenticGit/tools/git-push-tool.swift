@@ -5,7 +5,7 @@ import Foundation
 import Interfaces
 import Primitives
 import Schema
-import SchemaMacros
+import Macros
 
 /// Push committed Git history for the current Agentic workspace repository.
 /// Omit both remote and branch to use the repository's configured/default upstream resolution.

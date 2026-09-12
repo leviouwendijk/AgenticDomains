@@ -1,5 +1,5 @@
 {
-  "originHash" : "4e4d76c922c8b1970706999398ed558dee0d6f775847a77cae6f0259780a1376",
+  "originHash" : "bdc4573162cd3d458e2144c8d175d0019b5671e8dc91d234a16884eb96ea6587",
   "pins" : [
     {
       "identity" : "agentic",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticExecution.git",
       "state" : {
         "branch" : "master",
-        "revision" : "798235f854e7275aeafbcf039dca2a5c22159c66"
+        "revision" : "e7093ca165f45c38a8b28c8bee9e4a67557ef3f4"
       }
     },
     {
@@ -25,7 +25,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticInference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c59a7e93558a4c626802acc3c94a0ccccd796e67"
+        "revision" : "c8acd0b2815c26924d2ae23aa1d0b58ab8e9cc74"
       }
     },
     {
@@ -34,7 +34,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "281b7dddad7f5aca9ccf376d349aaf57f7b27d37"
+        "revision" : "38a9b30db0b77e3061b0e42d832b64ff7f1925d7"
       }
     },
     {
@@ -70,7 +70,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticTools.git",
       "state" : {
         "branch" : "master",
-        "revision" : "faa42a051ccd287944f77512e47b22aede0c8b96"
+        "revision" : "79d99fa13aa6c0aaf2229b406f6cf1a73dd24b3b"
       }
     },
     {
@@ -224,6 +224,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "cb8775249cb785f25ddee26caeae6c2db07eaa2e"
+      }
+    },
+    {
+      "identity" : "macros",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Macros.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "44885d7ebddc4e9ced6f7cba0deac0ca98da20f1"
       }
     },
     {

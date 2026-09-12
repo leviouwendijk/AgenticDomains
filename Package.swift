@@ -69,7 +69,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Milieu.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Schema.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/SchemaMacros.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Macros.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/TestFlows.git", branch: "master"),
     ],
     targets: [
@@ -96,7 +96,7 @@ let package = Package(
                 .product(name: "AgenticPrograms", package: "AgenticPrograms"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
-                .product(name: "SchemaMacros", package: "SchemaMacros"),
+                .product(name: "Macros", package: "Macros"),
                 .product(name: "SwiftSemantics", package: "SwiftSemantics"),
                 .product(name: "Path", package: "Path"),
                 .product(name: "Position", package: "Position"),
@@ -127,7 +127,7 @@ let package = Package(
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
-                .product(name: "SchemaMacros", package: "SchemaMacros"),
+                .product(name: "Macros", package: "Macros"),
                 .product(name: "Parsers", package: "Parsers"),
             ]
         ),
@@ -140,7 +140,7 @@ let package = Package(
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
-                .product(name: "SchemaMacros", package: "SchemaMacros"),
+                .product(name: "Macros", package: "Macros"),
                 .product(name: "Interfaces", package: "Interfaces"),
             ]
         ),
@@ -155,7 +155,7 @@ let package = Package(
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Milieu", package: "Milieu"),
                 .product(name: "Schema", package: "Schema"),
-                .product(name: "SchemaMacros", package: "SchemaMacros"),
+                .product(name: "Macros", package: "Macros"),
                 .product(name: "Interfaces", package: "Interfaces"),
             ]
         ),

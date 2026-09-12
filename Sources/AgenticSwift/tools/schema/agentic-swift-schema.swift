@@ -1,5 +1,5 @@
 import Schema
-import SchemaMacros
+import Macros
 import Version
 
 @JSONSchema

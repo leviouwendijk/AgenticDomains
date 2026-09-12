@@ -4,7 +4,7 @@ import AgenticWorkspace
 import Executable
 import Primitives
 import Schema
-import SchemaMacros
+import Macros
 import Version
 
 @JSONSchema

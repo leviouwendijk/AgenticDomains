@@ -5,7 +5,7 @@ import Foundation
 import Interfaces
 import Primitives
 import Schema
-import SchemaMacros
+import Macros
 
 /// Create one local Git commit from the already-prepared staged index.
 /// This tool does not stage additional paths and does not push.
