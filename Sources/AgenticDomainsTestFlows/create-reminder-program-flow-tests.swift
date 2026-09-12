@@ -8,20 +8,35 @@ import TestFlows
 private actor CreateReminderProviderFixture:
     AppleRemindersProvider
 {
+    private var authorization: RemindersAuthorizationStatus
+    private let requestedAuthorization:
+        RemindersAuthorizationStatus
+    private var accessRequests = 0
     private var created: [ReminderCreation] = []
+
+    init(
+        authorization: RemindersAuthorizationStatus,
+        requestedAuthorization: RemindersAuthorizationStatus
+    ) {
+        self.authorization = authorization
+        self.requestedAuthorization = requestedAuthorization
+    }
 
     func authorizationStatus() async
         -> RemindersAuthorizationStatus
     {
-        .full_access
+        authorization
     }
 
     func requestFullAccess() async throws
         -> RemindersAuthorizationRequestResult
     {
-        .init(
-            granted: true,
-            status: .full_access
+        accessRequests += 1
+        authorization = requestedAuthorization
+
+        return .init(
+            granted: requestedAuthorization == .full_access,
+            status: requestedAuthorization
         )
     }
 
@@ -50,6 +65,10 @@ private actor CreateReminderProviderFixture:
         )
     }
 
+    func accessRequestCount() -> Int {
+        accessRequests
+    }
+
     func creations() -> [ReminderCreation] {
         created
     }
@@ -59,9 +78,22 @@ private struct CreateReminderScenario {
     let provider: CreateReminderProviderFixture
     let runner: AgentProgramRunner
 
-    init() throws {
-        let provider = CreateReminderProviderFixture()
+    init(
+        authorization: RemindersAuthorizationStatus = .full_access,
+        requestedAuthorization: RemindersAuthorizationStatus =
+            .full_access
+    ) throws {
+        let provider = CreateReminderProviderFixture(
+            authorization: authorization,
+            requestedAuthorization: requestedAuthorization
+        )
         let registry = try ToolRegistry {
+            RemindersAuthorizationStatusTool(
+                provider: provider
+            )
+            RemindersRequestFullAccessTool(
+                provider: provider
+            )
             RemindersCreateTool(
                 provider: provider
             )
@@ -276,6 +308,224 @@ extension AgenticDomainsFlowTesting {
             await skippedScenario.provider.creations().count,
             0,
             "skipped reminder creation never reaches its provider"
+        )
+
+        let authorizationScenario = try CreateReminderScenario(
+            authorization: .not_determined
+        )
+        let authorizationInitial = try await authorizationScenario.runner.execute(
+            program,
+            input: input,
+            sessionID: "domain-create-reminder-authorization"
+        )
+
+        guard let authorizationCheckpoint =
+            authorizationInitial.record.checkpoint
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_checkpoint
+        }
+        guard let authorizationRequest =
+            authorizationInitial.record.interactionRequest
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_interaction_request
+        }
+        guard let authorizationPending =
+            authorizationRequest.requirement.pendingApproval
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_pending_approval
+        }
+
+        try Expect.equal(
+            authorizationInitial.record.outcome,
+            .suspended,
+            "not-determined Reminders access suspends at the governed permission request"
+        )
+        try Expect.equal(
+            authorizationPending.toolCall.name,
+            RemindersRequestFullAccessTool.toolIdentifier.rawValue,
+            "authorization prerequisite suspends on the explicit Reminders access request tool"
+        )
+        try Expect.equal(
+            await authorizationScenario.provider.accessRequestCount(),
+            0,
+            "macOS access request is not issued before Agentic approval"
+        )
+        try Expect.equal(
+            await authorizationScenario.provider.creations().count,
+            0,
+            "reminder creation cannot occur before authorization"
+        )
+
+        let authorizationApproved = try await authorizationScenario.runner.resume(
+            program,
+            from: authorizationCheckpoint,
+            interaction: .init(
+                request: authorizationRequest,
+                resolution: .approval(.approved)
+            )
+        )
+
+        guard let creationCheckpoint =
+            authorizationApproved.record.checkpoint
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_checkpoint
+        }
+        guard let creationRequest =
+            authorizationApproved.record.interactionRequest
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_interaction_request
+        }
+        guard let creationPending =
+            creationRequest.requirement.pendingApproval
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_pending_approval
+        }
+
+        try Expect.equal(
+            authorizationApproved.record.outcome,
+            .suspended,
+            "approved permission request continues to the separate reminder mutation approval"
+        )
+        try Expect.equal(
+            await authorizationScenario.provider.accessRequestCount(),
+            1,
+            "approved authorization prerequisite requests access exactly once"
+        )
+        try Expect.equal(
+            await authorizationScenario.provider.creations().count,
+            0,
+            "granting access does not itself create the reminder"
+        )
+        try Expect.equal(
+            creationPending.toolCall.name,
+            RemindersCreateTool.toolIdentifier.rawValue,
+            "second suspension is the actual reminder creation mutation"
+        )
+
+        let authorizationCreated = try await authorizationScenario.runner.resume(
+            program,
+            from: creationCheckpoint,
+            interaction: .init(
+                request: creationRequest,
+                resolution: .approval(.approved)
+            )
+        )
+
+        try Expect.equal(
+            authorizationCreated.record.outcome,
+            .succeeded,
+            "authorization followed by creation approval completes the Program"
+        )
+        try Expect.equal(
+            await authorizationScenario.provider.accessRequestCount(),
+            1,
+            "deterministic replay does not repeat the completed access request"
+        )
+        try Expect.equal(
+            await authorizationScenario.provider.creations(),
+            [input],
+            "two-stage authorization and mutation flow creates exactly one reminder"
+        )
+
+        let accessDeniedScenario = try CreateReminderScenario(
+            authorization: .not_determined
+        )
+        let accessDeniedInitial = try await accessDeniedScenario.runner.execute(
+            program,
+            input: input,
+            sessionID: "domain-create-reminder-access-denied"
+        )
+
+        guard let accessDeniedCheckpoint =
+            accessDeniedInitial.record.checkpoint
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_checkpoint
+        }
+        guard let accessDeniedRequest =
+            accessDeniedInitial.record.interactionRequest
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_interaction_request
+        }
+
+        let accessDenied = try await accessDeniedScenario.runner.resume(
+            program,
+            from: accessDeniedCheckpoint,
+            interaction: .init(
+                request: accessDeniedRequest,
+                resolution: .approval(.denied)
+            )
+        )
+
+        try Expect.equal(
+            accessDenied.record.outcome,
+            .failed,
+            "denying the governed access request fails closed"
+        )
+        try Expect.equal(
+            await accessDeniedScenario.provider.accessRequestCount(),
+            0,
+            "denying Agentic authorization review never invokes the macOS permission request"
+        )
+        try Expect.equal(
+            await accessDeniedScenario.provider.creations().count,
+            0,
+            "denied access request cannot create a reminder"
+        )
+
+        let osDeniedScenario = try CreateReminderScenario(
+            authorization: .not_determined,
+            requestedAuthorization: .denied
+        )
+        let osDeniedInitial = try await osDeniedScenario.runner.execute(
+            program,
+            input: input,
+            sessionID: "domain-create-reminder-os-denied"
+        )
+
+        guard let osDeniedCheckpoint =
+            osDeniedInitial.record.checkpoint
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_checkpoint
+        }
+        guard let osDeniedRequest =
+            osDeniedInitial.record.interactionRequest
+        else {
+            throw CreateReminderProgramFixtureError
+                .missing_interaction_request
+        }
+
+        let osDenied = try await osDeniedScenario.runner.resume(
+            program,
+            from: osDeniedCheckpoint,
+            interaction: .init(
+                request: osDeniedRequest,
+                resolution: .approval(.approved)
+            )
+        )
+
+        try Expect.equal(
+            osDenied.record.outcome,
+            .failed,
+            "Program fails cleanly when the OS permission request returns denied"
+        )
+        try Expect.equal(
+            await osDeniedScenario.provider.accessRequestCount(),
+            1,
+            "approved Agentic request reaches the OS authorization provider exactly once"
+        )
+        try Expect.equal(
+            await osDeniedScenario.provider.creations().count,
+            0,
+            "OS-denied authorization never reaches reminder creation"
         )
 
         return [

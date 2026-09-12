@@ -34,8 +34,11 @@ public struct RemindersAuthorizationStatusTool:
     public typealias Input = AppleRemindersEmptyToolInput
     public typealias Output = RemindersAuthorizationStatus
 
-    public let identifier: AgentToolIdentifier =
+    public static let toolIdentifier: AgentToolIdentifier =
         "reminders_authorization_status"
+
+    public let identifier: AgentToolIdentifier =
+        Self.toolIdentifier
     public let description =
         "Observe the current macOS Reminders authorization status without requesting permission."
     public let risk: ActionRisk = .observe
@@ -64,8 +67,11 @@ public struct RemindersRequestFullAccessTool:
     public typealias Input = AppleRemindersEmptyToolInput
     public typealias Output = RemindersAuthorizationRequestResult
 
-    public let identifier: AgentToolIdentifier =
+    public static let toolIdentifier: AgentToolIdentifier =
         "reminders_request_full_access"
+
+    public let identifier: AgentToolIdentifier =
+        Self.toolIdentifier
     public let description =
         "Request full access to the user's reminders through the macOS EventKit privacy permission flow."
     public let risk: ActionRisk = .boundedmutate
