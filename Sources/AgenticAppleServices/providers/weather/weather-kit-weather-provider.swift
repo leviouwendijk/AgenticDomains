@@ -24,7 +24,7 @@ public actor WeatherKitWeatherProvider:
             date: Self.string(
                 current.date
             ),
-            condition: current.condition.description,
+            conditionCode: current.condition.rawValue,
             symbolName: current.symbolName,
             temperatureCelsius:
                 current.temperature
@@ -76,8 +76,8 @@ public actor WeatherKitWeatherProvider:
                             date: Self.string(
                                 hour.date
                             ),
-                            condition:
-                                hour.condition.description,
+                            conditionCode:
+                                hour.condition.rawValue,
                             symbolName:
                                 hour.symbolName,
                             temperatureCelsius:
@@ -99,8 +99,8 @@ public actor WeatherKitWeatherProvider:
                             date: Self.string(
                                 day.date
                             ),
-                            condition:
-                                day.condition.description,
+                            conditionCode:
+                                day.condition.rawValue,
                             symbolName:
                                 day.symbolName,
                             lowTemperatureCelsius:

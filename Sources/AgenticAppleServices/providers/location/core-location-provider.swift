@@ -40,7 +40,7 @@ public actor CoreLocationProvider:
     {
         let status = await authorizationStatus()
 
-        guard status == .whenInUse
+        guard status == .when_in_use
                 || status == .always
         else {
             throw CoreLocationProviderError
@@ -68,13 +68,13 @@ private func appleLocationAuthorizationStatus(
 ) -> LocationAuthorizationStatus {
     switch status {
     case .notDetermined:
-        return .notDetermined
+        return .not_determined
     case .restricted:
         return .restricted
     case .denied:
         return .denied
     case .authorizedWhenInUse:
-        return .whenInUse
+        return .when_in_use
     case .authorizedAlways:
         return .always
     @unknown default:
@@ -108,7 +108,7 @@ private final class CoreLocationAuthorizationBridge:
             manager.authorizationStatus
         )
 
-        guard current == .notDetermined else {
+        guard current == .not_determined else {
             return current
         }
 
@@ -127,7 +127,7 @@ private final class CoreLocationAuthorizationBridge:
             manager.authorizationStatus
         )
 
-        guard status != .notDetermined else {
+        guard status != .not_determined else {
             return
         }
 

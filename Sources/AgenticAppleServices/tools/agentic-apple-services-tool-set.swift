@@ -14,7 +14,7 @@ public struct AgenticAppleServicesToolSet:
         reminders: any AppleRemindersProvider =
             EventKitRemindersProvider(),
         weather: any AppleWeatherProvider =
-            WeatherKitWeatherProvider(),
+            WeatherKitRESTProvider(),
         location: any AppleLocationProvider =
             CoreLocationProvider()
     ) {

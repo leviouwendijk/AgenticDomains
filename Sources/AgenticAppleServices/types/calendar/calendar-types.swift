@@ -4,11 +4,11 @@ public enum CalendarAuthorizationStatus:
     Codable,
     Hashable
 {
-    case notDetermined = "not_determined"
+    case not_determined
     case restricted
     case denied
-    case fullAccess = "full_access"
-    case writeOnly = "write_only"
+    case full_access
+    case write_only
     case unknown
 }
 
@@ -82,15 +82,4 @@ public struct CalendarEvent:
         self.location = location
         self.notes = notes
     }
-}
-
-public protocol AppleCalendarProvider: Sendable {
-    func authorizationStatus() async -> CalendarAuthorizationStatus
-
-    func requestFullAccess() async throws
-        -> CalendarAuthorizationRequestResult
-
-    func events(
-        _ query: CalendarEventQuery
-    ) async throws -> [CalendarEvent]
 }

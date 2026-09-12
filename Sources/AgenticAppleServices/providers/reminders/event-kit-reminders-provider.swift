@@ -82,15 +82,15 @@ private extension EventKitRemindersProvider {
         if #available(macOS 14.0, *) {
             switch status {
             case .notDetermined:
-                return .notDetermined
+                return .not_determined
             case .restricted:
                 return .restricted
             case .denied:
                 return .denied
             case .fullAccess:
-                return .fullAccess
+                return .full_access
             case .authorized:
-                return .fullAccess
+                return .full_access
             case .writeOnly:
                 return .unknown
             @unknown default:
@@ -100,13 +100,13 @@ private extension EventKitRemindersProvider {
 
         switch status {
         case .notDetermined:
-            return .notDetermined
+            return .not_determined
         case .restricted:
             return .restricted
         case .denied:
             return .denied
         case .authorized:
-            return .fullAccess
+            return .full_access
         default:
             return .unknown
         }

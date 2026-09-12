@@ -4,10 +4,10 @@ public enum RemindersAuthorizationStatus:
     Codable,
     Hashable
 {
-    case notDetermined = "not_determined"
+    case not_determined
     case restricted
     case denied
-    case fullAccess = "full_access"
+    case full_access
     case unknown
 }
 
@@ -61,16 +61,4 @@ public struct ReminderItem:
         self.notes = notes
         self.priority = priority
     }
-}
-
-public protocol AppleRemindersProvider: Sendable {
-    func authorizationStatus() async
-        -> RemindersAuthorizationStatus
-
-    func requestFullAccess() async throws
-        -> RemindersAuthorizationRequestResult
-
-    func reminders(
-        limit: Int
-    ) async throws -> [ReminderItem]
 }

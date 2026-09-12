@@ -4,10 +4,10 @@ public enum LocationAuthorizationStatus:
     Codable,
     Hashable
 {
-    case notDetermined = "not_determined"
+    case not_determined
     case restricted
     case denied
-    case whenInUse = "when_in_use"
+    case when_in_use
     case always
     case unknown
 }
@@ -36,15 +36,4 @@ public struct AppleLocationSnapshot:
         self.altitudeMeters = altitudeMeters
         self.timestamp = timestamp
     }
-}
-
-public protocol AppleLocationProvider: Sendable {
-    func authorizationStatus() async
-        -> LocationAuthorizationStatus
-
-    func requestWhenInUseAuthorization() async
-        -> LocationAuthorizationStatus
-
-    func currentLocation() async throws
-        -> AppleLocationSnapshot
 }

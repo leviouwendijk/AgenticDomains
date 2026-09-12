@@ -22,8 +22,8 @@ public struct CurrentWeatherSnapshot:
 {
     public let coordinate: WeatherCoordinate
     public let date: String
-    public let condition: String
-    public let symbolName: String
+    public let conditionCode: String
+    public let symbolName: String?
     public let temperatureCelsius: Double
     public let apparentTemperatureCelsius: Double
     public let humidity: Double
@@ -32,8 +32,8 @@ public struct CurrentWeatherSnapshot:
     public init(
         coordinate: WeatherCoordinate,
         date: String,
-        condition: String,
-        symbolName: String,
+        conditionCode: String,
+        symbolName: String?,
         temperatureCelsius: Double,
         apparentTemperatureCelsius: Double,
         humidity: Double,
@@ -41,7 +41,7 @@ public struct CurrentWeatherSnapshot:
     ) {
         self.coordinate = coordinate
         self.date = date
-        self.condition = condition
+        self.conditionCode = conditionCode
         self.symbolName = symbolName
         self.temperatureCelsius = temperatureCelsius
         self.apparentTemperatureCelsius = apparentTemperatureCelsius
@@ -56,20 +56,20 @@ public struct HourlyWeatherSnapshot:
     Hashable
 {
     public let date: String
-    public let condition: String
-    public let symbolName: String
+    public let conditionCode: String
+    public let symbolName: String?
     public let temperatureCelsius: Double
     public let precipitationChance: Double
 
     public init(
         date: String,
-        condition: String,
-        symbolName: String,
+        conditionCode: String,
+        symbolName: String?,
         temperatureCelsius: Double,
         precipitationChance: Double
     ) {
         self.date = date
-        self.condition = condition
+        self.conditionCode = conditionCode
         self.symbolName = symbolName
         self.temperatureCelsius = temperatureCelsius
         self.precipitationChance = precipitationChance
@@ -82,22 +82,22 @@ public struct DailyWeatherSnapshot:
     Hashable
 {
     public let date: String
-    public let condition: String
-    public let symbolName: String
+    public let conditionCode: String
+    public let symbolName: String?
     public let lowTemperatureCelsius: Double
     public let highTemperatureCelsius: Double
     public let precipitationChance: Double
 
     public init(
         date: String,
-        condition: String,
-        symbolName: String,
+        conditionCode: String,
+        symbolName: String?,
         lowTemperatureCelsius: Double,
         highTemperatureCelsius: Double,
         precipitationChance: Double
     ) {
         self.date = date
-        self.condition = condition
+        self.conditionCode = conditionCode
         self.symbolName = symbolName
         self.lowTemperatureCelsius = lowTemperatureCelsius
         self.highTemperatureCelsius = highTemperatureCelsius
@@ -123,16 +123,4 @@ public struct WeatherForecastSnapshot:
         self.hourly = hourly
         self.daily = daily
     }
-}
-
-public protocol AppleWeatherProvider: Sendable {
-    func currentWeather(
-        at coordinate: WeatherCoordinate
-    ) async throws -> CurrentWeatherSnapshot
-
-    func forecast(
-        at coordinate: WeatherCoordinate,
-        hours: Int,
-        days: Int
-    ) async throws -> WeatherForecastSnapshot
 }

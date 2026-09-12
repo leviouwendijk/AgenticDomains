@@ -140,17 +140,17 @@ private extension EventKitCalendarProvider {
         if #available(macOS 14.0, *) {
             switch status {
             case .notDetermined:
-                return .notDetermined
+                return .not_determined
             case .restricted:
                 return .restricted
             case .denied:
                 return .denied
             case .fullAccess:
-                return .fullAccess
+                return .full_access
             case .writeOnly:
-                return .writeOnly
+                return .write_only
             case .authorized:
-                return .fullAccess
+                return .full_access
             @unknown default:
                 return .unknown
             }
@@ -158,13 +158,13 @@ private extension EventKitCalendarProvider {
 
         switch status {
         case .notDetermined:
-            return .notDetermined
+            return .not_determined
         case .restricted:
             return .restricted
         case .denied:
             return .denied
         case .authorized:
-            return .fullAccess
+            return .full_access
         default:
             return .unknown
         }
