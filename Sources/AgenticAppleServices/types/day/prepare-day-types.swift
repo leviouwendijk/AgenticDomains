@@ -1,6 +1,3 @@
-import Schema
-import SchemaMacros
-
 public struct PrepareDayInput:
     Sendable,
     Codable,
@@ -24,24 +21,6 @@ public struct PrepareDayInput:
     }
 }
 
-@JSONSchema
-public struct DayPriority:
-    Sendable,
-    Codable,
-    Hashable
-{
-    public let title: String
-    public let rationale: String
-
-    public init(
-        title: String,
-        rationale: String
-    ) {
-        self.title = title
-        self.rationale = rationale
-    }
-}
-
 public struct DayPlan:
     Sendable,
     Codable,
@@ -53,8 +32,9 @@ public struct DayPlan:
     public let reminders: [ReminderItem]
     public let weather: WeatherForecastSnapshot?
     public let priorities: [DayPriority]
-    public let warnings: [String]
-    public let suggestions: [String]
+    public let warnings: [DayWarning]
+    public let recommendations: [DayRecommendation]
+    public let informationGaps: [DayInformationGap]
 
     public init(
         startDate: String,
@@ -63,8 +43,9 @@ public struct DayPlan:
         reminders: [ReminderItem],
         weather: WeatherForecastSnapshot?,
         priorities: [DayPriority],
-        warnings: [String],
-        suggestions: [String]
+        warnings: [DayWarning],
+        recommendations: [DayRecommendation],
+        informationGaps: [DayInformationGap]
     ) {
         self.startDate = startDate
         self.endDate = endDate
@@ -73,6 +54,7 @@ public struct DayPlan:
         self.weather = weather
         self.priorities = priorities
         self.warnings = warnings
-        self.suggestions = suggestions
+        self.recommendations = recommendations
+        self.informationGaps = informationGaps
     }
 }

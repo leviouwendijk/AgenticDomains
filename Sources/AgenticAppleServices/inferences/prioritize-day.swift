@@ -38,17 +38,20 @@ public struct PrioritizeDayOutput:
     Hashable
 {
     public let priorities: [DayPriority]
-    public let warnings: [String]
-    public let suggestions: [String]
+    public let warnings: [DayWarning]
+    public let recommendations: [DayRecommendation]
+    public let informationGaps: [DayInformationGap]
 
     public init(
         priorities: [DayPriority],
-        warnings: [String],
-        suggestions: [String]
+        warnings: [DayWarning],
+        recommendations: [DayRecommendation],
+        informationGaps: [DayInformationGap]
     ) {
         self.priorities = priorities
         self.warnings = warnings
-        self.suggestions = suggestions
+        self.recommendations = recommendations
+        self.informationGaps = informationGaps
     }
 }
 
@@ -61,7 +64,7 @@ public struct PrioritizeDay:
 
     public static let definition = AgentInferenceDefinition(
         identifier: "apple_services.prioritize_day",
-        purpose: "Prioritize a bounded day from supplied calendar events, reminders, optional weather, and user context. Return explicit priorities, warnings, and suggestions without inventing additional source facts."
+        purpose: "Prioritize a bounded day from supplied calendar events, reminders, optional weather, and user context. Return explicit priorities, warnings, recommendations, and information gaps without inventing additional source facts."
     )
 
     public init() {}

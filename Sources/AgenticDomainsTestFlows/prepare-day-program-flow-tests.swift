@@ -212,16 +212,49 @@ private actor PrepareDayInferenceFixture:
             priorities = []
         }
 
+        let warnings: [DayWarning]
+
+        if let weather = dayInput.weather,
+           let firstDay = weather.daily.first,
+           firstDay.precipitationChance >= 0.5
+        {
+            warnings = [
+                DayWarning(
+                    summary: "Meaningful precipitation risk",
+                    rationale: "The supplied daily forecast reports a precipitation chance of \(firstDay.precipitationChance)."
+                ),
+            ]
+        } else {
+            warnings = []
+        }
+
+        let recommendations = dayInput.context.map {
+            [
+                DayRecommendation(
+                    action: "Respect the supplied day context",
+                    rationale: $0
+                ),
+            ]
+        } ?? []
+
+        let informationGaps: [DayInformationGap]
+
+        if dayInput.weather == nil {
+            informationGaps = [
+                DayInformationGap(
+                    subject: "weather",
+                    reason: "No weather coordinate was supplied, so weather was not read."
+                ),
+            ]
+        } else {
+            informationGaps = []
+        }
+
         let output = PrioritizeDayOutput(
             priorities: priorities,
-            warnings:
-                dayInput.weather == nil
-                    ? ["weather_not_supplied"]
-                    : [],
-            suggestions:
-                dayInput.context.map {
-                    ["Respect context: \($0)"]
-                } ?? []
+            warnings: warnings,
+            recommendations: recommendations,
+            informationGaps: informationGaps
         )
 
         let encodedOutput = try JSONEncoder().encode(output)
@@ -315,9 +348,24 @@ extension AgenticDomainsFlowTesting {
             "PrepareDayProgram uses PrioritizeDay semantic output"
         )
         try Expect.equal(
-            plan.suggestions,
-            ["Respect context: Protect focus time."],
-            "PrepareDayProgram carries semantic suggestions into DayPlan"
+            plan.recommendations.first?.action ?? "",
+            "Respect the supplied day context",
+            "PrepareDayProgram carries typed semantic recommendations into DayPlan"
+        )
+        try Expect.equal(
+            plan.recommendations.first?.rationale ?? "",
+            "Protect focus time.",
+            "PrepareDayProgram preserves recommendation rationale"
+        )
+        try Expect.equal(
+            plan.warnings.first?.summary ?? "",
+            "Meaningful precipitation risk",
+            "PrepareDayProgram carries typed semantic warnings into DayPlan"
+        )
+        try Expect.equal(
+            plan.informationGaps.count,
+            0,
+            "PrepareDayProgram reports no information gap when Weather was supplied"
         )
 
         let calendarQueries = await calendar.queries()
@@ -422,9 +470,19 @@ extension AgenticDomainsFlowTesting {
             "PrepareDayProgram leaves Weather absent without an explicit coordinate"
         )
         try Expect.equal(
-            noWeatherPlan.warnings,
-            ["weather_not_supplied"],
-            "PrioritizeDay can reason over an explicitly weatherless day input"
+            noWeatherPlan.warnings.count,
+            0,
+            "Missing Weather is not misclassified as a warning"
+        )
+        try Expect.equal(
+            noWeatherPlan.informationGaps.first?.subject ?? "",
+            "weather",
+            "PrioritizeDay classifies absent Weather as an information gap"
+        )
+        try Expect.equal(
+            noWeatherPlan.informationGaps.first?.reason ?? "",
+            "No weather coordinate was supplied, so weather was not read.",
+            "PrepareDayProgram preserves typed information-gap rationale"
         )
 
         return [
@@ -451,6 +509,18 @@ extension AgenticDomainsFlowTesting {
             .field(
                 "weatherless_calls",
                 "\(noWeatherCalls.count)"
+            ),
+            .field(
+                "warnings",
+                "\(plan.warnings.count)"
+            ),
+            .field(
+                "recommendations",
+                "\(plan.recommendations.count)"
+            ),
+            .field(
+                "information_gaps",
+                "\(noWeatherPlan.informationGaps.count)"
             ),
         ]
     }

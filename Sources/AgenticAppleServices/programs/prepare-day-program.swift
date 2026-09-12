@@ -90,7 +90,8 @@ public struct PrepareDayProgram:
             weather: forecast,
             priorities: prioritization.priorities,
             warnings: prioritization.warnings,
-            suggestions: prioritization.suggestions
+            recommendations: prioritization.recommendations,
+            informationGaps: prioritization.informationGaps
         )
     }
 }
