@@ -73,6 +73,58 @@ public actor EventKitRemindersProvider:
                 .prefix(limit)
         )
     }
+
+    public func createReminder(
+        _ creation: ReminderCreation
+    ) async throws -> ReminderItem {
+        let status = await authorizationStatus()
+
+        guard status == .full_access else {
+            throw EventKitRemindersProviderError
+                .fullAccessRequired(status)
+        }
+
+        let calendar: EKCalendar
+
+        if let listTitle = creation.listTitle {
+            guard let matched = eventStore
+                .calendars(for: .reminder)
+                .first(where: { calendar in
+                    calendar.title.localizedCaseInsensitiveCompare(
+                        listTitle
+                    ) == .orderedSame
+                })
+            else {
+                throw EventKitRemindersProviderError
+                    .reminderListNotFound(listTitle)
+            }
+
+            calendar = matched
+        } else {
+            guard let defaultCalendar =
+                eventStore.defaultCalendarForNewReminders()
+            else {
+                throw EventKitRemindersProviderError
+                    .defaultReminderListUnavailable
+            }
+
+            calendar = defaultCalendar
+        }
+
+        let reminder = EKReminder(
+            eventStore: eventStore
+        )
+        reminder.calendar = calendar
+        reminder.title = creation.title
+        reminder.notes = creation.notes
+
+        try eventStore.save(
+            reminder,
+            commit: true
+        )
+
+        return Self.item(reminder)
+    }
 }
 
 private extension EventKitRemindersProvider {
@@ -185,11 +237,23 @@ public enum EventKitRemindersProviderError:
     LocalizedError
 {
     case fullAccessRequiresMacOS14
+    case fullAccessRequired(RemindersAuthorizationStatus)
+    case reminderListNotFound(String)
+    case defaultReminderListUnavailable
 
     public var errorDescription: String? {
         switch self {
         case .fullAccessRequiresMacOS14:
             return "Full EventKit reminders access requires macOS 14 or newer."
+
+        case .fullAccessRequired(let status):
+            return "Creating a reminder requires full Reminders access; current status is \(status.rawValue)."
+
+        case .reminderListNotFound(let title):
+            return "No Reminders list named '\(title)' was found."
+
+        case .defaultReminderListUnavailable:
+            return "No default Reminders list is available for creating a reminder."
         }
     }
 }

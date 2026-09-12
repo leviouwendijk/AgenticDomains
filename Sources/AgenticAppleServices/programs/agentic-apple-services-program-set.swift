@@ -31,5 +31,8 @@ public struct AgenticAppleServicesProgramSet:
                 weather: weather
             )
         )
+        try registry.register(
+            CreateReminderProgram()
+        )
     }
 }

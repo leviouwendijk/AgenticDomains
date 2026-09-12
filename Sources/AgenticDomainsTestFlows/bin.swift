@@ -44,6 +44,22 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
             try await AgenticDomainsFlowTesting.runPrepareDayProgram()
         },
         TestFlow(
+            "agentic-apple-services-create-reminder-program",
+            tags: [
+                "agentic-domains",
+                "apple",
+                "program",
+                "reminders",
+                "mutation",
+                "approval",
+                "suspension",
+                "resume",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting
+                .runCreateReminderProgram()
+        },
+        TestFlow(
             "agentic-apple-services-weatherkit-rest-token",
             tags: [
                 "agentic-domains",

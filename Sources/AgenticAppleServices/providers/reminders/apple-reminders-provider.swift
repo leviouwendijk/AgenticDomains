@@ -8,4 +8,8 @@ public protocol AppleRemindersProvider: Sendable {
     func reminders(
         limit: Int
     ) async throws -> [ReminderItem]
+
+    func createReminder(
+        _ creation: ReminderCreation
+    ) async throws -> ReminderItem
 }

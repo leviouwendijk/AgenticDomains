@@ -8,6 +8,7 @@ private enum PrepareDayFixtureError: Error {
     case unexpectedInference(String)
     case unexpectedInferenceSite(String)
     case unexpectedWeatherCurrentCall
+    case unexpectedReminderCreation
 }
 
 private actor PrepareDayCalendarFixture:
@@ -91,6 +92,14 @@ private actor PrepareDayRemindersFixture:
                 priority: 1
             ),
         ]
+    }
+
+    func createReminder(
+        _ creation: ReminderCreation
+    ) async throws -> ReminderItem {
+        _ = creation
+        throw PrepareDayFixtureError
+            .unexpectedReminderCreation
     }
 
     func limits() -> [Int] {
@@ -291,16 +300,21 @@ extension AgenticDomainsFlowTesting {
 
         try Expect.equal(
             registry.count,
-            1,
-            "AgenticAppleServices Program set registers PrepareDayProgram"
+            2,
+            "AgenticAppleServices Program set registers its read and mutation Programs"
         )
 
         try Expect.equal(
-            registry.descriptors.map {
-                $0.identifier.rawValue
-            },
-            ["apple_services.prepare_day"],
-            "AgenticAppleServices exposes PrepareDayProgram through ProgramRegistry"
+            registry.descriptors
+                .map {
+                    $0.identifier.rawValue
+                }
+                .sorted(),
+            [
+                "apple_services.create_reminder",
+                "apple_services.prepare_day",
+            ],
+            "AgenticAppleServices exposes its read and mutation Programs through ProgramRegistry"
         )
 
         let program = PrepareDayProgram(

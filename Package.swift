@@ -45,6 +45,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/AgenticIO.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AgenticInference.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AgenticPrograms.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/AgenticRuntime.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/SwiftSemantics.git", branch: "master"),
 
         .package(url: "https://github.com/leviouwendijk/Path.git", branch: "master"),
@@ -176,6 +177,7 @@ let package = Package(
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "AgenticInference", package: "AgenticInference"),
                 .product(name: "AgenticPrograms", package: "AgenticPrograms"),
+                .product(name: "AgenticRuntime", package: "AgenticRuntime"),
                 .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "Executable", package: "Executable"),
                 .product(name: "Interfaces", package: "Interfaces"),

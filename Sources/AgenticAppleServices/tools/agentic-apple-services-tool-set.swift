@@ -47,6 +47,9 @@ public struct AgenticAppleServicesToolSet:
             RemindersTool(
                 provider: reminders
             )
+            RemindersCreateTool(
+                provider: reminders
+            )
 
             WeatherCurrentTool(
                 provider: weather

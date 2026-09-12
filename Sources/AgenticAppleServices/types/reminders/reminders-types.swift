@@ -1,3 +1,27 @@
+import Schema
+import SchemaMacros
+
+@JSONSchema
+public struct ReminderCreation:
+    Sendable,
+    Codable,
+    Hashable
+{
+    public let title: String
+    public let notes: String?
+    public let listTitle: String?
+
+    public init(
+        title: String,
+        notes: String? = nil,
+        listTitle: String? = nil
+    ) {
+        self.title = title
+        self.notes = notes
+        self.listTitle = listTitle
+    }
+}
+
 public enum RemindersAuthorizationStatus:
     String,
     Sendable,

@@ -88,6 +88,56 @@ public struct RemindersRequestFullAccessTool:
     }
 }
 
+public struct RemindersCreateTool:
+    AgentTool
+{
+    public typealias Input = ReminderCreation
+    public typealias Output = ReminderItem
+
+    public static let toolIdentifier:
+        AgentToolIdentifier = "reminders_create"
+
+    public let identifier: AgentToolIdentifier =
+        Self.toolIdentifier
+    public let description =
+        "Create exactly one reminder in an explicit reminder list or the configured default reminders list."
+    public let risk: ActionRisk = .boundedmutate
+
+    private let provider: any AppleRemindersProvider
+
+    public init(
+        provider: any AppleRemindersProvider
+    ) {
+        self.provider = provider
+    }
+
+    public func preflight(
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> ToolPreflight {
+        let destination =
+            input.listTitle ?? "default reminders list"
+
+        return ToolPreflight(
+            toolName: identifier.rawValue,
+            risk: risk,
+            workspaceRoot: context.workspace?.rootURL.path,
+            summary: "Create reminder '\(input.title)' in \(destination)."
+        )
+    }
+
+    public func call(
+        _ input: Input,
+        context: AgentToolExecutionContext
+    ) async throws -> Output {
+        _ = context
+
+        return try await provider.createReminder(
+            input
+        )
+    }
+}
+
 public struct RemindersTool:
     AgentTool
 {
