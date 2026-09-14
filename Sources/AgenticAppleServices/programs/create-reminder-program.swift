@@ -1,3 +1,4 @@
+import AgenticRecovery
 import AgenticPrograms
 import Foundation
 
@@ -44,6 +45,19 @@ public struct CreateReminderProgram:
         _ input: Input,
         in context: AgentProgramContext
     ) async throws -> Output {
+        try await ensureFullAccess(
+            in: context
+        )
+
+        return try await createWithAuthorizationRecovery(
+            input,
+            in: context
+        )
+    }
+
+    private func ensureFullAccess(
+        in context: AgentProgramContext
+    ) async throws {
         let authorization = try await context.invoke(
             RemindersAuthorizationStatusTool.toolIdentifier,
             input: AppleRemindersEmptyToolInput(),
@@ -52,7 +66,7 @@ public struct CreateReminderProgram:
 
         switch authorization {
         case .full_access:
-            break
+            return
 
         case .not_determined:
             let request = try await context.invoke(
@@ -74,11 +88,36 @@ public struct CreateReminderProgram:
                     authorization
                 )
         }
+    }
 
-        return try await context.invoke(
+    private func createWithAuthorizationRecovery(
+        _ input: Input,
+        in context: AgentProgramContext
+    ) async throws -> Output {
+        try await context.invoke(
             RemindersCreateTool.toolIdentifier,
             input: input,
             as: ReminderItem.self
-        )
+        ) { failure -> Output in
+            guard
+                failure.recovery?.incident.kind
+                    == .authorization_required,
+                failure.effect == .not_applied,
+                failure.retry == .safe,
+                failure.outcome == .propagated
+            else {
+                throw failure
+            }
+
+            try await ensureFullAccess(
+                in: context
+            )
+
+            return try await context.invoke(
+                RemindersCreateTool.toolIdentifier,
+                input: input,
+                as: ReminderItem.self
+            )
+        }
     }
 }

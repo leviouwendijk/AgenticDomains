@@ -1,3 +1,4 @@
+import AgenticRecovery
 import Agentic
 import AgenticExecution
 import Schema
@@ -140,6 +141,35 @@ public struct RemindersCreateTool:
 
         return try await provider.createReminder(
             input
+        )
+    }
+
+    public func classify(
+        _ error: any Error,
+        phase: AgentToolCallPhase,
+        input _: Input?,
+        context: AgentToolExecutionContext
+    ) -> Recovery.Incident? {
+        guard
+            phase == .call,
+            let error = error
+                as? RemindersAuthorizationRequiredError
+        else {
+            return nil
+        }
+
+        return Recovery.Incident(
+            kind: .authorization_required,
+            stage: .execution,
+            effectState: .not_applied,
+            retrySafety: .safe,
+            scope: .init(
+                kind: .tool,
+                identifier:
+                    context.toolCallID
+                    ?? identifier.rawValue
+            ),
+            message: error.localizedDescription
         )
     }
 }

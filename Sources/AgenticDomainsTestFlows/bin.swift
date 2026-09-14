@@ -73,6 +73,22 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
             try await AgenticDomainsFlowTesting.runSwiftChangeProgram()
         },
         TestFlow(
+            "agentic-apple-services-create-reminder-semantic-recovery",
+            tags: [
+                "agentic-domains",
+                "apple",
+                "program",
+                "reminders",
+                "recovery",
+                "classification",
+                "authorization",
+                "mutation",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting
+                .runCreateReminderSemanticRecovery()
+        },
+        TestFlow(
             "agentic-apple-services-weatherkit-rest-token",
             tags: [
                 "agentic-domains",

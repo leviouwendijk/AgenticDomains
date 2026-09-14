@@ -1,5 +1,5 @@
 {
-  "originHash" : "bdc4573162cd3d458e2144c8d175d0019b5671e8dc91d234a16884eb96ea6587",
+  "originHash" : "5a9b3c95f5a792946d890f5364c217942268de72c11b0e3e2e1efd9b6bfdf112",
   "pins" : [
     {
       "identity" : "agentic",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticExecution.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e7093ca165f45c38a8b28c8bee9e4a67557ef3f4"
+        "revision" : "980712c761bcf83afa4c39342be165e439f545ba"
       }
     },
     {
@@ -25,7 +25,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticInference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c8acd0b2815c26924d2ae23aa1d0b58ab8e9cc74"
+        "revision" : "f9766179827cdd0fcc43f8ee2ff0ff4f785e3460"
       }
     },
     {
@@ -52,7 +52,16 @@
       "location" : "https://github.com/leviouwendijk/AgenticPrograms.git",
       "state" : {
         "branch" : "master",
-        "revision" : "433936c6d7e3c3e6352761a64bea4fe16ff3fd6f"
+        "revision" : "db4bc6bcdf1b783b1c3ea1c27b0855477f7e1ece"
+      }
+    },
+    {
+      "identity" : "agenticrecovery",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/AgenticRecovery.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "c4893afa6feffba5a8607b23f266fc022df7a2a4"
       }
     },
     {
@@ -61,7 +70,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticRuntime.git",
       "state" : {
         "branch" : "master",
-        "revision" : "9e967e6c250086b53bb56d2a9fc0dd6635a7f406"
+        "revision" : "bc64860664e29654c69bbf2f919496f13487863f"
       }
     },
     {
@@ -151,7 +160,7 @@
       "location" : "https://github.com/leviouwendijk/Errors.git",
       "state" : {
         "branch" : "master",
-        "revision" : "8b5f809214ca8ea3401378f1dc673ca60ceaf902"
+        "revision" : "72d3aaf1203e3443df34ac4bef61683d5285eb25"
       }
     },
     {
@@ -368,15 +377,6 @@
       "state" : {
         "branch" : "master",
         "revision" : "703253bef3f4ae18e03bb35e68ac6db0d1bc584d"
-      }
-    },
-    {
-      "identity" : "schemamacros",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/leviouwendijk/SchemaMacros.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "2441b49a5159c375b094672a0ba0ae338829ec32"
       }
     },
     {

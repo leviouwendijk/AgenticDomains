@@ -80,8 +80,9 @@ public actor EventKitRemindersProvider:
         let status = await authorizationStatus()
 
         guard status == .full_access else {
-            throw EventKitRemindersProviderError
-                .fullAccessRequired(status)
+            throw RemindersAuthorizationRequiredError(
+                status: status
+            )
         }
 
         let calendar: EKCalendar
@@ -237,7 +238,6 @@ public enum EventKitRemindersProviderError:
     LocalizedError
 {
     case fullAccessRequiresMacOS14
-    case fullAccessRequired(RemindersAuthorizationStatus)
     case reminderListNotFound(String)
     case defaultReminderListUnavailable
 
@@ -245,9 +245,6 @@ public enum EventKitRemindersProviderError:
         switch self {
         case .fullAccessRequiresMacOS14:
             return "Full EventKit reminders access requires macOS 14 or newer."
-
-        case .fullAccessRequired(let status):
-            return "Creating a reminder requires full Reminders access; current status is \(status.rawValue)."
 
         case .reminderListNotFound(let title):
             return "No Reminders list named '\(title)' was found."
