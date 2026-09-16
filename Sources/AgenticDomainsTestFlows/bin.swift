@@ -168,6 +168,36 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
             try await AgenticDomainsFlowTesting.runAgenticSwiftStructuralSemanticsAdapter()
         },
         TestFlow(
+            "agentic-swift-rule-lint-tools",
+            tags: [
+                "agentic-domains",
+                "swift",
+                "swift-semantics",
+                "rules",
+                "lint",
+                "tools",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticSwiftRuleLintTools()
+        },
+        TestFlow(
+            "agentic-swift-package-rule-lint-tool",
+            tags: [
+                "agentic-domains",
+                "architecture",
+                "dependencies",
+                "lint",
+                "package",
+                "rules",
+                "swift",
+                "swift-semantics",
+                "tools",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting
+                .runAgenticSwiftPackageRuleLintTool()
+        },
+        TestFlow(
             "agentic-swift-semantic-tool-foundation",
             tags: [
                 "agentic-domains",

@@ -10,6 +10,9 @@ public struct AgenticSwiftToolSet: AgentToolSet {
             ReadSwiftStructureTool()
             ListSwiftSymbolsTool()
             ReadSwiftSymbolTool()
+            LintSwiftSourceTool()
+            LintSwiftFilesTool()
+            LintSwiftPackageTool()
 
             InspectPackageGraphTool()
             FindSwiftDefinitionTool()
