@@ -77,7 +77,7 @@ public actor EventKitRemindersProvider:
     public func createReminder(
         _ creation: ReminderCreation
     ) async throws -> ReminderItem {
-        let status = await authorizationStatus()
+        let status = authorizationStatus()
 
         guard status == .full_access else {
             throw RemindersAuthorizationRequiredError(
