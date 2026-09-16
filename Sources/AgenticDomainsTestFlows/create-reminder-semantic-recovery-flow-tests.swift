@@ -173,10 +173,66 @@ extension AgenticDomainsFlowTesting {
         let recoveredScenario = try ReminderSemanticRecoveryScenario(
             mode: .authorizationRace
         )
-        let recovered = try await recoveredScenario.runner.execute(
+        let recoveredInitial = try await recoveredScenario.runner.execute(
             CreateReminderProgram(),
             input: input,
             sessionID: "domain-reminder-semantic-recovery"
+        )
+        let recoveredCheckpoint = try Expect.notNil(
+            recoveredInitial.record.checkpoint,
+            "authorization race suspends on the Program-authored permission question"
+        )
+        let recoveredRequest = try Expect.notNil(
+            recoveredInitial.record.interactionRequest,
+            "authorization-race suspension exposes its interaction request"
+        )
+        let recoveredPending = try Expect.notNil(
+            recoveredRequest.requirement.pendingUserInput,
+            "authorization race projects the native Reminders permission question"
+        )
+        let beforeUserInput = await recoveredScenario.provider
+            .counts()
+
+        try Expect.equal(
+            recoveredInitial.record.outcome,
+            .suspended,
+            "authorization race suspends for user intent before requesting OS access"
+        )
+        try Expect.equal(
+            recoveredRequest.kind,
+            .user_input,
+            "semantic recovery uses native user input rather than approval"
+        )
+        try Expect.equal(
+            recoveredPending.prompt,
+            "Allow Agentic to request Reminders access from macOS?",
+            "semantic recovery exposes the same production permission question"
+        )
+        try Expect.equal(
+            beforeUserInput.createCalls,
+            1,
+            "authorization race records exactly one failed not-applied creation before asking"
+        )
+        try Expect.equal(
+            beforeUserInput.accessRequests,
+            0,
+            "semantic recovery does not request OS access before user confirmation"
+        )
+        try Expect.equal(
+            beforeUserInput.creations,
+            0,
+            "failed not-applied creation and suspended user input produce no reminder"
+        )
+
+        let recovered = try await recoveredScenario.runner.resume(
+            CreateReminderProgram(),
+            from: recoveredCheckpoint,
+            interaction: AgentInteraction.Response(
+                request: recoveredRequest,
+                resolution: .user_input(
+                    .confirmation(true)
+                )
+            )
         )
         let recoveredOutput = try Expect.notNil(
             recovered.output,

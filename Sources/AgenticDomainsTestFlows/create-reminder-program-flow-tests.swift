@@ -331,12 +331,10 @@ extension AgenticDomainsFlowTesting {
             throw CreateReminderProgramFixtureError
                 .missing_interaction_request
         }
-        guard let authorizationPending =
-            authorizationRequest.requirement.pendingApproval
-        else {
-            throw CreateReminderProgramFixtureError
-                .missing_pending_approval
-        }
+        let authorizationPending = try Expect.notNil(
+            authorizationRequest.requirement.pendingUserInput,
+            "not-determined Reminders access exposes the Program-authored user-input request"
+        )
 
         try Expect.equal(
             authorizationInitial.record.outcome,
@@ -344,9 +342,19 @@ extension AgenticDomainsFlowTesting {
             "not-determined Reminders access suspends at the governed permission request"
         )
         try Expect.equal(
-            authorizationPending.toolCall.name,
-            RemindersRequestFullAccessTool.toolIdentifier.rawValue,
-            "authorization prerequisite suspends on the explicit Reminders access request tool"
+            authorizationRequest.kind,
+            .user_input,
+            "not-determined Reminders access first suspends for native user input"
+        )
+        try Expect.equal(
+            authorizationPending.requirement,
+            .required,
+            "permission-request confirmation is required"
+        )
+        try Expect.equal(
+            authorizationPending.prompt,
+            "Allow Agentic to request Reminders access from macOS?",
+            "Program exposes the exact Reminders permission-request question"
         )
         try Expect.equal(
             await authorizationScenario.provider.accessRequestCount(),
@@ -359,11 +367,51 @@ extension AgenticDomainsFlowTesting {
             "reminder creation cannot occur before authorization"
         )
 
-        let authorizationApproved = try await authorizationScenario.runner.resume(
+        let authorizationConfirmed = try await authorizationScenario.runner.resume(
             program,
             from: authorizationCheckpoint,
             interaction: .init(
                 request: authorizationRequest,
+                resolution: .user_input(
+                    .confirmation(true)
+                )
+            )
+        )
+
+        let permissionCheckpoint = try Expect.notNil(
+            authorizationConfirmed.record.checkpoint,
+            "confirming the native prompt reaches governed permission-tool approval"
+        )
+        let permissionRequest = try Expect.notNil(
+            authorizationConfirmed.record.interactionRequest,
+            "permission request approval exposes its interaction request"
+        )
+        let permissionPending = try Expect.notNil(
+            permissionRequest.requirement.pendingApproval,
+            "permission request remains a distinct approval interaction"
+        )
+
+        try Expect.equal(
+            authorizationConfirmed.record.outcome,
+            .suspended,
+            "native confirmation continues to governed permission approval"
+        )
+        try Expect.equal(
+            permissionPending.toolCall.name,
+            RemindersRequestFullAccessTool.toolIdentifier.rawValue,
+            "second boundary is the governed Reminders permission tool"
+        )
+        try Expect.equal(
+            await authorizationScenario.provider.accessRequestCount(),
+            0,
+            "confirming user intent does not itself trigger the macOS permission request"
+        )
+
+        let authorizationApproved = try await authorizationScenario.runner.resume(
+            program,
+            from: permissionCheckpoint,
+            interaction: .init(
+                request: permissionRequest,
                 resolution: .approval(.approved)
             )
         )
@@ -460,19 +508,21 @@ extension AgenticDomainsFlowTesting {
             from: accessDeniedCheckpoint,
             interaction: .init(
                 request: accessDeniedRequest,
-                resolution: .approval(.denied)
+                resolution: .user_input(
+                    .confirmation(false)
+                )
             )
         )
 
         try Expect.equal(
             accessDenied.record.outcome,
             .failed,
-            "denying the governed access request fails closed"
+            "declining the native permission-request prompt fails closed"
         )
         try Expect.equal(
             await accessDeniedScenario.provider.accessRequestCount(),
             0,
-            "denying Agentic authorization review never invokes the macOS permission request"
+            "declining the native permission-request prompt never invokes macOS authorization"
         )
         try Expect.equal(
             await accessDeniedScenario.provider.creations().count,
@@ -503,11 +553,41 @@ extension AgenticDomainsFlowTesting {
                 .missing_interaction_request
         }
 
-        let osDenied = try await osDeniedScenario.runner.resume(
+        let osDeniedConfirmed = try await osDeniedScenario.runner.resume(
             program,
             from: osDeniedCheckpoint,
             interaction: .init(
                 request: osDeniedRequest,
+                resolution: .user_input(
+                    .confirmation(true)
+                )
+            )
+        )
+
+        let osDeniedPermissionCheckpoint = try Expect.notNil(
+            osDeniedConfirmed.record.checkpoint,
+            "confirmed OS-denied scenario reaches permission-tool approval"
+        )
+        let osDeniedPermissionRequest = try Expect.notNil(
+            osDeniedConfirmed.record.interactionRequest,
+            "OS-denied permission tool exposes its approval interaction"
+        )
+        let osDeniedPermission = try Expect.notNil(
+            osDeniedPermissionRequest.requirement.pendingApproval,
+            "OS-denied permission request remains governed separately"
+        )
+
+        try Expect.equal(
+            osDeniedPermission.toolCall.name,
+            RemindersRequestFullAccessTool.toolIdentifier.rawValue,
+            "OS-denied path reaches the governed permission tool after user confirmation"
+        )
+
+        let osDenied = try await osDeniedScenario.runner.resume(
+            program,
+            from: osDeniedPermissionCheckpoint,
+            interaction: .init(
+                request: osDeniedPermissionRequest,
                 resolution: .approval(.approved)
             )
         )

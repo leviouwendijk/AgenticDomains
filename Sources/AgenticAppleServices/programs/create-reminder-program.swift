@@ -1,3 +1,4 @@
+import Agentic
 import AgenticRecovery
 import AgenticPrograms
 import Foundation
@@ -10,11 +11,15 @@ public enum CreateReminderProgramError:
     case remindersAuthorizationUnavailable(
         RemindersAuthorizationStatus
     )
+    case remindersAuthorizationRequestDeclined
 
     public var errorDescription: String? {
         switch self {
         case .remindersAuthorizationUnavailable(let status):
             return "Creating a reminder requires full Reminders access; authorization ended in \(status.rawValue)."
+
+        case .remindersAuthorizationRequestDeclined:
+            return "Creating the reminder was stopped because requesting Reminders access was declined."
         }
     }
 }
@@ -69,6 +74,34 @@ public struct CreateReminderProgram:
             return
 
         case .not_determined:
+            let response = try await context.ask(
+                UserInputRequest(
+                    prompt: "Allow Agentic to request Reminders access from macOS?",
+                    reason: "Creating this reminder requires full Reminders access. Continuing will ask macOS to display its system permission prompt.",
+                    input: .confirmation(
+                        ConfirmationUserInput(
+                            defaultValue: false,
+                            confirmLabel: "Request access",
+                            cancelLabel: "Do not request"
+                        )
+                    ),
+                    presentation: UserInputPresentation(
+                        title: "Reminders access",
+                        preferredControl: .confirmation
+                    ),
+                    metadata: [
+                        "domain": "apple_services",
+                        "capability": "reminders",
+                        "operation": "request_full_access",
+                    ]
+                )
+            )
+
+            guard case .answered(.confirmation(true)) = response.outcome else {
+                throw CreateReminderProgramError
+                    .remindersAuthorizationRequestDeclined
+            }
+
             let request = try await context.invoke(
                 RemindersRequestFullAccessTool.toolIdentifier,
                 input: AppleRemindersEmptyToolInput(),
