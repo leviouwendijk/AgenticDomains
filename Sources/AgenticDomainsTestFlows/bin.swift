@@ -60,6 +60,19 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
                 .runCreateReminderProgram()
         },
         TestFlow(
+            "agentic-business-prepare-reply-program",
+            tags: [
+                "agentic-domains",
+                "business",
+                "communication",
+                "program",
+                "inference",
+                "human-input",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runBusinessReplyProgram()
+        },
+        TestFlow(
             "agentic-swift-multi-inference-program",
             tags: [
                 "agentic-domains",
