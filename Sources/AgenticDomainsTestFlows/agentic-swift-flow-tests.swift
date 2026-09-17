@@ -17,7 +17,7 @@ enum AgenticDomainsFlowTesting {
 
         try Expect.equal(
             registry.count,
-            36,
+            41,
             "AgenticSwift registered tool count"
         )
 
@@ -33,6 +33,11 @@ enum AgenticDomainsFlowTesting {
             "lint_swift_files",
             "lint_swift_package",
             "inspect_package_graph",
+            "inspect_swift_architecture",
+            "search_swift_architecture",
+            "inspect_swift_architecture_symbol",
+            "inspect_swift_architecture_relationships",
+            "inspect_swift_repository_architecture",
             "find_swift_definition",
             "find_swift_references",
             "find_swift_implementations",

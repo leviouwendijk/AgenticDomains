@@ -53,6 +53,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/AgenticPrograms.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AgenticRuntime.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/SwiftSemantics.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Documentation.git", branch: "master"),
 
         .package(url: "https://github.com/leviouwendijk/Path.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Position.git", branch: "master"),
@@ -105,6 +106,7 @@ let package = Package(
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "SwiftSemantics", package: "SwiftSemantics"),
+                .product(name: "Documentation", package: "Documentation"),
                 .product(name: "Path", package: "Path"),
                 .product(name: "Position", package: "Position"),
 

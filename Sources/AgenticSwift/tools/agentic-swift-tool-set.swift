@@ -15,6 +15,11 @@ public struct AgenticSwiftToolSet: AgentToolSet {
             LintSwiftPackageTool()
 
             InspectPackageGraphTool()
+            InspectSwiftArchitectureTool()
+            SearchSwiftArchitectureTool()
+            InspectSwiftArchitectureSymbolTool()
+            InspectSwiftArchitectureRelationshipsTool()
+            InspectSwiftRepositoryArchitectureTool()
             FindSwiftDefinitionTool()
             FindSwiftReferencesTool()
             FindSwiftImplementationsTool()

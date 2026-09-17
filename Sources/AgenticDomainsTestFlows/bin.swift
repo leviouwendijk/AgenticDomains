@@ -223,6 +223,19 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
             try await AgenticDomainsFlowTesting.runAgenticSwiftSemanticToolFoundation()
         },
         TestFlow(
+            "agentic-swift-documentation-architecture",
+            tags: [
+                "agentic-domains",
+                "swift",
+                "documentation",
+                "architecture",
+                "symbol-graph",
+                "tools",
+            ]
+        ) {
+            try await AgenticDomainsFlowTesting.runAgenticSwiftArchitectureTools()
+        },
+        TestFlow(
             "agentic-swift-parse-fixture",
             tags: [
                 "agentic-domains",

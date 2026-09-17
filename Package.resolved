@@ -1,5 +1,5 @@
 {
-  "originHash" : "5a9b3c95f5a792946d890f5364c217942268de72c11b0e3e2e1efd9b6bfdf112",
+  "originHash" : "abb109f295762932432b3a3eca602f5baa716e9cb8f396eb347ecf5e45906777",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "0b91362153ff962160d568810c2b6c765e321169"
+        "revision" : "5297dca88965b5c477f04154794bc9d9fc412a24"
       }
     },
     {
@@ -43,7 +43,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticModels.git",
       "state" : {
         "branch" : "master",
-        "revision" : "92d93f4ecbe9654714d085eda51a56e8dbe89f79"
+        "revision" : "cd6dcc39beb2a6ff69ad01328f5e716c5d96cae2"
       }
     },
     {
@@ -70,7 +70,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticRuntime.git",
       "state" : {
         "branch" : "master",
-        "revision" : "8bd92d023772ca1117ab0385712bfbc5f5aa8db2"
+        "revision" : "6f1d7b2c6e759771870f739f6ca5576942687f02"
       }
     },
     {
@@ -142,7 +142,16 @@
       "location" : "https://github.com/leviouwendijk/Difference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "7d295238c789f009fd720f3cf5ca8e730068c0c5"
+        "revision" : "8332c1ae56901b73f3b23a9c490516f0f6bb78fb"
+      }
+    },
+    {
+      "identity" : "documentation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Documentation.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "164da305aac4a37fbf917f9cb1cca310dcedf121"
       }
     },
     {
@@ -161,6 +170,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "72d3aaf1203e3443df34ac4bef61683d5285eb25"
+      }
+    },
+    {
+      "identity" : "excerpt",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Excerpt.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "9369604e8cfe761588003c61ed849462ca8fb14e"
       }
     },
     {
@@ -322,7 +340,7 @@
       "location" : "https://github.com/leviouwendijk/Position.git",
       "state" : {
         "branch" : "master",
-        "revision" : "66a8219a6780a6346e55c9531f8fabaa4ff713d9"
+        "revision" : "23c0ec4218a64853830a9448a97b756731e0afab"
       }
     },
     {
@@ -331,7 +349,7 @@
       "location" : "https://github.com/leviouwendijk/Primitives.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e626fa0746aee024729bf56549e774d13aa17099"
+        "revision" : "03f80f4df2eab71c69de01e5b0e43f786c8abaad"
       }
     },
     {
@@ -367,7 +385,7 @@
       "location" : "https://github.com/leviouwendijk/Readers.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c47991874555ffd0b01ec504d3ba98afde0c1677"
+        "revision" : "b966dbeb1201557a1f19dd23ff514f4a401d63ae"
       }
     },
     {
@@ -394,7 +412,7 @@
       "location" : "https://github.com/leviouwendijk/Selection.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3b30f85d1644cbe81f6eb11e4997cdfd122ba668"
+        "revision" : "a366ef72b58f066f7dc910c02ee4ae953966fb8a"
       }
     },
     {
@@ -404,6 +422,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "86a939d7bbb3e25808f88fbcedcee4069a5a5ae1"
+      }
+    },
+    {
+      "identity" : "swift-docc-symbolkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-docc-symbolkit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "c1f9484553d29afb981b95458b37c1c3d3e1bcd7"
       }
     },
     {
@@ -439,7 +466,7 @@
       "location" : "https://github.com/leviouwendijk/SwiftSemantics.git",
       "state" : {
         "branch" : "master",
-        "revision" : "101eddfb3ea63e34f6fb7d8d41a10a36b432a803"
+        "revision" : "2517db31a5961c4302e39132df0116da736576a4"
       }
     },
     {

@@ -42,7 +42,7 @@ extension AgenticDomainsFlowTesting {
         }
         """.write(
             to: fixture.url(
-                "Clean.swift"
+                "clean-fixture.swift"
             ),
             atomically: true,
             encoding: .utf8
@@ -86,7 +86,7 @@ extension AgenticDomainsFlowTesting {
             .init(
                 paths: [
                     "Fixture.swift",
-                    "Clean.swift",
+                    "clean-fixture.swift",
                 ]
             ),
             context: context
@@ -96,7 +96,7 @@ extension AgenticDomainsFlowTesting {
             multi.files.map(\.path),
             [
                 "Fixture.swift",
-                "Clean.swift",
+                "clean-fixture.swift",
             ],
             "lint_swift_files preserves explicit input order"
         )
