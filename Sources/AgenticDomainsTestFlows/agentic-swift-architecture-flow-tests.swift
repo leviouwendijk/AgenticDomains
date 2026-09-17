@@ -83,7 +83,6 @@ extension AgenticDomainsFlowTesting {
         let architecture = try await InspectSwiftArchitectureTool().call(
             .init(
                 minimumAccessLevel: .internal,
-                symbolLimit: 500,
                 refresh: true
             ),
             context: context
@@ -93,6 +92,39 @@ extension AgenticDomainsFlowTesting {
             architecture.packageName,
             "ArchitectureFixture",
             "architecture inspection projects live SwiftPM package identity"
+        )
+
+        try Expect.equal(
+            architecture.returnedSymbolCount,
+            architecture.totalSymbolCount,
+            "architecture inspection returns every captured symbol when symbolLimit is omitted"
+        )
+
+        try Expect.equal(
+            architecture.truncated,
+            false,
+            "architecture inspection is complete when symbolLimit is omitted"
+        )
+
+        let limitedArchitecture = try await InspectSwiftArchitectureTool().call(
+            .init(
+                minimumAccessLevel: .internal,
+                symbolLimit: 1,
+                refresh: false
+            ),
+            context: context
+        )
+
+        try Expect.equal(
+            limitedArchitecture.returnedSymbolCount,
+            1,
+            "architecture inspection honors an explicit symbol limit"
+        )
+
+        try Expect.equal(
+            limitedArchitecture.truncated,
+            true,
+            "architecture inspection reports truncation when an explicit symbol limit omits symbols"
         )
 
         try Expect.true(

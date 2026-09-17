@@ -49,9 +49,7 @@ public struct InspectSwiftArchitectureTool:
 
         return .init(
             snapshot: snapshot,
-            symbolLimit: SwiftArchitectureToolSupport.limit(
-                input.symbolLimit
-            )
+            symbolLimit: input.symbolLimit
         )
     }
 }
@@ -420,9 +418,7 @@ public struct InspectSwiftRepositoryArchitectureTool:
 
         return .init(
             snapshot: snapshot,
-            symbolLimit: SwiftArchitectureToolSupport.limit(
-                input.symbolLimit
-            )
+            symbolLimit: input.symbolLimit
         )
     }
 }

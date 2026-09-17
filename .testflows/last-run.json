@@ -3,12 +3,12 @@
   "failed_names" : [
 
   ],
-  "generated_at" : "2026-09-05T17:40:13Z",
-  "passed" : 11,
+  "generated_at" : "2026-09-17T13:53:31Z",
+  "passed" : 25,
   "results" : [
     {
       "display_name" : "agentic-apple-services-tool-surface",
-      "duration_seconds" : 0.0044710636138916016,
+      "duration_seconds" : 0.020213007926940918,
       "name" : "agentic-apple-services-tool-surface",
       "status" : "passed",
       "tags" : [
@@ -23,8 +23,144 @@
       ]
     },
     {
+      "display_name" : "agentic-apple-services-prepare-day-program",
+      "duration_seconds" : 0.002588987350463867,
+      "name" : "agentic-apple-services-prepare-day-program",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "apple",
+        "calendar",
+        "composition",
+        "inference",
+        "program",
+        "reminders",
+        "weather"
+      ]
+    },
+    {
+      "display_name" : "agentic-apple-services-create-reminder-program",
+      "duration_seconds" : 0.0076580047607421875,
+      "name" : "agentic-apple-services-create-reminder-program",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "apple",
+        "approval",
+        "mutation",
+        "program",
+        "reminders",
+        "resume",
+        "suspension"
+      ]
+    },
+    {
+      "display_name" : "agentic-business-prepare-reply-program",
+      "duration_seconds" : 0.0007420778274536133,
+      "name" : "agentic-business-prepare-reply-program",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "business",
+        "communication",
+        "human-input",
+        "inference",
+        "program"
+      ]
+    },
+    {
+      "display_name" : "agentic-swift-multi-inference-program",
+      "duration_seconds" : 0.00048601627349853516,
+      "name" : "agentic-swift-multi-inference-program",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "composition",
+        "inference",
+        "program",
+        "swift",
+        "typed-handoff"
+      ]
+    },
+    {
+      "display_name" : "agentic-apple-services-create-reminder-semantic-recovery",
+      "duration_seconds" : 0.0029441118240356445,
+      "name" : "agentic-apple-services-create-reminder-semantic-recovery",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "apple",
+        "authorization",
+        "classification",
+        "mutation",
+        "program",
+        "recovery",
+        "reminders"
+      ]
+    },
+    {
+      "display_name" : "agentic-apple-services-weatherkit-rest-token",
+      "duration_seconds" : 0.0009610652923583984,
+      "name" : "agentic-apple-services-weatherkit-rest-token",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "apple",
+        "fixture",
+        "jwt",
+        "rest",
+        "weather",
+        "weatherkit"
+      ]
+    },
+    {
+      "display_name" : "agentic-apple-services-weatherkit-rest-current-fixture",
+      "duration_seconds" : 0.012009978294372559,
+      "name" : "agentic-apple-services-weatherkit-rest-current-fixture",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "apple",
+        "fixture",
+        "http",
+        "rest",
+        "weather",
+        "weatherkit"
+      ]
+    },
+    {
+      "display_name" : "agentic-apple-services-weatherkit-rest-forecast-fixture",
+      "duration_seconds" : 0.001986980438232422,
+      "name" : "agentic-apple-services-weatherkit-rest-forecast-fixture",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "apple",
+        "fixture",
+        "http",
+        "rest",
+        "weather",
+        "weatherkit"
+      ]
+    },
+    {
+      "display_name" : "agentic-apple-services-weatherkit-rest-configuration-boundary",
+      "duration_seconds" : 0.0014899969100952148,
+      "name" : "agentic-apple-services-weatherkit-rest-configuration-boundary",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "apple",
+        "environment",
+        "rest",
+        "validation",
+        "weather",
+        "weatherkit"
+      ]
+    },
+    {
       "display_name" : "agentic-swift-tool-surface",
-      "duration_seconds" : 0.0006769895553588867,
+      "duration_seconds" : 0.0011299848556518555,
       "name" : "agentic-swift-tool-surface",
       "status" : "passed",
       "tags" : [
@@ -35,8 +171,79 @@
       ]
     },
     {
+      "display_name" : "agentic-swift-structural-semantics-adapter",
+      "duration_seconds" : 0.023594021797180176,
+      "name" : "agentic-swift-structural-semantics-adapter",
+      "status" : "passed",
+      "tags" : [
+        "adapter",
+        "agentic-domains",
+        "structure",
+        "swift",
+        "swift-semantics"
+      ]
+    },
+    {
+      "display_name" : "agentic-swift-rule-lint-tools",
+      "duration_seconds" : 0.005952954292297363,
+      "name" : "agentic-swift-rule-lint-tools",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "lint",
+        "rules",
+        "swift",
+        "swift-semantics",
+        "tools"
+      ]
+    },
+    {
+      "display_name" : "agentic-swift-package-rule-lint-tool",
+      "duration_seconds" : 1.0518149137496948,
+      "name" : "agentic-swift-package-rule-lint-tool",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "architecture",
+        "dependencies",
+        "lint",
+        "package",
+        "rules",
+        "swift",
+        "swift-semantics",
+        "tools"
+      ]
+    },
+    {
+      "display_name" : "agentic-swift-semantic-tool-foundation",
+      "duration_seconds" : 1.042038083076477,
+      "name" : "agentic-swift-semantic-tool-foundation",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "semantics",
+        "sourcekit-lsp",
+        "swift",
+        "tools"
+      ]
+    },
+    {
+      "display_name" : "agentic-swift-documentation-architecture",
+      "duration_seconds" : 31.656232953071594,
+      "name" : "agentic-swift-documentation-architecture",
+      "status" : "passed",
+      "tags" : [
+        "agentic-domains",
+        "architecture",
+        "documentation",
+        "swift",
+        "symbol-graph",
+        "tools"
+      ]
+    },
+    {
       "display_name" : "agentic-swift-parse-fixture",
-      "duration_seconds" : 0.11674201488494873,
+      "duration_seconds" : 0.16251003742218018,
       "name" : "agentic-swift-parse-fixture",
       "status" : "passed",
       "tags" : [
@@ -48,7 +255,7 @@
     },
     {
       "display_name" : "agentic-swift-deployment-defaults",
-      "duration_seconds" : 0.0015550851821899414,
+      "duration_seconds" : 0.0009189844131469727,
       "name" : "agentic-swift-deployment-defaults",
       "status" : "passed",
       "tags" : [
@@ -60,7 +267,7 @@
     },
     {
       "display_name" : "agentic-swift-package-tool-names",
-      "duration_seconds" : 0.00067901611328125,
+      "duration_seconds" : 0.0002709627151489258,
       "name" : "agentic-swift-package-tool-names",
       "status" : "passed",
       "tags" : [
@@ -72,7 +279,7 @@
     },
     {
       "display_name" : "agentic-swift-build-reported-failure",
-      "duration_seconds" : 19.95350408554077,
+      "duration_seconds" : 18.858840942382812,
       "name" : "agentic-swift-build-reported-failure",
       "status" : "passed",
       "tags" : [
@@ -86,7 +293,7 @@
     },
     {
       "display_name" : "agentic-web-tool-surface",
-      "duration_seconds" : 0.0001119375228881836,
+      "duration_seconds" : 0.00035893917083740234,
       "name" : "agentic-web-tool-surface",
       "status" : "passed",
       "tags" : [
@@ -98,7 +305,7 @@
     },
     {
       "display_name" : "agentic-git-tool-surface",
-      "duration_seconds" : 0.00020694732666015625,
+      "duration_seconds" : 0.0007499456405639648,
       "name" : "agentic-git-tool-surface",
       "status" : "passed",
       "tags" : [
@@ -110,7 +317,7 @@
     },
     {
       "display_name" : "agentic-git-worktree-lifecycle",
-      "duration_seconds" : 1.735382080078125,
+      "duration_seconds" : 1.8278260231018066,
       "name" : "agentic-git-worktree-lifecycle",
       "status" : "passed",
       "tags" : [
@@ -122,7 +329,7 @@
     },
     {
       "display_name" : "agentic-git-integration-preparation",
-      "duration_seconds" : 2.9870539903640747,
+      "duration_seconds" : 2.9353280067443848,
       "name" : "agentic-git-integration-preparation",
       "status" : "passed",
       "tags" : [
@@ -134,7 +341,7 @@
     },
     {
       "display_name" : "agentic-git-integration-promotion-cleanup",
-      "duration_seconds" : 5.764706015586853,
+      "duration_seconds" : 5.548006057739258,
       "name" : "agentic-git-integration-promotion-cleanup",
       "status" : "passed",
       "tags" : [
@@ -148,5 +355,5 @@
   ],
   "skipped" : 0,
   "title" : "AgenticDomains flow tests",
-  "total" : 11
+  "total" : 25
 }

@@ -288,7 +288,7 @@ public struct InspectSwiftArchitectureToolOutput:
 
     init(
         snapshot: DocumentationWorkspaceSnapshot,
-        symbolLimit: Int
+        symbolLimit: Int?
     ) {
         packageName = snapshot.package.name
         toolsVersion = snapshot.package.toolsVersion
@@ -311,11 +311,21 @@ public struct InspectSwiftArchitectureToolOutput:
         modules = snapshot.package.modules.map(\.name)
         totalSymbolCount = snapshot.collection.symbols.count
         totalRelationshipCount = snapshot.collection.relationships.count
-        symbols = Array(
-            snapshot.collection.symbols.prefix(
-                symbolLimit
+
+        let selectedSymbols: ArraySlice<DocumentationSymbol>
+
+        if let symbolLimit {
+            selectedSymbols = snapshot.collection.symbols.prefix(
+                max(
+                    1,
+                    symbolLimit
+                )
             )
-        ).map(
+        } else {
+            selectedSymbols = snapshot.collection.symbols[...]
+        }
+
+        symbols = selectedSymbols.map(
             SwiftArchitectureSymbol.init
         )
         returnedSymbolCount = symbols.count
