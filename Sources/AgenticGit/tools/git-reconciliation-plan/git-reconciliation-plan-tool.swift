@@ -1,14 +1,14 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Interfaces
 import Primitives
 import Schema
 
-public struct GitReconciliationPlanTool: AgentTool {
+public struct GitReconciliationPlanTool: Tool {
     public typealias Input = AgenticGitEmptyToolInput
     public typealias Output = GitManagerReconciliationResult
-    public static let identifier: AgentToolIdentifier =
+    public static let identifier: ToolIdentifier =
         "git_reconciliation_plan"
 
     public static let description =
@@ -18,7 +18,13 @@ public struct GitReconciliationPlanTool: AgentTool {
 
     public static let risk: ActionRisk = .observe
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 

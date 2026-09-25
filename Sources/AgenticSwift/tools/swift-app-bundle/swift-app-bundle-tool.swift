@@ -1,76 +1,80 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Foundation
 import Primitives
 import Schema
 import Macros
 
-@JSONSchema
-public struct SwiftAppBundleToolInput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    /// Previously built configuration. Defaults to release.
-    public let configuration: SwiftBuildToolInput.Configuration?
+public struct SwiftAppBundleTool: Tool {
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Previously built configuration. Defaults to release.
+        public let configuration: SwiftBuildTool.Input.Configuration?
 
-    /// App bundle name. Defaults from target/package.
-    public let appName: String?
+        /// App bundle name. Defaults from target/package.
+        public let appName: String?
 
-    /// Executable target name.
-    public let target: String?
+        /// Executable target name.
+        public let target: String?
 
-    /// Optional workspace-relative Info.plist path.
-    public let plist: String?
+        /// Optional workspace-relative Info.plist path.
+        public let plist: String?
 
-    /// Symlink explicit Info.plist instead of copying. Defaults to true.
-    public let plistSymlink: Bool?
+        /// Symlink explicit Info.plist instead of copying. Defaults to true.
+        public let plistSymlink: Bool?
 
-    /// Optional resources bundle name.
-    public let resourcesBundle: String?
+        /// Optional resources bundle name.
+        public let resourcesBundle: String?
 
-    public init(
-        configuration: SwiftBuildToolInput.Configuration? = nil,
-        appName: String? = nil,
-        target: String? = nil,
-        plist: String? = nil,
-        plistSymlink: Bool? = nil,
-        resourcesBundle: String? = nil
-    ) {
-        self.configuration = configuration
-        self.appName = appName
-        self.target = target
-        self.plist = plist
-        self.plistSymlink = plistSymlink
-        self.resourcesBundle = resourcesBundle
+        public init(
+            configuration: SwiftBuildTool.Input.Configuration? = nil,
+            appName: String? = nil,
+            target: String? = nil,
+            plist: String? = nil,
+            plistSymlink: Bool? = nil,
+            resourcesBundle: String? = nil
+        ) {
+            self.configuration = configuration
+            self.appName = appName
+            self.target = target
+            self.plist = plist
+            self.plistSymlink = plistSymlink
+            self.resourcesBundle = resourcesBundle
+        }
     }
-}
 
+    @JSONSchema
+    public struct Output: Sendable, Codable, Hashable {
+        public let app: String
+        public let buildDir: String
+        public let appName: String
+        public let target: String
 
-public struct SwiftAppBundleToolOutput: Sendable, Codable, Hashable {
-    public let app: String
-    public let buildDir: String
-    public let appName: String
-    public let target: String
-
-    public init(app: String, buildDir: String, appName: String, target: String) {
-        self.app = app
-        self.buildDir = buildDir
-        self.appName = appName
-        self.target = target
+        public init(app: String, buildDir: String, appName: String, target: String) {
+            self.app = app
+            self.buildDir = buildDir
+            self.appName = appName
+            self.target = target
+        }
     }
-}
 
-public struct SwiftAppBundleTool: AgentTool {
-    public typealias Input = SwiftAppBundleToolInput
-    public typealias Output = SwiftAppBundleToolOutput
-    public static let identifier: AgentToolIdentifier = "swift_app_bundle"
+public static let identifier: ToolIdentifier = "swift_app_bundle"
     public static let description =
         "Create or refresh a .app bundle around already-built Swift artifacts through Executable.AppBundleCreation."
     public static let risk: ActionRisk = .boundedmutate
-    public var identifier: AgentToolIdentifier {
+
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 

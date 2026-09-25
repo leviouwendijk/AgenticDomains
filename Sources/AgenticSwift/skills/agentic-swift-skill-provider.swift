@@ -28,7 +28,7 @@ public extension AgenticSwiftSkillProvider {
         1. Use `\(ListSwiftSymbolsTool.identifier.rawValue)` to map symbols in a file before reading large source ranges.
         2. Use `\(ReadSwiftSymbolTool.identifier.rawValue)` when an exact type, function, initializer, property, enum case, or extension is needed.
         3. Use `\(ReadSwiftStructureTool.identifier.rawValue)` for enclosing scopes, imports, declarations, members, and type-level selections.
-        4. Fall back to `\(ReadFileTool.identifier.rawValue)` only when the structural tools cannot answer the question.
+        4. Fall back to `read_file` only when the structural tools cannot answer the question.
         5. Preserve source line ranges in your explanation when they matter for review or patching.
         """,
         metadata: .init(
@@ -40,7 +40,7 @@ public extension AgenticSwiftSkillProvider {
                     .tool(ReadSwiftStructureTool.identifier)
                 ],
                 optional: [
-                    .tool(ReadFileTool.identifier)
+                    .tool(ToolIdentifier(rawValue: "read_file"))
                 ]
             ),
             tags: [
@@ -61,7 +61,7 @@ public extension AgenticSwiftSkillProvider {
         Editing workflow:
         1. Identify the smallest relevant symbol or enclosing scope.
         2. Read only the relevant symbol/body/range unless broader context is needed.
-        3. Prefer one coherent `\(MutateFilesTool.identifier.rawValue)` pass for related file changes.
+        3. Prefer one coherent `mutate_files` pass for related file changes.
         4. Use `create_text`, `replace_text`, `edit_text`, or `delete` entries rather than separate write/edit tools.
         5. For `edit_text`, use contiguous operations with clear replacement boundaries.
         6. Preserve access control, Sendable/Codable/Hashable conformances, naming style, and existing file organization.
@@ -76,8 +76,8 @@ public extension AgenticSwiftSkillProvider {
                     .tool(ReadSwiftStructureTool.identifier)
                 ],
                 optional: [
-                    .tool(ReadFileTool.identifier),
-                    .tool(MutateFilesTool.identifier)
+                    .tool(ToolIdentifier(rawValue: "read_file")),
+                    .tool(ToolIdentifier(rawValue: "mutate_files"))
                 ]
             ),
             tags: [

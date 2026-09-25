@@ -1,75 +1,81 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Primitives
 import Schema
 import Macros
 
-@JSONSchema
-public struct SwiftDeployedProductsToolInput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    /// Read deployment metadata sidecars. Defaults to true.
-    public let includeDetails: Bool?
-
-    public init(
-        includeDetails: Bool? = nil
-    ) {
-        self.includeDetails = includeDetails
-    }
-}
-
-public struct SwiftDeployedProductsToolOutput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    public struct Product:
+public struct SwiftDeployedProductsTool: Tool {
+    @JSONSchema
+    public struct Input:
         Sendable,
         Codable,
         Hashable
     {
-        public let name: String
-        public let path: String
-        public let projectRoot: String?
-        public let buildType: String?
+        /// Read deployment metadata sidecars. Defaults to true.
+        public let includeDetails: Bool?
 
         public init(
-            name: String,
-            path: String,
-            projectRoot: String?,
-            buildType: String?
+            includeDetails: Bool? = nil
         ) {
-            self.name = name
-            self.path = path
-            self.projectRoot = projectRoot
-            self.buildType = buildType
+            self.includeDetails = includeDetails
         }
     }
 
-    public let destination: String
-    public let products: [Product]
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        @JSONSchema
+        public struct Product:
+            Sendable,
+            Codable,
+            Hashable
+        {
+            public let name: String
+            public let path: String
+            public let projectRoot: String?
+            public let buildType: String?
 
-    public init(
-        destination: String,
-        products: [Product]
-    ) {
-        self.destination = destination
-        self.products = products
+            public init(
+                name: String,
+                path: String,
+                projectRoot: String?,
+                buildType: String?
+            ) {
+                self.name = name
+                self.path = path
+                self.projectRoot = projectRoot
+                self.buildType = buildType
+            }
+        }
+
+        public let destination: String
+        public let products: [Product]
+
+        public init(
+            destination: String,
+            products: [Product]
+        ) {
+            self.destination = destination
+            self.products = products
+        }
     }
-}
 
-public struct SwiftDeployedProductsTool: AgentTool {
-    public typealias Input = SwiftDeployedProductsToolInput
-    public typealias Output = SwiftDeployedProductsToolOutput
-    public static let identifier: AgentToolIdentifier = "swift_deployed_products"
+public static let identifier: ToolIdentifier = "swift_deployed_products"
     public static let description =
         "List deployed Swift binaries through Executable.DeployedList."
     public static let risk: ActionRisk = .observe
-    public var identifier: AgentToolIdentifier {
+
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -85,20 +91,21 @@ public struct SwiftDeployedProductsTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
-            toolName: name
+        _ = try AgenticSwiftToolSupport.requireWorkspace(
+            context,
+            toolName: Self.definition.identifier.rawValue
         )
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: workspace.rootURL.path,
-            targetPaths: [
-                Build.defaultDeploymentDirectory.path,
-            ],
             summary: "List deployed Swift products.",
+            access: .init(
+                targets: [
+                    Build.defaultDeploymentDirectory.path
+                ]
+            ),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -109,18 +116,18 @@ public struct SwiftDeployedProductsTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         _ = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
-            toolName: name
+            context,
+            toolName: Self.definition.identifier.rawValue
         )
         let products = try DeployedList.listBinaries(
             at: Build.defaultDeploymentDirectory,
             includeDetails: input.includeDetails ?? true
         )
 
-        return SwiftDeployedProductsToolOutput(
+        return Output(
                 destination: Build.defaultDeploymentDirectory.path,
                 products: products.map {
                     .init(

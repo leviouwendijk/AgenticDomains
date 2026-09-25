@@ -1,6 +1,6 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Foundation
 import Primitives
@@ -8,91 +8,88 @@ import Schema
 import Macros
 
 /// Configure a Swift package build invocation.
-@JSONSchema
-public struct SwiftBuildToolInput:
-    Sendable,
-    Codable,
-    Hashable
+
+
+public struct SwiftBuildTool:
+    Tool
 {
-    /// Swift build configuration.
-    public enum Configuration:
-        String,
+    @JSONSchema
+    public struct Input:
         Sendable,
         Codable,
-        Hashable,
-        CaseIterable,
-        JSONSchemaProviding
+        Hashable
     {
-        case debug
-        case release
+        /// Swift build configuration.
+        public enum Configuration:
+            String,
+            Sendable,
+            Codable,
+            Hashable,
+            CaseIterable,
+            JSONSchemaProviding
+        {
+            case debug
+            case release
 
-        public static var jsonschema: JSONSchema {
-            .string(
-                cases: allCases.map(\.rawValue)
-            )
+            public static var jsonschema: JSONSchema {
+                .string(
+                    cases: allCases.map(\.rawValue)
+                )
+            }
+        }
+
+        /// Optional explicit Swift build configuration. Omit to use the project default,
+        /// including enabled build-object.pkl compile instructions.
+        public let configuration:
+            Configuration?
+
+        public init(
+            configuration:
+                Configuration? = nil
+        ) {
+            self.configuration =
+                configuration
         }
     }
 
-    /// Optional explicit Swift build configuration. Omit to use the project default,
-    /// including enabled build-object.pkl compile instructions.
-    public let configuration:
-        Configuration?
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        public let configuration: String
+        public let isSuccess: Bool
+        public let exitCode: Int
+        public let stdout: String
+        public let stderr: String
+        public let buildDirComponent: String
 
-    public init(
-        configuration:
-            Configuration? = nil
-    ) {
-        self.configuration =
-            configuration
+        public init(
+            configuration: String,
+            isSuccess: Bool,
+            exitCode: Int,
+            stdout: String,
+            stderr: String,
+            buildDirComponent: String
+        ) {
+            self.configuration =
+                configuration
+            self.isSuccess =
+                isSuccess
+            self.exitCode =
+                exitCode
+            self.stdout =
+                stdout
+            self.stderr =
+                stderr
+            self.buildDirComponent =
+                buildDirComponent
+        }
     }
-}
 
-public struct SwiftBuildToolOutput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    public let configuration: String
-    public let isSuccess: Bool
-    public let exitCode: Int
-    public let stdout: String
-    public let stderr: String
-    public let buildDirComponent: String
-
-    public init(
-        configuration: String,
-        isSuccess: Bool,
-        exitCode: Int,
-        stdout: String,
-        stderr: String,
-        buildDirComponent: String
-    ) {
-        self.configuration =
-            configuration
-        self.isSuccess =
-            isSuccess
-        self.exitCode =
-            exitCode
-        self.stdout =
-            stdout
-        self.stderr =
-            stderr
-        self.buildDirComponent =
-            buildDirComponent
-    }
-}
-
-public struct SwiftBuildTool:
-    AgentTool
-{
-    public typealias Input =
-        SwiftBuildToolInput
-
-    public typealias Output =
-        SwiftBuildToolOutput
-
-    public static let identifier:
-        AgentToolIdentifier =
+public static let identifier:
+        ToolIdentifier =
             "swift_build"
 
     public static let description =
@@ -103,7 +100,13 @@ public struct SwiftBuildTool:
     public static let risk:
         ActionRisk = .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -117,18 +120,16 @@ public struct SwiftBuildTool:
 
     public init() {}
 
-
-
 }
 
 private extension SwiftBuildTool {
     func buildRequest(
-        _ input: SwiftBuildToolInput,
-        workspace: AgentWorkspace
+        _ input: SwiftBuildTool.Input,
+        workspace: WorkspaceContext
     ) throws -> Build.Request {
         guard let configuration = input.configuration else {
             return try SwiftBuildCommand.projectDefaultRequest(
-                from: workspace.rootURL,
+                from: workspace.absoluteURL,
                 updateBuiltOnSuccess: false
             )
         }
@@ -144,7 +145,7 @@ private extension SwiftBuildTool {
                 }
 
         return Build.Request(
-            project: workspace.rootURL,
+            project: workspace.absoluteURL,
             config: .init(
                 mode: mode,
                 updateBuiltOnSuccess: false

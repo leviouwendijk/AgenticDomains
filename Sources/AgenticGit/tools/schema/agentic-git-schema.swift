@@ -1,6 +1,5 @@
-import Interfaces
-import Schema
 import Macros
+import Schema
 
 @JSONSchema
 public struct AgenticGitEmptyToolInput:
@@ -8,14 +7,4 @@ public struct AgenticGitEmptyToolInput:
     Sendable
 {
     public init() {}
-}
-
-extension GitManagerDiffScope:
-    @retroactive JSONSchemaProviding
-{
-    public static var jsonschema: JSONSchema {
-        .string(
-            cases: allCases.map(\.rawValue)
-        )
-    }
 }

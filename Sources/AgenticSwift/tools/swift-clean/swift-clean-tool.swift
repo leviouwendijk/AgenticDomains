@@ -1,27 +1,40 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Primitives
 import Schema
+import Macros
 
-
-public struct SwiftCleanToolOutput: Sendable, Codable, Hashable {
-    public let status: String
-
-    public init(status: String) {
-        self.status = status
+public struct SwiftCleanTool: Tool {
+    @JSONSchema
+    public struct Input:
+        Codable,
+        Sendable
+    {
+        public init() {}
     }
-}
 
-public struct SwiftCleanTool: AgentTool {
-    public typealias Input = AgenticSwiftEmptyToolInput
-    public typealias Output = SwiftCleanToolOutput
-    public static let identifier: AgentToolIdentifier = "swift_clean"
+    @JSONSchema
+    public struct Output: Sendable, Codable, Hashable {
+        public let status: String
+
+        public init(status: String) {
+            self.status = status
+        }
+    }
+
+public static let identifier: ToolIdentifier = "swift_clean"
     public static let description =
         "Clean the current SwiftPM workspace through Executable.Build.clean."
     public static let risk: ActionRisk = .privileged
-    public var identifier: AgentToolIdentifier {
+
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 

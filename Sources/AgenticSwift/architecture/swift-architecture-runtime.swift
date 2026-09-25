@@ -1,4 +1,5 @@
 import Agentic
+import Workspace
 import AgenticExecution
 import Documentation
 import Foundation
@@ -43,7 +44,7 @@ actor SwiftArchitectureRuntime {
 
 enum SwiftArchitectureToolSupport {
     static func localSnapshot(
-        context: AgentToolExecutionContext,
+        context: WorkspaceContext?,
         access: SwiftArchitectureAccessLevel?,
         refresh: Bool?,
         toolName: String
@@ -61,7 +62,7 @@ enum SwiftArchitectureToolSupport {
     }
 
     static func remoteSnapshot(
-        input: InspectSwiftRepositoryArchitectureToolInput
+        input: InspectSwiftRepositoryArchitectureTool.Input
     ) async throws -> DocumentationWorkspaceSnapshot {
         guard
             let origin = URL(
@@ -136,7 +137,7 @@ enum SwiftArchitectureToolSupport {
     }
 
     static func preflight(
-        context: AgentToolExecutionContext,
+        context: WorkspaceContext?,
         toolName: String,
         summary: String,
         remote: Bool = false
@@ -171,15 +172,18 @@ enum SwiftArchitectureToolSupport {
             policyCheck = "swift_symbol_graph_preparation_reviewed"
         }
 
-        return .init(
-            toolName: toolName,
+        return ToolPreflight(
+            tool: ToolIdentifier(rawValue: toolName),
             risk: .privileged,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectRoot.path,
-            ],
             summary: summary,
-            estimatedRuntimeSeconds: 120,
+            access: .init(
+                targets: [
+                    execution.projectRoot.path
+                ]
+            ),
+            estimates: .init(
+                runtime: 120
+            ),
             sideEffects: sideEffects,
             policyChecks: [
                 "workspace_required",

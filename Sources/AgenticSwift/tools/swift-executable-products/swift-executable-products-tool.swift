@@ -1,48 +1,58 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Primitives
 import Schema
+import Macros
 
-public struct SwiftExecutableProductsToolOutput:
-    Sendable,
-    Codable,
-    Hashable
+
+public struct SwiftExecutableProductsTool:
+    Tool
 {
-    public struct Product:
+    @JSONSchema
+    public struct Input:
+        Codable,
+        Sendable
+    {
+        public init() {}
+    }
+
+    @JSONSchema
+    public struct Output:
         Sendable,
         Codable,
         Hashable
     {
-        public let name: String
-        public let targets: [String]
+        @JSONSchema
+        public struct Product:
+            Sendable,
+            Codable,
+            Hashable
+        {
+            public let name: String
+            public let targets: [String]
+
+            public init(
+                name: String,
+                targets: [String]
+            ) {
+                self.name = name
+                self.targets = targets
+            }
+        }
+
+        public let products: [Product]
 
         public init(
-            name: String,
-            targets: [String]
+            products: [Product]
         ) {
-            self.name = name
-            self.targets = targets
+            self.products = products
         }
     }
 
-    public let products: [Product]
-
-    public init(
-        products: [Product]
-    ) {
-        self.products = products
-    }
-}
-
-public struct SwiftExecutableProductsTool:
-    AgentTool
-{
-    public typealias Input = AgenticSwiftEmptyToolInput
-    public typealias Output = SwiftExecutableProductsToolOutput
-    public static let identifier:
-        AgentToolIdentifier =
+public static let identifier:
+        ToolIdentifier =
             "swift_executable_products"
 
     public static let description =
@@ -53,7 +63,13 @@ public struct SwiftExecutableProductsTool:
     public static let risk:
         ActionRisk = .observe
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 

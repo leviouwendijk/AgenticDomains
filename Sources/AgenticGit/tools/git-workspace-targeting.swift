@@ -1,25 +1,23 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Foundation
 import Interfaces
 import Primitives
 
 struct GitWorkspaceExecution {
-    let workspace: AgentWorkspace
+    let workspace: WorkspaceContext
     let repositoryRoot: URL
 
     static func resolve(
-        _ context: AgentToolExecutionContext,
+        _ context: WorkspaceContext?,
         toolName: String
     ) async throws -> Self {
         let workspace = try AgenticGitToolSupport.requireWorkspace(
-            context.workspace,
+            context,
             toolName: toolName
         )
-        let repositoryRoot =
-            context.workingDirectoryURL
-                ?? workspace.rootURL
+        let repositoryRoot = workspace.absoluteURL
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             repositoryRoot,
@@ -34,28 +32,26 @@ struct GitWorkspaceExecution {
 }
 
 extension GitRepositoryStateTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.repositoryRoot.path,
-            ],
             summary:
                 "Inspect Git repository state at the selected workspace location without fetching or mutation.",
+            access: .init(
+                targets: [
+                    execution.repositoryRoot.path,
+                ]
+            ),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -69,12 +65,12 @@ extension GitRepositoryStateTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let state = try await GitManagerRepositoryInspector.state(
             at: execution.repositoryRoot,
@@ -86,28 +82,26 @@ extension GitRepositoryStateTool {
 }
 
 extension GitReconciliationPlanTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.repositoryRoot.path,
-            ],
             summary:
                 "Diagnose Git reconciliation at the selected workspace location without fetching or applying changes.",
+            access: .init(
+                targets: [
+                    execution.repositoryRoot.path,
+                ]
+            ),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -121,12 +115,12 @@ extension GitReconciliationPlanTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let result = try await GitManagerReconciler.reconcile(
             at: execution.repositoryRoot,
@@ -140,25 +134,23 @@ extension GitReconciliationPlanTool {
 }
 
 extension GitDiffTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
-        let execution = try await GitWorkspaceExecution.resolve(
+        _ = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: input.paths,
             summary:
                 "Observe \(input.scope.rawValue) tracked Git differences at the selected workspace location.",
+            access: .init(
+                targets: input.paths
+            ),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -174,11 +166,11 @@ extension GitDiffTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let result = try await GitManagerDiff.observe(
             input.request,
@@ -191,7 +183,7 @@ extension GitDiffTool {
 
 private extension GitPrepareCommitToolInput {
     func validatedPaths(
-        in workspace: AgentWorkspace,
+        in workspace: WorkspaceContext,
         repositoryRoot: URL
     ) throws -> [String] {
         let normalized = paths
@@ -211,7 +203,7 @@ private extension GitPrepareCommitToolInput {
         }
 
         let workspaceComponents =
-            workspace.rootURL
+            workspace.absoluteURL
                 .standardizedFileURL
                 .pathComponents
         let repositoryComponents =
@@ -254,8 +246,9 @@ private extension GitPrepareCommitToolInput {
                     ? path
                     : "\(repositoryPrefix)/\(path)"
 
-            _ = try workspace.resolve(
-                workspaceRelativePath
+            _ = try workspace.authorize(
+                workspaceRelativePath,
+                capability: .write
             )
         }
 
@@ -264,16 +257,13 @@ private extension GitPrepareCommitToolInput {
 }
 
 extension GitPrepareCommitTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let paths = try input.validatedPaths(
             in: execution.workspace,
@@ -281,12 +271,13 @@ extension GitPrepareCommitTool {
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: paths,
             summary:
                 "Stage \(paths.count) explicit repository path(s) at the selected workspace location for a later commit.",
+            access: .init(
+                targets: paths
+            ),
             sideEffects: [
                 "modify the Git index",
                 "does not create a commit",
@@ -307,11 +298,11 @@ extension GitPrepareCommitTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let paths = try input.validatedPaths(
             in: execution.workspace,
@@ -344,17 +335,14 @@ extension GitPrepareCommitTool {
 }
 
 extension GitCommitPreparedTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let message = try input.validatedMessage()
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let paths = try await targetedStagedPaths(
             at: execution.repositoryRoot
@@ -367,12 +355,13 @@ extension GitCommitPreparedTool {
         }
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: paths,
             summary:
                 "Create a local commit from \(paths.count) staged path(s) at the selected workspace location with message: \(message)",
+            access: .init(
+                targets: paths
+            ),
             sideEffects: [
                 "create a Git commit from the current staged index",
                 "does not stage additional paths",
@@ -393,12 +382,12 @@ extension GitCommitPreparedTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let message = try input.validatedMessage()
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let paths = try await targetedStagedPaths(
             at: execution.repositoryRoot
@@ -456,7 +445,7 @@ private struct TargetedGitPullContext {
 }
 
 private func targetedGitPullContext(
-    _ context: AgentToolExecutionContext,
+    _ context: WorkspaceContext?,
     toolName: String
 ) async throws -> TargetedGitPullContext {
     let execution = try await GitWorkspaceExecution.resolve(
@@ -508,28 +497,26 @@ private func targetedGitPullContext(
 }
 
 extension GitPullTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = input
         let pull = try await targetedGitPullContext(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: pull.execution.workspace.rootURL.path,
-            targetPaths: [
-                pull.execution.repositoryRoot.path,
-            ],
             summary:
                 "Fast-forward pull current branch \(pull.currentBranch) from configured upstream \(pull.remote)/\(pull.upstreamBranch) at the selected workspace location.",
+            access: .init(
+                targets: [
+                    pull.execution.repositoryRoot.path,
+                ]
+            ),
             sideEffects: [
                 "perform a network Git pull",
                 "fetch and fast-forward from \(pull.remote)/\(pull.upstreamBranch)",
@@ -561,12 +548,12 @@ extension GitPullTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         _ = input
         let pull = try await targetedGitPullContext(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let output = try await GitManagerAction.pull(
             remote: pull.remote,
@@ -590,28 +577,19 @@ extension GitPullTool {
                 output: output
         )
 
-        if !result.output.isEmpty {
-            await context.observe(
-                .init(kind: .detail, label: "git", content: result.output)
-            )
-        }
-
         return result
     }
 }
 
 extension GitPushTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let target = try input.validatedTarget()
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let state = try await GitManagerRepositoryInspector.state(
             at: execution.repositoryRoot,
@@ -625,14 +603,15 @@ extension GitPushTool {
             ?? "configured/default upstream"
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.repositoryRoot.path,
-            ],
             summary:
                 "Push Git history from current branch \(state.branch ?? "unknown") to \(destination) at the selected workspace location.",
+            access: .init(
+                targets: [
+                    execution.repositoryRoot.path,
+                ]
+            ),
             sideEffects: [
                 "perform a network Git push",
                 target == nil
@@ -657,12 +636,12 @@ extension GitPushTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let target = try input.validatedTarget()
         let execution = try await GitWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let before = try await GitManagerRepositoryInspector.state(
             at: execution.repositoryRoot,
@@ -704,9 +683,8 @@ extension GitPushTool {
 extension GitCommitPreparedTool {
     public func process(
         _ output: Output,
-        input _: Input,
-        context _: AgentToolExecutionContext
-    ) -> AgentToolResultProjection? {
+        input _: Input
+    ) -> ToolCall.ResultProjection? {
         .init(
             status: "passed",
             summary: "Created local Git commit: \(output.message)",
@@ -722,10 +700,9 @@ extension GitCommitPreparedTool {
 extension GitPullTool {
     public func process(
         _ output: Output,
-        input _: Input,
-        context _: AgentToolExecutionContext
-    ) -> AgentToolResultProjection? {
-        var facts: [AgentToolResultProjection.Fact] = [
+        input _: Input
+    ) -> ToolCall.ResultProjection? {
+        var facts: [ToolCall.ResultProjection.Fact] = [
             .init(label: "branch", value: output.currentBranch),
             .init(label: "upstream", value: "\(output.remote)/\(output.upstreamBranch)"),
         ]

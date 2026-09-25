@@ -1,6 +1,6 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Foundation
 import Interfaces
 import Primitives
@@ -34,6 +34,7 @@ public struct GitIntegrationPlanToolInput:
     }
 }
 
+@JSONSchema
 public struct GitIntegrationPlanToolOutput:
     Sendable,
     Codable,
@@ -51,10 +52,10 @@ public struct GitIntegrationPlanToolOutput:
     }
 }
 
-public struct GitIntegrationPlanTool: AgentTool {
+public struct GitIntegrationPlanTool: Tool {
     public typealias Input = GitIntegrationPlanToolInput
     public typealias Output = GitIntegrationPlanToolOutput
-    public static let identifier: AgentToolIdentifier =
+    public static let identifier: ToolIdentifier =
         "git_integration_plan"
 
     public static let description =
@@ -62,7 +63,13 @@ public struct GitIntegrationPlanTool: AgentTool {
 
     public static let risk: ActionRisk = .observe
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -78,11 +85,11 @@ public struct GitIntegrationPlanTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let context = try await resolved(
@@ -91,11 +98,12 @@ public struct GitIntegrationPlanTool: AgentTool {
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: context.workspace.rootURL.path,
-            targetPaths: context.plan.overlappingPaths,
             summary: "Plan \(context.plan.source.ref) -> \(context.plan.target.ref): \(context.plan.classification.rawValue), source \(context.plan.source.commit), target \(context.plan.target.commit), targetDrifted=\(context.plan.targetDrifted).",
+            access: .init(
+                targets: context.plan.overlappingPaths
+            ),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -113,11 +121,11 @@ public struct GitIntegrationPlanTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let context = try await resolved(
@@ -137,29 +145,29 @@ public struct GitIntegrationPlanTool: AgentTool {
 
 private extension GitIntegrationPlanTool {
     struct Context {
-        let workspace: AgentWorkspace
+        let workspace: WorkspaceContext
         let plan: GitManagerIntegrationPlan
     }
 
     func resolved(
         _ input: GitIntegrationPlanToolInput,
-        workspace candidate: AgentWorkspace?
+        workspace candidate: WorkspaceContext?
     ) async throws -> Context {
         let workspace = try AgenticGitToolSupport.requireWorkspace(
             candidate,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let plan = try await GitManagerIntegrationPlanner.plan(
             sourceRef: input.sourceRef,
             targetRef: input.targetRef,
             expectedTargetCommit: input.expectedTargetCommit,
-            at: workspace.rootURL
+            at: workspace.absoluteURL
         )
 
         return .init(
@@ -192,6 +200,7 @@ public struct GitIntegrationPrepareToolInput:
     }
 }
 
+@JSONSchema
 public struct GitIntegrationPrepareToolOutput:
     Sendable,
     Codable,
@@ -209,10 +218,10 @@ public struct GitIntegrationPrepareToolOutput:
     }
 }
 
-public struct GitIntegrationPrepareTool: AgentTool {
+public struct GitIntegrationPrepareTool: Tool {
     public typealias Input = GitIntegrationPrepareToolInput
     public typealias Output = GitIntegrationPrepareToolOutput
-    public static let identifier: AgentToolIdentifier =
+    public static let identifier: ToolIdentifier =
         "git_integration_prepare"
 
     public static let description =
@@ -220,7 +229,13 @@ public struct GitIntegrationPrepareTool: AgentTool {
 
     public static let risk: ActionRisk = .boundedmutate
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -236,11 +251,11 @@ public struct GitIntegrationPrepareTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let context = try await resolvedContext(
@@ -249,12 +264,15 @@ public struct GitIntegrationPrepareTool: AgentTool {
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: context.workspace.rootURL.path,
-            targetPaths: [context.destination.path],
             summary: "Prepare \(context.current.source.ref) -> \(context.current.target.ref) as \(context.current.classification.rawValue) in disposable integration worktree \(context.destination.path).",
-            estimatedWriteCount: 1,
+            access: .init(
+                targets: [context.destination.path]
+            ),
+            estimates: .init(
+                write: .init(count: 1)
+            ),
             sideEffects: [
                 "create one disposable local integration branch",
                 "create one Agentic-managed integration worktree",
@@ -282,16 +300,16 @@ public struct GitIntegrationPrepareTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let plan = try AgenticGitIntegrationReceipt.decode(
@@ -302,7 +320,7 @@ public struct GitIntegrationPrepareTool: AgentTool {
             input.semanticKey
         )
         let destination = try AgenticGitManagedWorktrees.destination(
-            repository: workspace.rootURL,
+            repository: workspace.absoluteURL,
             isolationID: isolationID,
             kind: .integration
         )
@@ -315,7 +333,7 @@ public struct GitIntegrationPrepareTool: AgentTool {
             plan,
             isolationID: isolationID,
             destination: destination,
-            at: workspace.rootURL
+            at: workspace.absoluteURL
         )
         let receipt = try AgenticGitIntegrationReceipt.encode(
             execution
@@ -330,23 +348,23 @@ public struct GitIntegrationPrepareTool: AgentTool {
 
 private extension GitIntegrationPrepareTool {
     struct Context {
-        let workspace: AgentWorkspace
+        let workspace: WorkspaceContext
         let current: GitManagerIntegrationPlan
         let destination: URL
     }
 
     func resolvedContext(
         _ input: GitIntegrationPrepareToolInput,
-        workspace candidate: AgentWorkspace?
+        workspace candidate: WorkspaceContext?
     ) async throws -> Context {
         let workspace = try AgenticGitToolSupport.requireWorkspace(
             candidate,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let plan = try AgenticGitIntegrationReceipt.decode(
@@ -357,7 +375,7 @@ private extension GitIntegrationPrepareTool {
             sourceRef: plan.source.ref,
             targetRef: plan.target.ref,
             expectedTargetCommit: plan.expectedTargetCommit,
-            at: workspace.rootURL
+            at: workspace.absoluteURL
         )
 
         guard current.source.commit == plan.source.commit else {
@@ -378,7 +396,7 @@ private extension GitIntegrationPrepareTool {
             input.semanticKey
         )
         let destination = try AgenticGitManagedWorktrees.destination(
-            repository: workspace.rootURL,
+            repository: workspace.absoluteURL,
             isolationID: isolationID,
             kind: .integration
         )

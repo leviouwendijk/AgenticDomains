@@ -1,3 +1,7 @@
+import Macros
+import Schema
+
+@JSONSchema
 public struct WeatherCoordinate:
     Sendable,
     Codable,
@@ -15,6 +19,7 @@ public struct WeatherCoordinate:
     }
 }
 
+@JSONSchema
 public struct CurrentWeatherSnapshot:
     Sendable,
     Codable,
@@ -50,6 +55,7 @@ public struct CurrentWeatherSnapshot:
     }
 }
 
+@JSONSchema
 public struct HourlyWeatherSnapshot:
     Sendable,
     Codable,
@@ -76,6 +82,7 @@ public struct HourlyWeatherSnapshot:
     }
 }
 
+@JSONSchema
 public struct DailyWeatherSnapshot:
     Sendable,
     Codable,
@@ -105,6 +112,7 @@ public struct DailyWeatherSnapshot:
     }
 }
 
+@JSONSchema
 public struct WeatherForecastSnapshot:
     Sendable,
     Codable,

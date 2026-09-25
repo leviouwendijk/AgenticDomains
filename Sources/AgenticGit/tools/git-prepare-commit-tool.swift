@@ -1,6 +1,6 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Foundation
 import Interfaces
 import Primitives
@@ -27,10 +27,8 @@ public struct GitPrepareCommitToolInput:
 }
 
 public extension GitPrepareCommitToolInput {
-
-
     func validatedPaths(
-        in workspace: AgentWorkspace
+        in workspace: WorkspaceContext
     ) throws -> [String] {
         let normalized = paths
             .map {
@@ -49,8 +47,22 @@ public extension GitPrepareCommitToolInput {
         }
 
         for path in normalized {
-            _ = try workspace.resolve(
-                path
+            let components = path.split(
+                separator: "/",
+                omittingEmptySubsequences: false
+            )
+
+            guard !path.hasPrefix("/"),
+                  !components.contains("..")
+            else {
+                throw GitManagerError.unsafeSync(
+                    "git_prepare_commit paths must be repository-relative and cannot contain parent traversal: \(path)"
+                )
+            }
+
+            _ = try workspace.authorize(
+                path,
+                capability: .write
             )
         }
 
@@ -58,6 +70,7 @@ public extension GitPrepareCommitToolInput {
     }
 }
 
+@JSONSchema
 public struct GitPrepareCommitToolOutput:
     Sendable,
     Codable,
@@ -79,12 +92,12 @@ public struct GitPrepareCommitToolOutput:
 }
 
 public struct GitPrepareCommitTool:
-    AgentTool
+    Tool
 {
     public typealias Input = GitPrepareCommitToolInput
     public typealias Output = GitPrepareCommitToolOutput
     public static let identifier:
-        AgentToolIdentifier =
+        ToolIdentifier =
             "git_prepare_commit"
 
     public static let description =
@@ -96,7 +109,13 @@ public struct GitPrepareCommitTool:
         ActionRisk =
             .boundedmutate
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 

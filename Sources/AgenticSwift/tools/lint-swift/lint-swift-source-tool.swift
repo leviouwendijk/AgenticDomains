@@ -1,19 +1,43 @@
 import Agentic
+import Macros
+import Schema
+import Workspace
 import AgenticExecution
 
 public struct LintSwiftSourceTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = LintSwiftSourceToolInput
-    public typealias Output = SwiftRuleLintFileResult
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source file path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        public init(
+            path: String
+        ) {
+            self.path = path
+        }
+    }
+
+public typealias Output = SwiftRuleLintFileResult
+
+    public static let identifier: ToolIdentifier =
         "lint_swift_source"
     public static let description =
         "Run every authored SwiftSemantics source rule against one Swift source file in the selected package and return structured diagnostics."
     public static let risk: ActionRisk = .observe
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -29,7 +53,7 @@ public struct LintSwiftSourceTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let toolName = Self.identifier.rawValue
         let execution = try SwiftSemanticToolSupport.resolve(

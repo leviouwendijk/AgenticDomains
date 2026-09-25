@@ -1,16 +1,16 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Foundation
 import Interfaces
 import Primitives
 import Schema
 import Macros
 
-public struct GitWorktreeListTool: AgentTool {
+public struct GitWorktreeListTool: Tool {
     public typealias Input = AgenticGitEmptyToolInput
     public typealias Output = [GitManagerWorktreeRecord]
-    public static let identifier: AgentToolIdentifier =
+    public static let identifier: ToolIdentifier =
         "git_worktree_list"
 
     public static let description =
@@ -18,7 +18,13 @@ public struct GitWorktreeListTool: AgentTool {
 
     public static let risk: ActionRisk = .observe
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -34,24 +40,25 @@ public struct GitWorktreeListTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: context.workspace?.rootURL.path,
-            targetPaths: [workspace.rootURL.path],
             summary: "List Git worktrees for the current repository.",
+            access: .init(
+                targets: [workspace.absoluteURL.path]
+            ),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -64,20 +71,20 @@ public struct GitWorktreeListTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try await GitManagerWorktree.list(
-                at: workspace.rootURL
+                at: workspace.absoluteURL
             )
     }
 }
@@ -115,12 +122,17 @@ public struct GitWorktreeCreateToolInput:
             in: .whitespacesAndNewlines
         )
 
-        return trimmed?.isEmpty == false
-            ? trimmed!
-            : "HEAD"
+        guard let trimmed,
+              !trimmed.isEmpty
+        else {
+            return "HEAD"
+        }
+
+        return trimmed
     }
 }
 
+@JSONSchema
 public struct GitWorktreeCreateToolOutput:
     Sendable,
     Codable,
@@ -141,11 +153,11 @@ public struct GitWorktreeCreateToolOutput:
     }
 }
 
-public struct GitWorktreeCreateTool: AgentTool {
+public struct GitWorktreeCreateTool: Tool {
     public typealias Input = GitWorktreeCreateToolInput
     public typealias Output = GitWorktreeCreateToolOutput
 
-    public static let identifier: AgentToolIdentifier =
+    public static let identifier: ToolIdentifier =
         "git_worktree_create"
 
     public static let description =
@@ -153,7 +165,13 @@ public struct GitWorktreeCreateTool: AgentTool {
 
     public static let risk: ActionRisk = .boundedmutate
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -169,33 +187,36 @@ public struct GitWorktreeCreateTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let isolationID = try input.isolationID()
         let branch = isolationID.branchName()
         let destination = try AgenticGitManagedWorktrees.destination(
-            repository: workspace.rootURL,
+            repository: workspace.absoluteURL,
             isolationID: isolationID,
             kind: .task
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: context.workspace?.rootURL.path,
-            targetPaths: [destination.path],
             summary: "Create isolated branch \(branch) from \(input.resolvedBaseRef) in Agentic-managed worktree \(destination.path).",
-            estimatedWriteCount: 1,
+            access: .init(
+                targets: [destination.path]
+            ),
+            estimates: .init(
+                write: .init(count: 1)
+            ),
             sideEffects: [
                 "create one local Git branch",
                 "create one linked Git worktree outside the canonical checkout",
@@ -217,22 +238,22 @@ public struct GitWorktreeCreateTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let isolationID = try input.isolationID()
         let branch = isolationID.branchName()
         let destination = try AgenticGitManagedWorktrees.destination(
-            repository: workspace.rootURL,
+            repository: workspace.absoluteURL,
             isolationID: isolationID,
             kind: .task
         )
@@ -243,7 +264,7 @@ public struct GitWorktreeCreateTool: AgentTool {
 
         let result = try await GitManagerWorktree.create(
             .init(
-                repository: workspace.rootURL,
+                repository: workspace.absoluteURL,
                 destination: destination,
                 baseRef: input.resolvedBaseRef,
                 checkout: .newBranch(branch)
@@ -276,6 +297,7 @@ public struct GitWorktreeRemoveToolInput:
     }
 }
 
+@JSONSchema
 public struct GitWorktreeRemoveToolOutput:
     Sendable,
     Codable,
@@ -293,10 +315,10 @@ public struct GitWorktreeRemoveToolOutput:
     }
 }
 
-public struct GitWorktreeRemoveTool: AgentTool {
+public struct GitWorktreeRemoveTool: Tool {
     public typealias Input = GitWorktreeRemoveToolInput
     public typealias Output = GitWorktreeRemoveToolOutput
-    public static let identifier: AgentToolIdentifier =
+    public static let identifier: ToolIdentifier =
         "git_worktree_remove"
 
     public static let description =
@@ -304,7 +326,13 @@ public struct GitWorktreeRemoveTool: AgentTool {
 
     public static let risk: ActionRisk = .boundedmutate
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -320,23 +348,26 @@ public struct GitWorktreeRemoveTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let context = try await resolvedContext(
             input,
-            workspace: try await agenticGitScopedWorkspace(
+            workspace: try await agenticGitWorkspace(
                 context,
-                toolName: name
+                toolName: Self.definition.identifier.rawValue
             )
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: context.workspace.rootURL.path,
-            targetPaths: [context.worktree.path.path],
             summary: "Remove Agentic-managed task worktree \(context.worktree.path.path) while preserving branch \(context.worktree.branch ?? "none").",
-            estimatedWriteCount: 1,
+            access: .init(
+                targets: [context.worktree.path.path]
+            ),
+            estimates: .init(
+                write: .init(count: 1)
+            ),
             sideEffects: [
                 "remove one linked Git worktree",
                 "preserve the associated task branch",
@@ -359,19 +390,19 @@ public struct GitWorktreeRemoveTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let context = try await resolvedContext(
             input,
-            workspace: try await agenticGitScopedWorkspace(
+            workspace: try await agenticGitWorkspace(
                 context,
-                toolName: name
+                toolName: Self.definition.identifier.rawValue
             )
         )
 
         try await GitManagerWorktree.remove(
             context.worktree.path,
-            at: context.workspace.rootURL
+            at: context.workspace.absoluteURL
         )
 
         return GitWorktreeRemoveToolOutput(
@@ -383,32 +414,32 @@ public struct GitWorktreeRemoveTool: AgentTool {
 
 private extension GitWorktreeRemoveTool {
     struct RemovalContext {
-        let workspace: AgentWorkspace
+        let workspace: WorkspaceContext
         let worktree: GitManagerWorktreeRecord
     }
 
     func resolvedContext(
         _ input: GitWorktreeRemoveToolInput,
-        workspace candidate: AgentWorkspace?
+        workspace candidate: WorkspaceContext?
     ) async throws -> RemovalContext {
         let workspace = try AgenticGitToolSupport.requireWorkspace(
             candidate,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let path = try AgenticGitManagedWorktrees.requireManaged(
             input.path,
-            repository: workspace.rootURL,
+            repository: workspace.absoluteURL,
             kind: .task
         )
 
         guard let worktree = try await GitManagerWorktree.list(
-            at: workspace.rootURL
+            at: workspace.absoluteURL
         ).first(where: {
             $0.path == path
         }) else {

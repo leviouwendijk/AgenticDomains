@@ -1,4 +1,6 @@
 import Foundation
+import Macros
+import Schema
 
 public struct WebSearchRequest: Sendable, Codable, Hashable {
     public let query: String
@@ -22,6 +24,7 @@ public struct WebSearchRequest: Sendable, Codable, Hashable {
     }
 }
 
+@JSONSchema
 public struct WebSearchResultSummary: Sendable, Codable, Hashable, Identifiable {
     public let id: String
     public let title: String

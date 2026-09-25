@@ -1,7 +1,8 @@
-import AgenticInference
-import Schema
+import Agentic
 import Macros
+import Schema
 
+@JSONSchema
 public struct PrioritizeDayInput:
     Sendable,
     Codable,
@@ -55,17 +56,15 @@ public struct PrioritizeDayOutput:
     }
 }
 
-public struct PrioritizeDay:
-    AgentInference,
-    Sendable
-{
-    public typealias Input = PrioritizeDayInput
-    public typealias Output = PrioritizeDayOutput
+public extension AppleServices.Inferences {
+    @Inference
+    struct PrioritizeDay {
+        public typealias Input = PrioritizeDayInput
+        public typealias Output = PrioritizeDayOutput
 
-    public static let definition = AgentInferenceDefinition(
-        identifier: "apple_services.prioritize_day",
-        purpose: "Prioritize a bounded day from supplied calendar events, reminders, optional weather, and user context. Return explicit priorities, warnings, recommendations, and information gaps without inventing additional source facts."
-    )
+        public static let purpose =
+            "Prioritize a bounded day from supplied calendar events, reminders, optional weather, and user context. Return explicit priorities, warnings, recommendations, and information gaps without inventing additional source facts."
 
-    public init() {}
+        public init() {}
+    }
 }

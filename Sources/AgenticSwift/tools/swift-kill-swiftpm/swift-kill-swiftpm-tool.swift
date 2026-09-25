@@ -1,63 +1,68 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Primitives
 import Schema
 import Macros
 
-@JSONSchema
-public struct SwiftKillSwiftPMToolInput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    /// Use SIGKILL immediately. Defaults to false.
-    public let force: Bool?
+public struct SwiftKillSwiftPMTool: Tool {
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Use SIGKILL immediately. Defaults to false.
+        public let force: Bool?
 
-    /// Only list processes that would be terminated. Defaults to false.
-    public let dryRun: Bool?
+        /// Only list processes that would be terminated. Defaults to false.
+        public let dryRun: Bool?
 
-    public init(
-        force: Bool? = nil,
-        dryRun: Bool? = nil
-    ) {
-        self.force = force
-        self.dryRun = dryRun
-    }
-}
-
-
-public struct SwiftKillSwiftPMToolOutput: Sendable, Codable, Hashable {
-    public struct Process: Sendable, Codable, Hashable {
-        public let pid: String
-        public let command: String
-
-        public init(pid: String, command: String) {
-            self.pid = pid
-            self.command = command
+        public init(
+            force: Bool? = nil,
+            dryRun: Bool? = nil
+        ) {
+            self.force = force
+            self.dryRun = dryRun
         }
     }
 
-    public let count: String
-    public let dryRun: Bool
-    public let processes: [Process]
+    @JSONSchema
+    public struct Output: Sendable, Codable, Hashable {
+        @JSONSchema
+        public struct Process: Sendable, Codable, Hashable {
+            public let pid: String
+            public let command: String
 
-    public init(count: String, dryRun: Bool, processes: [Process]) {
-        self.count = count
-        self.dryRun = dryRun
-        self.processes = processes
+            public init(pid: String, command: String) {
+                self.pid = pid
+                self.command = command
+            }
+        }
+
+        public let count: String
+        public let dryRun: Bool
+        public let processes: [Process]
+
+        public init(count: String, dryRun: Bool, processes: [Process]) {
+            self.count = count
+            self.dryRun = dryRun
+            self.processes = processes
+        }
     }
-}
 
-public struct SwiftKillSwiftPMTool: AgentTool {
-    public typealias Input = SwiftKillSwiftPMToolInput
-    public typealias Output = SwiftKillSwiftPMToolOutput
-    public static let identifier: AgentToolIdentifier = "swift_kill_swiftpm"
+public static let identifier: ToolIdentifier = "swift_kill_swiftpm"
     public static let description =
         "Inspect and terminate Swift/SwiftPM process trees through Executable.SwiftPMProcesses."
     public static let risk: ActionRisk = .privileged
-    public var identifier: AgentToolIdentifier {
+
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 

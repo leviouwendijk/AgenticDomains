@@ -1,7 +1,7 @@
-import AgenticPrograms
+import Agentic
 
 public struct AgenticSwiftProgramSet:
-    AgentProgramSet,
+    ProgramSet,
     Sendable
 {
     public init() {}

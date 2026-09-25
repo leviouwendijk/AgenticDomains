@@ -38,20 +38,14 @@ let package = Package(
             name: "AgenticBusiness",
             targets: ["AgenticBusiness"]
         ),
-        .executable(
-            name: "domtest",
-            targets: ["AgenticDomainsTestFlows"]
-        ),
+
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/AgenticExecution.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/AgenticRecovery.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/AgenticWorkspace.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AgenticIO.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/AgenticInference.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/AgenticPrograms.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/AgenticRuntime.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/AgenticExecution.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Workspace.git", branch: "master"),
+
         .package(url: "https://github.com/leviouwendijk/SwiftSemantics.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Documentation.git", branch: "master"),
 
@@ -77,7 +71,6 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Milieu.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Schema.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Macros.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/TestFlows.git", branch: "master"),
     ],
     targets: [
         .target(
@@ -97,11 +90,10 @@ let package = Package(
             name: "AgenticSwift",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
-                .product(name: "AgenticExecution", package: "AgenticExecution"),
-                .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
                 .product(name: "AgenticIO", package: "AgenticIO"),
-                .product(name: "AgenticInference", package: "AgenticInference"),
-                .product(name: "AgenticPrograms", package: "AgenticPrograms"),
+                .product(name: "AgenticExecution", package: "AgenticExecution"),
+                .product(name: "Workspace", package: "Workspace"),
+
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
@@ -133,7 +125,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
-                .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
+                .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
@@ -146,7 +138,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
-                .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
+                .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
@@ -159,9 +151,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
-                .product(name: "AgenticRecovery", package: "AgenticRecovery"),
-                .product(name: "AgenticInference", package: "AgenticInference"),
-                .product(name: "AgenticPrograms", package: "AgenticPrograms"),
+                .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Milieu", package: "Milieu"),
                 .product(name: "Schema", package: "Schema"),
@@ -174,8 +164,6 @@ let package = Package(
             name: "AgenticBusiness",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
-                .product(name: "AgenticInference", package: "AgenticInference"),
-                .product(name: "AgenticPrograms", package: "AgenticPrograms"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
             ]
@@ -189,26 +177,24 @@ let package = Package(
         //     ]
         // ),
 
-        .executableTarget(
-            name: "AgenticDomainsTestFlows",
-            dependencies: [
-                "AgenticSwift",
-                "AgenticGit",
-                "AgenticWeb",
-                "AgenticAppleServices",
-                "AgenticBusiness",
-                .product(name: "Agentic", package: "Agentic"),
-                .product(name: "AgenticExecution", package: "AgenticExecution"),
-                .product(name: "AgenticRecovery", package: "AgenticRecovery"),
-                .product(name: "AgenticInference", package: "AgenticInference"),
-                .product(name: "AgenticPrograms", package: "AgenticPrograms"),
-                .product(name: "AgenticRuntime", package: "AgenticRuntime"),
-                .product(name: "AgenticWorkspace", package: "AgenticWorkspace"),
-                .product(name: "Executable", package: "Executable"),
-                .product(name: "Interfaces", package: "Interfaces"),
-                .product(name: "Primitives", package: "Primitives"),
-                .product(name: "TestFlows", package: "TestFlows"),
-            ]
-        ),
     ]
 )
+
+for target in package.targets {
+    switch target.type {
+    case .regular, .executable, .test, .macro:
+        var settings = target.swiftSettings ?? []
+
+        settings.append(
+            .treatAllWarnings(as: .error)
+        )
+
+        target.swiftSettings = settings
+
+    case .plugin, .system, .binary:
+        break
+
+    @unknown default:
+        break
+    }
+}

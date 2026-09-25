@@ -1,23 +1,19 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Foundation
 
 extension SwiftBuildTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
-            toolName: name
+            context,
+            toolName: Self.definition.identifier.rawValue
         )
-        let project = context.workingDirectoryURL
-            ?? workspace.rootURL
+        let project = workspace.absoluteURL
         let request = try targetedBuildRequest(
             input,
             project: project
@@ -79,18 +75,24 @@ extension SwiftBuildTool {
                     : "sbm \(request.source.arguments.joined(separator: " "))"
         }
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: workspace.rootURL.path,
-            targetPaths: targetPaths,
             summary: summary,
-            commandPreview: commandPreview,
-            estimatedWriteCount:
-                request.deploy
-                    ? 2
-                    : 1,
-            estimatedRuntimeSeconds: 300,
+            access: .init(
+                targets: targetPaths
+            ),
+            estimates: .init(
+                write: .init(
+                    count: request.deploy
+                        ? 2
+                        : 1
+                ),
+                runtime: 300
+            ),
+            preview: .init(
+                command: commandPreview
+            ),
             sideEffects: sideEffects,
             policyChecks: policyChecks,
             warnings: [
@@ -104,14 +106,13 @@ extension SwiftBuildTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
-            toolName: name
+            context,
+            toolName: Self.definition.identifier.rawValue
         )
-        let project = context.workingDirectoryURL
-            ?? workspace.rootURL
+        let project = workspace.absoluteURL
         let request = try targetedBuildRequest(
             input,
             project: project
@@ -126,7 +127,7 @@ extension SwiftBuildTool {
             )
             let result = execution.build
 
-            let output = SwiftBuildToolOutput(
+            let output = Output(
                 configuration:
                     plan.request.config.buildDirComponent,
                 isSuccess:
@@ -147,18 +148,13 @@ extension SwiftBuildTool {
                     result.buildDirComponent
             )
 
-            await observeSwiftBuildOutput(
-                output,
-                context: context
-            )
-
             return output
         } catch BuildError.swiftFailed(
             let exitCode,
             let stdout,
             let stderr
         ) {
-            let output = SwiftBuildToolOutput(
+            let output = Output(
                         configuration:
                             request.config.buildDirComponent,
                         isSuccess: false,
@@ -169,11 +165,6 @@ extension SwiftBuildTool {
                             request.config.buildDirComponent
                     )
 
-            await observeSwiftBuildOutput(
-                output,
-                context: context
-            )
-
             throw AgentToolReportedFailure(
                 output: output
             )
@@ -182,9 +173,8 @@ extension SwiftBuildTool {
 
     public func process(
         _ output: Output,
-        input _: Input,
-        context _: AgentToolExecutionContext
-    ) -> AgentToolResultProjection? {
+        input _: Input
+    ) -> ToolCall.ResultProjection? {
         .init(
             status: output.isSuccess ? "passed" : "failed",
             summary: output.isSuccess
@@ -198,33 +188,9 @@ extension SwiftBuildTool {
         )
     }
 
-    private func observeSwiftBuildOutput(
-        _ output: Output,
-        context: AgentToolExecutionContext
-    ) async {
-        if !output.stdout.isEmpty {
-            await context.observe(
-                .init(
-                    kind: .standard_output,
-                    label: "stdout",
-                    content: output.stdout
-                )
-            )
-        }
-
-        if !output.stderr.isEmpty {
-            await context.observe(
-                .init(
-                    kind: .standard_error,
-                    label: "stderr",
-                    content: output.stderr
-                )
-            )
-        }
-    }
 
     private func targetedBuildRequest(
-        _ input: SwiftBuildToolInput,
+        _ input: Input,
         project: URL
     ) throws -> Build.Request {
         guard let configuration = input.configuration else {

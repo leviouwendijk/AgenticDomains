@@ -1,20 +1,81 @@
 import Agentic
+import Macros
+import Schema
+import Workspace
 import AgenticExecution
 import SwiftSemantics
 
 public struct LintSwiftPackageTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = LintSwiftPackageToolInput
-    public typealias Output = LintSwiftPackageToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        public let forbiddenTargetDependencies:
+            [LintSwiftPackageForbiddenTargetDependency]
+        public let forbiddenPackageDependencies: [String]
 
-    public static let identifier: AgentToolIdentifier =
+        public init(
+            forbiddenTargetDependencies:
+                [LintSwiftPackageForbiddenTargetDependency] = [],
+            forbiddenPackageDependencies: [String] = []
+        ) {
+            self.forbiddenTargetDependencies =
+                forbiddenTargetDependencies
+            self.forbiddenPackageDependencies =
+                forbiddenPackageDependencies
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        public let package: String
+        public let diagnostics: [SwiftPackageRuleLintDiagnostic]
+        public let diagnosticCount: Int
+        public let errorCount: Int
+        public let warningCount: Int
+        public let informationCount: Int
+        public let hintCount: Int
+
+        public init(
+            package: String,
+            diagnostics: [SwiftPackageRuleLintDiagnostic],
+            diagnosticCount: Int,
+            errorCount: Int,
+            warningCount: Int,
+            informationCount: Int,
+            hintCount: Int
+        ) {
+            self.package = package
+            self.diagnostics = diagnostics
+            self.diagnosticCount = diagnosticCount
+            self.errorCount = errorCount
+            self.warningCount = warningCount
+            self.informationCount = informationCount
+            self.hintCount = hintCount
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "lint_swift_package"
     public static let description =
         "Analyze the selected Swift package graph against explicit forbidden direct package and target dependency policies and return structured diagnostics."
     public static let risk: ActionRisk = .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -26,15 +87,11 @@ public struct LintSwiftPackageTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let toolName = Self.identifier.rawValue
         let execution = try SwiftSemanticToolSupport.resolve(

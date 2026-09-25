@@ -1,1 +1,4 @@
-public enum AgenticSwift {}
+import Agentic
+
+@Domain
+public enum SwiftLang {}

@@ -1,45 +1,34 @@
-import AgenticPrograms
+import Agentic
 
-public struct PlanSwiftChangeProgram:
-    AgentProgram,
-    Sendable
-{
+@Program
+public struct PlanSwiftChangeProgram {
     public typealias Input = SwiftChangeContext
     public typealias Output = SwiftChangeAssessment
 
-    public static let understandingSite: AgentInferenceSiteIdentifier =
-        "understand_change"
+    public static let purpose =
+        "Understand supplied Swift change evidence through one typed inference, then feed that typed understanding into a second inference that produces a bounded implementation and verification plan."
 
-    public static let planningSite: AgentInferenceSiteIdentifier =
-        "plan_changes"
+    @InferenceSite
+    public static var understanding:
+        Site<UnderstandSwiftChange>
 
-    public static let descriptor = AgentProgramDescriptor(
-        identifier: "swift.plan_change",
-        title: "Plan Swift Change",
-        summary: "Understand supplied Swift change evidence through one typed inference, then feed that typed understanding into a second inference that produces a bounded implementation and verification plan.",
-        tags: [
-            "swift",
-            "planning",
-            "inference",
-            "composition",
-        ]
-    )
+    @InferenceSite
+    public static var planning:
+        Site<PlanSwiftChange>
 
     public init() {}
 
     public func run(
         _ input: Input,
-        in context: AgentProgramContext
+        in context: ProgramContext
     ) async throws -> Output {
         let understanding = try await context.infer(
-            UnderstandSwiftChange.self,
-            at: Self.understandingSite,
+            Self.understanding,
             input: input
         )
 
         let plan = try await context.infer(
-            PlanSwiftChange.self,
-            at: Self.planningSite,
+            Self.planning,
             input: SwiftChangePlanningInput(
                 objective: input.objective,
                 constraints: input.constraints,

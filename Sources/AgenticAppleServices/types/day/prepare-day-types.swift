@@ -1,3 +1,7 @@
+import Macros
+import Schema
+
+@JSONSchema
 public struct PrepareDayInput:
     Sendable,
     Codable,
@@ -21,6 +25,7 @@ public struct PrepareDayInput:
     }
 }
 
+@JSONSchema
 public struct DayPlan:
     Sendable,
     Codable,

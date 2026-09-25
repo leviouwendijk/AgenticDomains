@@ -1,1 +1,4 @@
-public enum AgenticAppleServices {}
+import Agentic
+
+@Domain
+public enum AppleServices {}

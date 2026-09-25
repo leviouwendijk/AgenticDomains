@@ -1,5 +1,4 @@
 import Foundation
-import Path
 import SwiftSemantics
 
 /// Agentic compatibility projection over SwiftSemantics structural symbols.
@@ -18,12 +17,10 @@ public struct SwiftSymbolCollector:
     }
 
     public func collect(
-        in file: DescendantPath
+        in file: URL
     ) throws -> [SwiftSymbolSummary] {
         try collector.collect(
-            in: absoluteURL(
-                for: file
-            )
+            in: file
         )
         .map { symbol in
             SwiftSymbolSummary(
@@ -37,21 +34,6 @@ public struct SwiftSymbolCollector:
                 summary: symbol.summary
             )
         }
-    }
-}
-
-private extension SwiftSymbolCollector {
-    func absoluteURL(
-        for path: DescendantPath
-    ) -> URL {
-        URL(
-            fileURLWithPath: path.absolute.render(
-                as: .root,
-                filetype: true
-            ),
-            isDirectory: false
-        )
-        .standardizedFileURL
     }
 }
 

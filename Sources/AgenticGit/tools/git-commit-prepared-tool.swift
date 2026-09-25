@@ -1,6 +1,6 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Foundation
 import Interfaces
 import Primitives
@@ -41,6 +41,7 @@ public extension GitCommitPreparedToolInput {
     }
 }
 
+@JSONSchema
 public struct GitCommitPreparedToolOutput:
     Sendable,
     Codable,
@@ -65,12 +66,12 @@ public struct GitCommitPreparedToolOutput:
 }
 
 public struct GitCommitPreparedTool:
-    AgentTool
+    Tool
 {
     public typealias Input = GitCommitPreparedToolInput
     public typealias Output = GitCommitPreparedToolOutput
     public static let identifier:
-        AgentToolIdentifier =
+        ToolIdentifier =
             "git_commit_prepared"
 
     public static let description =
@@ -82,7 +83,13 @@ public struct GitCommitPreparedTool:
         ActionRisk =
             .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 

@@ -1,6 +1,6 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Foundation
 import Interfaces
 import Primitives
@@ -179,6 +179,7 @@ private extension GitPushToolInput {
     }
 }
 
+@JSONSchema
 public struct GitPushToolOutput:
     Sendable,
     Codable,
@@ -209,12 +210,12 @@ public struct GitPushToolOutput:
 }
 
 public struct GitPushTool:
-    AgentTool
+    Tool
 {
     public typealias Input = GitPushToolInput
     public typealias Output = GitPushToolOutput
     public static let identifier:
-        AgentToolIdentifier =
+        ToolIdentifier =
             "git_push"
 
     public static let description =
@@ -226,7 +227,13 @@ public struct GitPushTool:
         ActionRisk =
             .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 

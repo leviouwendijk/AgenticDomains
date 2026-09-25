@@ -1,7 +1,7 @@
 import AgenticExecution
 
-public struct AgenticAppleServicesToolSet:
-    AgentToolSet
+public struct AppleServicesToolProvider:
+    AgentToolProvider
 {
     public let calendar: any AppleCalendarProvider
     public let reminders: any AppleRemindersProvider
@@ -24,49 +24,71 @@ public struct AgenticAppleServicesToolSet:
         self.location = location
     }
 
-    public func register(
+    public func registerTools(
         into registry: inout ToolRegistry
     ) throws {
-        try registry.register {
-            CalendarAuthorizationStatusTool(
+        try registry.register(
+            AppleServices.Tools.ReadCalendarAuthorizationStatus(
                 provider: calendar
             )
-            CalendarRequestFullAccessTool(
+        )
+        try registry.register(
+            AppleServices.Tools.RequestCalendarFullAccess(
                 provider: calendar
             )
-            CalendarEventsTool(
+        )
+        try registry.register(
+            AppleServices.Tools.ReadCalendarEvents(
                 provider: calendar
             )
+        )
 
-            RemindersAuthorizationStatusTool(
+        try registry.register(
+            AppleServices.Tools.ReadRemindersAuthorizationStatus(
                 provider: reminders
             )
-            RemindersRequestFullAccessTool(
+        )
+        try registry.register(
+            AppleServices.Tools.RequestRemindersFullAccess(
                 provider: reminders
             )
-            RemindersTool(
+        )
+        try registry.register(
+            AppleServices.Tools.ReadReminders(
                 provider: reminders
             )
-            RemindersCreateTool(
+        )
+        try registry.register(
+            AppleServices.Tools.CreateReminder(
                 provider: reminders
             )
+        )
 
-            WeatherCurrentTool(
+        try registry.register(
+            AppleServices.Tools.ReadCurrentWeather(
                 provider: weather
             )
-            WeatherForecastTool(
+        )
+        try registry.register(
+            AppleServices.Tools.ReadWeatherForecast(
                 provider: weather
             )
+        )
 
-            LocationAuthorizationStatusTool(
+        try registry.register(
+            AppleServices.Tools.ReadLocationAuthorizationStatus(
                 provider: location
             )
-            LocationRequestWhenInUseTool(
+        )
+        try registry.register(
+            AppleServices.Tools.RequestLocationWhenInUse(
                 provider: location
             )
-            LocationCurrentTool(
+        )
+        try registry.register(
+            AppleServices.Tools.ReadCurrentLocation(
                 provider: location
             )
-        }
+        )
     }
 }

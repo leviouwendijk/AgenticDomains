@@ -1,7 +1,6 @@
-import Agentic
 import AgenticExecution
 
-public struct AgenticWebToolProvider: AgentToolProvider {
+public struct WebToolProvider: AgentToolProvider {
     public let provider: any WebSearchProvider
     public let policy: WebAccessPolicy
     public let sessionStore: WebSearchSessionStore
@@ -20,7 +19,15 @@ public struct AgenticWebToolProvider: AgentToolProvider {
         into registry: inout ToolRegistry
     ) throws {
         try registry.register(
-            AgenticWebToolSet(
+            Web.Tools.Search(
+                provider: provider,
+                policy: policy,
+                sessionStore: sessionStore
+            )
+        )
+
+        try registry.register(
+            Web.Tools.OpenResult(
                 provider: provider,
                 policy: policy,
                 sessionStore: sessionStore

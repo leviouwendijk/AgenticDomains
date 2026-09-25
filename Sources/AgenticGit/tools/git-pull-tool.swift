@@ -1,6 +1,6 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Foundation
 import Interfaces
 import Primitives
@@ -18,6 +18,7 @@ public struct GitPullToolInput:
 }
 
 
+@JSONSchema
 public struct GitPullToolOutput:
     Sendable,
     Codable,
@@ -51,12 +52,12 @@ public struct GitPullToolOutput:
 }
 
 public struct GitPullTool:
-    AgentTool
+    Tool
 {
     public typealias Input = GitPullToolInput
     public typealias Output = GitPullToolOutput
     public static let identifier:
-        AgentToolIdentifier =
+        ToolIdentifier =
             "git_pull"
 
     public static let description =
@@ -68,7 +69,13 @@ public struct GitPullTool:
         ActionRisk =
             .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -90,7 +97,7 @@ private extension GitPullTool {
     struct PullContext:
         Sendable
     {
-        let workspace: AgentWorkspace
+        let workspace: WorkspaceContext
         let state: GitManagerRepositoryState
         let remote: String
         let upstreamBranch: String
@@ -98,25 +105,25 @@ private extension GitPullTool {
     }
 
     func resolvedContext(
-        _ candidate: AgentWorkspace?
+        _ candidate: WorkspaceContext?
     ) async throws -> PullContext {
         let workspace =
             try AgenticGitToolSupport
                 .requireWorkspace(
                     candidate,
-                    toolName: name
+                    toolName: Self.definition.identifier.rawValue
                 )
 
         try await AgenticGitToolSupport
             .requireRepositoryRoot(
                 workspace,
-                toolName: name
+                toolName: Self.definition.identifier.rawValue
             )
 
         let state =
             try await GitManagerRepositoryInspector
                 .state(
-                    at: workspace.rootURL,
+                    at: workspace.absoluteURL,
                     fetch: false
                 )
 

@@ -1,3 +1,7 @@
+import Macros
+import Schema
+
+@JSONSchema
 public enum LocationAuthorizationStatus:
     String,
     Sendable,
@@ -12,6 +16,7 @@ public enum LocationAuthorizationStatus:
     case unknown
 }
 
+@JSONSchema
 public struct AppleLocationSnapshot:
     Sendable,
     Codable,

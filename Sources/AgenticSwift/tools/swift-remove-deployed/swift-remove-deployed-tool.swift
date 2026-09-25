@@ -1,48 +1,52 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Primitives
 import Schema
 import Macros
 
-@JSONSchema
-public struct SwiftRemoveDeployedToolInput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    /// Deployed product name to remove.
-    public let product: String
+public struct SwiftRemoveDeployedTool: Tool {
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Deployed product name to remove.
+        public let product: String
 
-    public init(
-        product: String
-    ) {
-        self.product = product
+        public init(
+            product: String
+        ) {
+            self.product = product
+        }
     }
-}
 
+    @JSONSchema
+    public struct Output: Sendable, Codable, Hashable {
+        public let product: String
+        public let destination: String
+        public let status: String
 
-public struct SwiftRemoveDeployedToolOutput: Sendable, Codable, Hashable {
-    public let product: String
-    public let destination: String
-    public let status: String
-
-    public init(product: String, destination: String, status: String) {
-        self.product = product
-        self.destination = destination
-        self.status = status
+        public init(product: String, destination: String, status: String) {
+            self.product = product
+            self.destination = destination
+            self.status = status
+        }
     }
-}
 
-public struct SwiftRemoveDeployedTool: AgentTool {
-    public typealias Input = SwiftRemoveDeployedToolInput
-    public typealias Output = SwiftRemoveDeployedToolOutput
-    public static let identifier: AgentToolIdentifier = "swift_remove_deployed"
+public static let identifier: ToolIdentifier = "swift_remove_deployed"
     public static let description =
         "Remove one deployed Swift binary and its metadata through Executable.Remove."
     public static let risk: ActionRisk = .privileged
-    public var identifier: AgentToolIdentifier {
+
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -58,30 +62,35 @@ public struct SwiftRemoveDeployedTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
-        let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
-            toolName: name
+        _ = try AgenticSwiftToolSupport.requireWorkspace(
+            context,
+            toolName: Self.definition.identifier.rawValue
         )
         let destination = Build.defaultDeploymentDirectory
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: workspace.rootURL.path,
-            targetPaths: [
-                destination.appendingPathComponent(
-                    input.product
-                ).path,
-                destination.appendingPathComponent(
-                    "\(input.product).metadata"
-                ).path,
-            ],
             summary: "Remove deployed Swift product '\(input.product)'.",
-            estimatedWriteCount: 2,
+            access: .init(
+                targets: [
+                    destination.appendingPathComponent(
+                        input.product
+                    ).path,
+                    destination.appendingPathComponent(
+                        "\(input.product).metadata"
+                    ).path,
+                ]
+            ),
+            estimates: .init(
+                write: .init(
+                    count: 2
+                )
+            ),
             sideEffects: [
-                "May remove a deployed executable and its metadata outside the workspace.",
+                "May remove a deployed executable and its metadata outside the workspace."
             ],
             policyChecks: [
                 "workspace_required",
@@ -93,11 +102,11 @@ public struct SwiftRemoveDeployedTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         _ = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
-            toolName: name
+            context,
+            toolName: Self.definition.identifier.rawValue
         )
         let destination = Build.defaultDeploymentDirectory
 
@@ -106,7 +115,7 @@ public struct SwiftRemoveDeployedTool: AgentTool {
             at: destination
         )
 
-        return SwiftRemoveDeployedToolOutput(
+        return Output(
             product: input.product,
             destination: destination.path,
             status: "passed"

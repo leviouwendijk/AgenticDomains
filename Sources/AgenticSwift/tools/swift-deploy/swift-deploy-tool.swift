@@ -1,36 +1,14 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Foundation
 import Primitives
 import Schema
 import Macros
 
-@JSONSchema
-public struct SwiftDeployToolInput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    /// Built Swift configuration to deploy. Defaults to debug.
-    @Schema(required: false)
-    public let configuration: SwiftBuildToolInput.Configuration
 
-    /// Optional executable product names to deploy. Omit or pass an empty array to deploy every executable product.
-    @Schema(required: false)
-    public let products: [String]
-
-    public init(
-        configuration: SwiftBuildToolInput.Configuration = .debug,
-        products: [String] = []
-    ) {
-        self.configuration = configuration
-        self.products = products
-    }
-}
-
-private extension SwiftDeployToolInput {
+private extension SwiftDeployTool.Input {
     enum CodingKeys:
         String,
         CodingKey
@@ -40,7 +18,7 @@ private extension SwiftDeployToolInput {
     }
 }
 
-public extension SwiftDeployToolInput {
+public extension SwiftDeployTool.Input {
     init(
         from decoder: Decoder
     ) throws {
@@ -50,7 +28,7 @@ public extension SwiftDeployToolInput {
 
         self.init(
             configuration: try container.decodeIfPresent(
-                SwiftBuildToolInput.Configuration.self,
+                SwiftBuildTool.Input.Configuration.self,
                 forKey: .configuration
             ) ?? .debug,
             products: try container.decodeIfPresent(
@@ -61,30 +39,53 @@ public extension SwiftDeployToolInput {
     }
 }
 
-public struct SwiftDeployToolOutput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    public let configuration: String
-    public let destination: String
-    public let products: [String]
 
-    public init(
-        configuration: String,
-        destination: String,
-        products: [String]
-    ) {
-        self.configuration = configuration
-        self.destination = destination
-        self.products = products
+public struct SwiftDeployTool: Tool {
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Built Swift configuration to deploy. Defaults to debug.
+        @Schema(required: false)
+        public let configuration: SwiftBuildTool.Input.Configuration
+
+        /// Optional executable product names to deploy. Omit or pass an empty array to deploy every executable product.
+        @Schema(required: false)
+        public let products: [String]
+
+        public init(
+            configuration: SwiftBuildTool.Input.Configuration = .debug,
+            products: [String] = []
+        ) {
+            self.configuration = configuration
+            self.products = products
+        }
     }
-}
 
-public struct SwiftDeployTool: AgentTool {
-    public typealias Input = SwiftDeployToolInput
-    public typealias Output = SwiftDeployToolOutput
-    public static let identifier: AgentToolIdentifier =
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        public let configuration: String
+        public let destination: String
+        public let products: [String]
+
+        public init(
+            configuration: String,
+            destination: String,
+            products: [String]
+        ) {
+            self.configuration = configuration
+            self.destination = destination
+            self.products = products
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "swift_deploy"
 
     public static let description =
@@ -94,7 +95,13 @@ public struct SwiftDeployTool: AgentTool {
 
     public static let risk: ActionRisk = .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -108,8 +115,6 @@ public struct SwiftDeployTool: AgentTool {
 
     public init() {}
 
-
-
 }
 
 private extension SwiftDeployTool {
@@ -119,8 +124,8 @@ private extension SwiftDeployTool {
     }
 
     func resolution(
-        _ input: SwiftDeployToolInput,
-        workspace: AgentWorkspace
+        _ input: SwiftDeployTool.Input,
+        workspace: WorkspaceContext
     ) async throws -> Resolution {
         let mode: Build.Config.Mode = switch input.configuration {
         case .debug:
@@ -133,7 +138,7 @@ private extension SwiftDeployTool {
         let destination = Build.defaultDeploymentDirectory
 
         let request = Build.Request(
-            project: workspace.rootURL,
+            project: workspace.absoluteURL,
             config: .init(
                 mode: mode,
                 updateBuiltOnSuccess: false

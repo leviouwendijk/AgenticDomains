@@ -1,6 +1,6 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Foundation
 import SwiftSemantics
 
@@ -29,7 +29,7 @@ actor SwiftSemanticToolRuntime {
 }
 
 struct SwiftSemanticToolContext {
-    let workspace: AgentWorkspace
+    let workspace: WorkspaceContext
     let projectRoot: URL
 
     func projectFile(
@@ -58,86 +58,40 @@ struct SwiftSemanticToolContext {
             )
         }
 
-        let workspaceComponents =
-            workspace.rootURL
-                .standardizedFileURL
-                .pathComponents
-        let projectComponents =
-            projectRoot
-                .standardizedFileURL
-                .pathComponents
+        let candidate = projectRoot
+            .appendingPathComponent(normalized)
+            .standardizedFileURL
+        let rootComponents = projectRoot
+            .standardizedFileURL
+            .pathComponents
 
-        guard projectComponents.starts(
-            with: workspaceComponents
-        ) else {
+        guard candidate.pathComponents.starts(with: rootComponents) else {
             throw AgenticSwiftToolError.operationFailed(
                 toolName: toolName,
-                operation: "resolve selected Swift package root",
+                operation: "resolve project-relative Swift source path",
                 exitCode: nil,
                 signal: nil,
-                detail:
-                    "Selected package root is outside the attached Agentic workspace."
+                detail: "Resolved source path escaped the selected Swift package root."
             )
         }
 
-        let projectPrefix = projectComponents
-            .dropFirst(
-                workspaceComponents.count
-            )
-            .joined(
-                separator: "/"
-            )
-        let workspaceRelativePath =
-            projectPrefix.isEmpty
-                ? normalized
-                : "\(projectPrefix)/\(normalized)"
-        let path = try workspace.resolve(
-            workspaceRelativePath,
-            type: .file
-        )
-
-        return try workspace.absoluteURL(
-            for: path,
-            type: .file
-        )
+        return candidate
     }
 }
 
 enum SwiftSemanticToolSupport {
     static func resolve(
-        _ context: AgentToolExecutionContext,
+        _ context: WorkspaceContext?,
         toolName: String
     ) throws -> SwiftSemanticToolContext {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
+            context,
             toolName: toolName
         )
-        let projectRoot = (
-            context.workingDirectoryURL
-                ?? workspace.rootURL
-        )
-        .standardizedFileURL
-        let workspaceComponents =
-            workspace.rootURL
-                .standardizedFileURL
-                .pathComponents
-
-        guard projectRoot.pathComponents.starts(
-            with: workspaceComponents
-        ) else {
-            throw AgenticSwiftToolError.operationFailed(
-                toolName: toolName,
-                operation: "resolve selected Swift package root",
-                exitCode: nil,
-                signal: nil,
-                detail:
-                    "Selected package root is outside the attached Agentic workspace."
-            )
-        }
 
         return .init(
             workspace: workspace,
-            projectRoot: projectRoot
+            projectRoot: workspace.absoluteURL
         )
     }
 
@@ -185,7 +139,7 @@ enum SwiftSemanticToolSupport {
     }
 
     static func preflight(
-        context: AgentToolExecutionContext,
+        context: WorkspaceContext?,
         toolName: String,
         risk: ActionRisk,
         path: String? = nil,
@@ -196,17 +150,17 @@ enum SwiftSemanticToolSupport {
             context,
             toolName: toolName
         )
-        let targetPaths: [String]
+        let targets: [String]
 
         if let path {
-            targetPaths = [
+            targets = [
                 try execution.projectFile(
                     path,
                     toolName: toolName
                 ).path,
             ]
         } else {
-            targetPaths = [
+            targets = [
                 execution.projectRoot.path,
             ]
         }
@@ -232,13 +186,16 @@ enum SwiftSemanticToolSupport {
             ]
         }
 
-        return .init(
-            toolName: toolName,
+        return ToolPreflight(
+            tool: ToolIdentifier(rawValue: toolName),
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: targetPaths,
             summary: summary,
-            estimatedRuntimeSeconds: 60,
+            access: .init(
+                targets: targets
+            ),
+            estimates: .init(
+                runtime: 60
+            ),
             sideEffects: sideEffects,
             policyChecks: [
                 "workspace_required",

@@ -3,37 +3,6 @@ import Position
 import Schema
 
 @JSONSchema
-public struct LintSwiftSourceToolInput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    /// Swift source file path relative to the selected Swift package root.
-    public let path: String
-
-    public init(
-        path: String
-    ) {
-        self.path = path
-    }
-}
-
-@JSONSchema
-public struct LintSwiftFilesToolInput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    /// Swift source file paths relative to the selected Swift package root.
-    public let paths: [String]
-
-    public init(
-        paths: [String]
-    ) {
-        self.paths = paths
-    }
-}
-
 public struct SwiftRuleLintDiagnostic:
     Sendable,
     Codable,
@@ -57,6 +26,7 @@ public struct SwiftRuleLintDiagnostic:
     }
 }
 
+@JSONSchema
 public struct SwiftRuleLintFileResult:
     Sendable,
     Codable,
@@ -86,31 +56,3 @@ public struct SwiftRuleLintFileResult:
     }
 }
 
-public struct LintSwiftFilesToolOutput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    public let files: [SwiftRuleLintFileResult]
-    public let diagnosticCount: Int
-    public let errorCount: Int
-    public let warningCount: Int
-    public let informationCount: Int
-    public let hintCount: Int
-
-    public init(
-        files: [SwiftRuleLintFileResult],
-        diagnosticCount: Int,
-        errorCount: Int,
-        warningCount: Int,
-        informationCount: Int,
-        hintCount: Int
-    ) {
-        self.files = files
-        self.diagnosticCount = diagnosticCount
-        self.errorCount = errorCount
-        self.warningCount = warningCount
-        self.informationCount = informationCount
-        self.hintCount = hintCount
-    }
-}

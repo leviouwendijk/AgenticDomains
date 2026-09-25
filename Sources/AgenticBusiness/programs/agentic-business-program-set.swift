@@ -1,7 +1,7 @@
-import AgenticPrograms
+import Agentic
 
-public struct AgenticBusinessProgramSet:
-    AgentProgramSet,
+public struct BusinessProgramSet:
+    ProgramSet,
     Sendable
 {
     public init() {}
@@ -10,7 +10,7 @@ public struct AgenticBusinessProgramSet:
         into registry: inout ProgramRegistry
     ) throws {
         try registry.register(
-            PrepareBusinessReplyProgram()
+            Business.Programs.PrepareReply()
         )
     }
 }

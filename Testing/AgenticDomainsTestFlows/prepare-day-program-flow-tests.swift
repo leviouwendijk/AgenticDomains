@@ -1,6 +1,5 @@
+import Agentic
 import AgenticAppleServices
-import AgenticInference
-import AgenticPrograms
 import Foundation
 import TestFlows
 

@@ -1,6 +1,6 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Interfaces
 import Primitives
 import Schema
@@ -105,12 +105,12 @@ public extension GitDiffToolInput {
 }
 
 public struct GitDiffTool:
-    AgentTool
+    Tool
 {
     public typealias Input = GitDiffToolInput
     public typealias Output = GitManagerDiffResult
     public static let identifier:
-        AgentToolIdentifier =
+        ToolIdentifier =
             "git_diff"
 
     public static let description =
@@ -122,7 +122,13 @@ public struct GitDiffTool:
         ActionRisk =
             .observe
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 

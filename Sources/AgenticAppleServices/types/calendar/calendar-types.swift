@@ -1,3 +1,7 @@
+import Macros
+import Schema
+
+@JSONSchema
 public enum CalendarAuthorizationStatus:
     String,
     Sendable,
@@ -12,6 +16,7 @@ public enum CalendarAuthorizationStatus:
     case unknown
 }
 
+@JSONSchema
 public struct CalendarAuthorizationRequestResult:
     Sendable,
     Codable,
@@ -29,6 +34,7 @@ public struct CalendarAuthorizationRequestResult:
     }
 }
 
+@JSONSchema
 public struct CalendarEventQuery:
     Sendable,
     Codable,
@@ -49,6 +55,7 @@ public struct CalendarEventQuery:
     }
 }
 
+@JSONSchema
 public struct CalendarEvent:
     Sendable,
     Codable,

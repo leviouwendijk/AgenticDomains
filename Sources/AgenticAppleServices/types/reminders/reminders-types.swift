@@ -1,5 +1,5 @@
-import Schema
 import Macros
+import Schema
 
 @JSONSchema
 public struct ReminderCreation:
@@ -22,6 +22,7 @@ public struct ReminderCreation:
     }
 }
 
+@JSONSchema
 public enum RemindersAuthorizationStatus:
     String,
     Sendable,
@@ -35,6 +36,7 @@ public enum RemindersAuthorizationStatus:
     case unknown
 }
 
+@JSONSchema
 public struct RemindersAuthorizationRequestResult:
     Sendable,
     Codable,
@@ -52,6 +54,7 @@ public struct RemindersAuthorizationRequestResult:
     }
 }
 
+@JSONSchema
 public struct ReminderItem:
     Sendable,
     Codable,

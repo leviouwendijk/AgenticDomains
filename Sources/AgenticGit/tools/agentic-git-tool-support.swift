@@ -1,14 +1,13 @@
 import Agentic
-import AgenticExecution
-import AgenticWorkspace
 import Foundation
 import Interfaces
+import Workspace
 
 enum AgenticGitToolSupport {
     static func requireWorkspace(
-        _ workspace: AgentWorkspace?,
+        _ workspace: WorkspaceContext?,
         toolName: String
-    ) throws -> AgentWorkspace {
+    ) throws -> WorkspaceContext {
         guard let workspace else {
             throw AgenticGitToolError.workspaceRequired(
                 toolName
@@ -19,11 +18,11 @@ enum AgenticGitToolSupport {
     }
 
     static func requireRepositoryRoot(
-        _ workspace: AgentWorkspace,
+        _ workspace: WorkspaceContext,
         toolName: String
     ) async throws {
         try await requireRepositoryRoot(
-            workspace.rootURL,
+            workspace.absoluteURL,
             toolName: toolName
         )
     }

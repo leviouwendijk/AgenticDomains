@@ -1,110 +1,162 @@
 import Agentic
-import AgenticExecution
-import AgenticWorkspace
 import Foundation
-import Primitives
+import Macros
+import Schema
+import Workspace
 
-public struct OpenWebResultTool: AgentTool {
-    public typealias Input = OpenWebResultToolInput
-    public typealias Output = OpenWebResultToolOutput
-    public static let identifier: AgentToolIdentifier = "open_web_result"
-    public static let description = "Open one previously returned search result by searchID and resultID and return sandboxed extracted text."
-    public static let risk: ActionRisk = .observe
+public extension Web.Tools {
+    @Tool("open_web_result")
+    struct OpenResult {
+        @JSONSchema
+        public struct Input:
+            Sendable,
+            Codable,
+            Hashable
+        {
+            /// Search record identifier returned by search_web.
+            public let searchID: String
 
-    public let provider: any WebSearchProvider
-    public let policy: WebAccessPolicy
-    public let sessionStore: WebSearchSessionStore
+            /// Result identifier returned by search_web.
+            public let resultID: String
 
-    public var identifier: AgentToolIdentifier {
-        Self.identifier
-    }
+            /// Optional maximum number of returned text characters.
+            public let maxCharacters: Int?
 
-    public var description: String {
-        Self.description
-    }
+            public init(
+                searchID: String,
+                resultID: String,
+                maxCharacters: Int? = nil
+            ) {
+                self.searchID = searchID
+                self.resultID = resultID
+                self.maxCharacters = maxCharacters
+            }
+        }
 
-    public var risk: ActionRisk {
-        Self.risk
-    }
+        @JSONSchema
+        public struct Output:
+            Sendable,
+            Codable,
+            Hashable
+        {
+            public let searchID: String
+            public let resultID: String
+            public let title: String?
+            public let url: String
+            public let host: String
+            public let contentType: String?
+            public let fetchedAt: Date
+            public let truncated: Bool
+            public let text: String
 
-    public init(
-        provider: any WebSearchProvider = UnavailableWebSearchProvider(),
-        policy: WebAccessPolicy = .default,
-        sessionStore: WebSearchSessionStore = .init()
-    ) {
-        self.provider = provider
-        self.policy = policy
-        self.sessionStore = sessionStore
-    }
+            public init(
+                searchID: String,
+                resultID: String,
+                title: String?,
+                url: String,
+                host: String,
+                contentType: String?,
+                fetchedAt: Date,
+                truncated: Bool,
+                text: String
+            ) {
+                self.searchID = searchID
+                self.resultID = resultID
+                self.title = title
+                self.url = url
+                self.host = host
+                self.contentType = contentType
+                self.fetchedAt = fetchedAt
+                self.truncated = truncated
+                self.text = text
+            }
+        }
 
-    public func preflight(
-        _ input: Input,
-        context: AgentToolExecutionContext
-    ) async throws -> ToolPreflight {
-        _ = context
-        let record = try await requiredRecord(
-            searchID: input.searchID
-        )
-        let result = try requiredResult(
-            in: record,
-            resultID: input.resultID
-        )
-        let url = try policy.validate(
-            urlString: result.url
-        )
+        public static let purpose =
+            "Open one previously returned search result by searchID and resultID and return sandboxed extracted text."
+        public static let risk: ActionRisk = .observe
 
-        return .init(
-            toolName: name,
-            risk: risk,
-            workspaceRoot: nil,
-            summary: """
-            Open previously returned web result "\(result.title)" from search "\(record.query)".
-            """,
-            commandPreview: "GET \(url.absoluteString)",
-            estimatedByteCount: policy.maxFetchedBytes,
-            estimatedRuntimeSeconds: 8,
-            sideEffects: [
-                "external network read"
-            ]
-        )
-    }
+        public let provider: any WebSearchProvider
+        public let policy: WebAccessPolicy
+        public let sessionStore: WebSearchSessionStore
 
-    public func call(
-        _ input: Input,
-        context: AgentToolExecutionContext
-    ) async throws -> Output {
-        _ = context
-        let record = try await requiredRecord(
-            searchID: input.searchID
-        )
-        let result = try requiredResult(
-            in: record,
-            resultID: input.resultID
-        )
-        let validatedURL = try policy.validate(
-            urlString: result.url
-        )
-        let characterLimit = policy.normalizedCharacterLimit(
-            input.maxCharacters
-        )
+        public init(
+            provider: any WebSearchProvider = UnavailableWebSearchProvider(),
+            policy: WebAccessPolicy = .default,
+            sessionStore: WebSearchSessionStore = .init()
+        ) {
+            self.provider = provider
+            self.policy = policy
+            self.sessionStore = sessionStore
+        }
 
-        let response = try await provider.fetch(
-            .init(
-                url: validatedURL.absoluteString,
-                maxBytes: policy.maxFetchedBytes,
+        public func preflight(
+            _ input: Input,
+            workspace _: WorkspaceContext?
+        ) async throws -> ToolPreflight {
+            let record = try await requiredRecord(
+                searchID: input.searchID
+            )
+            let result = try requiredResult(
+                in: record,
+                resultID: input.resultID
+            )
+            let url = try policy.validate(
+                urlString: result.url
+            )
+
+            return .init(
+                tool: Self.definition.identifier,
+                risk: Self.risk,
+                summary: "Open previously returned web result \"\(result.title)\" from search \"\(record.query)\".",
+                estimates: .init(
+                    runtime: 8,
+                    bytes: policy.maxFetchedBytes
+                ),
+                preview: .init(
+                    command: "GET \(url.absoluteString)"
+                ),
+                sideEffects: [
+                    "external network read",
+                ]
+            )
+        }
+
+        public func call(
+            _ input: Input,
+            workspace _: WorkspaceContext?
+        ) async throws -> Output {
+            let record = try await requiredRecord(
+                searchID: input.searchID
+            )
+            let result = try requiredResult(
+                in: record,
+                resultID: input.resultID
+            )
+            let validatedURL = try policy.validate(
+                urlString: result.url
+            )
+            let characterLimit = policy.normalizedCharacterLimit(
+                input.maxCharacters
+            )
+
+            let response = try await provider.fetch(
+                .init(
+                    url: validatedURL.absoluteString,
+                    maxBytes: policy.maxFetchedBytes,
+                    maxCharacters: characterLimit
+                )
+            )
+
+            let truncatedText = truncate(
+                response.text,
                 maxCharacters: characterLimit
             )
-        )
+            let host = URL(
+                string: response.finalURL
+            )?.host ?? validatedURL.host ?? result.displayHost
 
-        let truncatedText = truncate(
-            response.text,
-            maxCharacters: characterLimit
-        )
-        let host = URL(
-            string: response.finalURL
-        )?.host ?? validatedURL.host ?? result.displayHost
-
-        return OpenWebResultToolOutput(
+            return Output(
                 searchID: record.id,
                 resultID: result.id,
                 title: response.title ?? result.title,
@@ -115,56 +167,55 @@ public struct OpenWebResultTool: AgentTool {
                 truncated: truncatedText.truncated,
                 text: truncatedText.text
             )
-    }
-}
+        }
 
-private extension OpenWebResultTool {
-    func requiredRecord(
-        searchID: String
-    ) async throws -> WebSearchSessionStore.Record {
-        guard let record = await sessionStore.record(
-            id: searchID
-        ) else {
-            throw WebToolError.missingSearchRecord(
-                searchID
+        private func requiredRecord(
+            searchID: String
+        ) async throws -> WebSearchSessionStore.Record {
+            guard let record = await sessionStore.record(
+                id: searchID
+            ) else {
+                throw WebToolError.missingSearchRecord(
+                    searchID
+                )
+            }
+
+            return record
+        }
+
+        private func requiredResult(
+            in record: WebSearchSessionStore.Record,
+            resultID: String
+        ) throws -> WebSearchResultSummary {
+            guard let result = record.results.first(
+                where: { $0.id == resultID }
+            ) else {
+                throw WebToolError.missingSearchResult(
+                    searchID: record.id,
+                    resultID: resultID
+                )
+            }
+
+            return result
+        }
+
+        private func truncate(
+            _ value: String,
+            maxCharacters: Int
+        ) -> (text: String, truncated: Bool) {
+            guard value.count > maxCharacters else {
+                return (value, false)
+            }
+
+            let endIndex = value.index(
+                value.startIndex,
+                offsetBy: maxCharacters
+            )
+
+            return (
+                String(value[..<endIndex]),
+                true
             )
         }
-
-        return record
-    }
-
-    func requiredResult(
-        in record: WebSearchSessionStore.Record,
-        resultID: String
-    ) throws -> WebSearchResultSummary {
-        guard let result = record.results.first(
-            where: { $0.id == resultID }
-        ) else {
-            throw WebToolError.missingSearchResult(
-                searchID: record.id,
-                resultID: resultID
-            )
-        }
-
-        return result
-    }
-
-    func truncate(
-        _ value: String,
-        maxCharacters: Int
-    ) -> (text: String, truncated: Bool) {
-        guard value.count > maxCharacters else {
-            return (value, false)
-        }
-
-        let endIndex = value.index(
-            value.startIndex,
-            offsetBy: maxCharacters
-        )
-
-        return (
-            String(value[..<endIndex]),
-            true
-        )
     }
 }

@@ -1,21 +1,73 @@
 import Agentic
+import Macros
+import Schema
+import Workspace
 import AgenticExecution
 
 public struct LintSwiftFilesTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = LintSwiftFilesToolInput
-    public typealias Output = LintSwiftFilesToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source file paths relative to the selected Swift package root.
+        public let paths: [String]
 
-    public static let identifier: AgentToolIdentifier =
+        public init(
+            paths: [String]
+        ) {
+            self.paths = paths
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        public let files: [SwiftRuleLintFileResult]
+        public let diagnosticCount: Int
+        public let errorCount: Int
+        public let warningCount: Int
+        public let informationCount: Int
+        public let hintCount: Int
+
+        public init(
+            files: [SwiftRuleLintFileResult],
+            diagnosticCount: Int,
+            errorCount: Int,
+            warningCount: Int,
+            informationCount: Int,
+            hintCount: Int
+        ) {
+            self.files = files
+            self.diagnosticCount = diagnosticCount
+            self.errorCount = errorCount
+            self.warningCount = warningCount
+            self.informationCount = informationCount
+            self.hintCount = hintCount
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "lint_swift_files"
     public static let description =
         "Run every authored SwiftSemantics source rule against an explicit bounded set of Swift source files in the selected package and return per-file structured diagnostics."
     public static let risk: ActionRisk = .observe
 
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
     public static let maximumPathCount = 64
 
-    public var identifier: AgentToolIdentifier {
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -31,7 +83,7 @@ public struct LintSwiftFilesTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let toolName = Self.identifier.rawValue
 
@@ -70,7 +122,7 @@ public struct LintSwiftFilesTool:
             )
         }
 
-        return LintSwiftFilesToolOutput(
+        return Output(
             files: files,
             diagnosticCount: files.reduce(0) {
                 $0 + $1.diagnostics.count

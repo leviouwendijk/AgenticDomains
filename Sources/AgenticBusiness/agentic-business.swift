@@ -1,1 +1,4 @@
-public enum AgenticBusiness {}
+import Agentic
+
+@Domain
+public enum Business {}

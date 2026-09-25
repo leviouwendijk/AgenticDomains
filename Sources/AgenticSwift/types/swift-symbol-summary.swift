@@ -1,5 +1,8 @@
 import Position
+import Macros
+import Schema
 
+@JSONSchema
 public struct SwiftSymbolSummary: Sendable, Codable, Hashable, Identifiable {
     public let id: String
     public let kind: SwiftSymbolKind

@@ -1,14 +1,171 @@
 import Agentic
+import Macros
+import Schema
+import Workspace
 import AgenticExecution
 import SwiftSemantics
 
 public struct InspectPackageGraphTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = AgenticSwiftEmptyToolInput
-    public typealias Output = InspectPackageGraphToolOutput
+    @JSONSchema
+    public struct Input:
+        Codable,
+        Sendable
+    {
+        public init() {}
+    }
 
-    public static let identifier: AgentToolIdentifier =
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        @JSONSchema
+        public struct Platform:
+            Sendable,
+            Codable
+        {
+            public let name: String
+            public let version: String
+        }
+
+        @JSONSchema
+        public struct Package:
+            Sendable,
+            Codable
+        {
+            public let identity: String
+            public let name: String
+            public let location: String?
+            public let version: String?
+            public let path: String?
+        }
+
+        @JSONSchema
+        public struct PackageDependency:
+            Sendable,
+            Codable
+        {
+            public let sourceIdentity: String
+            public let targetIdentity: String
+        }
+
+        @JSONSchema
+        public struct DeclaredPackageDependency:
+            Sendable,
+            Codable
+        {
+            public let kind: String
+            public let identity: String?
+            public let location: String?
+        }
+
+        @JSONSchema
+        public struct Product:
+            Sendable,
+            Codable
+        {
+            public let name: String
+            public let kind: String
+            public let targets: [String]
+        }
+
+        @JSONSchema
+        public struct Target:
+            Sendable,
+            Codable
+        {
+            @JSONSchema
+            public struct Dependency:
+                Sendable,
+                Codable
+            {
+                public let kind: String
+                public let name: String
+                public let package: String?
+            }
+            public let name: String
+            public let type: String
+            public let path: String?
+            public let dependencies: [Dependency]
+        }
+
+        public let rootIdentity: String
+        public let rootName: String
+        public let toolsVersion: String?
+        public let platforms: [Platform]
+        public let packages: [Package]
+        public let packageDependencies: [PackageDependency]
+        public let declaredPackageDependencies: [DeclaredPackageDependency]
+        public let products: [Product]
+        public let targets: [Target]
+
+        public init(
+            graph: SwiftSemanticPackageGraph
+        ) {
+            rootIdentity = graph.rootIdentity
+            rootName = graph.rootName
+            toolsVersion = graph.toolsVersion
+
+            platforms = graph.platforms.map {
+                .init(
+                    name: $0.name,
+                    version: $0.version
+                )
+            }
+
+            packages = graph.packages.map {
+                .init(
+                    identity: $0.identity,
+                    name: $0.name,
+                    location: $0.location,
+                    version: $0.version,
+                    path: $0.path
+                )
+            }
+
+            packageDependencies = graph.packageDependencies.map {
+                .init(
+                    sourceIdentity: $0.sourceIdentity,
+                    targetIdentity: $0.targetIdentity
+                )
+            }
+
+            declaredPackageDependencies = graph.declaredPackageDependencies.map {
+                .init(
+                    kind: $0.kind.rawValue,
+                    identity: $0.identity,
+                    location: $0.location
+                )
+            }
+
+            products = graph.products.map {
+                .init(
+                    name: $0.name,
+                    kind: $0.kind.rawValue,
+                    targets: $0.targets
+                )
+            }
+
+            targets = graph.targets.map { target in
+                .init(
+                    name: target.name,
+                    type: target.type,
+                    path: target.path,
+                    dependencies: target.dependencies.map {
+                        .init(
+                            kind: $0.kind.rawValue,
+                            name: $0.name,
+                            package: $0.package
+                        )
+                    }
+                )
+            }
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "inspect_package_graph"
 
     public static let description =
@@ -17,7 +174,13 @@ public struct InspectPackageGraphTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -29,21 +192,17 @@ public struct InspectPackageGraphTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = input
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             usesCompilerProvider: false,
             summary:
@@ -53,13 +212,13 @@ public struct InspectPackageGraphTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         _ = input
 
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -73,12 +232,66 @@ public struct InspectPackageGraphTool:
 }
 
 public struct FindSwiftDefinitionTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticPositionToolInput
-    public typealias Output = SwiftSemanticLocationsToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// One-based source line.
+        public let line: Int
+
+        /// One-based UTF-16 code-unit column used by compiler semantics.
+        public let utf16Column: Int
+
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            line: Int,
+            utf16Column: Int,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.line = line
+            self.utf16Column = utf16Column
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let locations: [SwiftSemanticLocation]
+
+        public init(
+            path: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            locations: [SwiftSemanticLocation]
+        ) {
+            self.path = path
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.locations = locations
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "find_swift_definition"
 
     public static let description =
@@ -87,7 +300,13 @@ public struct FindSwiftDefinitionTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -99,25 +318,21 @@ public struct FindSwiftDefinitionTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -127,20 +342,20 @@ public struct FindSwiftDefinitionTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let position = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -150,21 +365,81 @@ public struct FindSwiftDefinitionTool:
             at: position
         )
 
-        return locationOutput(
-            path: input.path,
+        let bounded = boundedLocations(
             values: values,
             limit: input.limit
+        )
+
+        return .init(
+            path: input.path,
+            totalCount: values.count,
+            returnedCount: bounded.count,
+            truncated: bounded.count < values.count,
+            locations: bounded
         )
     }
 }
 
 public struct FindSwiftReferencesTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticReferencesToolInput
-    public typealias Output = SwiftSemanticLocationsToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        public let path: String
+        public let line: Int
+        public let utf16Column: Int
 
-    public static let identifier: AgentToolIdentifier =
+        /// Whether the declaration itself is included in returned references.
+        public let includeDeclaration: Bool?
+
+        public let limit: Int?
+
+        public init(
+            path: String,
+            line: Int,
+            utf16Column: Int,
+            includeDeclaration: Bool? = nil,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.line = line
+            self.utf16Column = utf16Column
+            self.includeDeclaration = includeDeclaration
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let locations: [SwiftSemanticLocation]
+
+        public init(
+            path: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            locations: [SwiftSemanticLocation]
+        ) {
+            self.path = path
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.locations = locations
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "find_swift_references"
 
     public static let description =
@@ -173,7 +448,13 @@ public struct FindSwiftReferencesTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -185,25 +466,21 @@ public struct FindSwiftReferencesTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -213,20 +490,20 @@ public struct FindSwiftReferencesTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let position = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -239,21 +516,82 @@ public struct FindSwiftReferencesTool:
                     ?? true
         )
 
-        return locationOutput(
-            path: input.path,
+        let bounded = boundedLocations(
             values: values,
             limit: input.limit
+        )
+
+        return .init(
+            path: input.path,
+            totalCount: values.count,
+            returnedCount: bounded.count,
+            truncated: bounded.count < values.count,
+            locations: bounded
         )
     }
 }
 
 public struct FindSwiftImplementationsTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticPositionToolInput
-    public typealias Output = SwiftSemanticLocationsToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// One-based source line.
+        public let line: Int
+
+        /// One-based UTF-16 code-unit column used by compiler semantics.
+        public let utf16Column: Int
+
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            line: Int,
+            utf16Column: Int,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.line = line
+            self.utf16Column = utf16Column
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let locations: [SwiftSemanticLocation]
+
+        public init(
+            path: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            locations: [SwiftSemanticLocation]
+        ) {
+            self.path = path
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.locations = locations
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "find_swift_implementations"
 
     public static let description =
@@ -262,7 +600,13 @@ public struct FindSwiftImplementationsTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -274,25 +618,21 @@ public struct FindSwiftImplementationsTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -302,20 +642,20 @@ public struct FindSwiftImplementationsTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let position = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -325,21 +665,72 @@ public struct FindSwiftImplementationsTool:
             at: position
         )
 
-        return locationOutput(
-            path: input.path,
+        let bounded = boundedLocations(
             values: values,
             limit: input.limit
+        )
+
+        return .init(
+            path: input.path,
+            totalCount: values.count,
+            returnedCount: bounded.count,
+            truncated: bounded.count < values.count,
+            locations: bounded
         )
     }
 }
 
 public struct InspectSwiftDiagnosticsTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticFileToolInput
-    public typealias Output = InspectSwiftDiagnosticsToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let diagnostics: [SwiftSemanticDiagnostic]
+
+        public init(
+            path: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            diagnostics: [SwiftSemanticDiagnostic]
+        ) {
+            self.path = path
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.diagnostics = diagnostics
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "inspect_swift_diagnostics"
 
     public static let description =
@@ -348,7 +739,13 @@ public struct InspectSwiftDiagnosticsTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -360,19 +757,15 @@ public struct InspectSwiftDiagnosticsTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -382,15 +775,15 @@ public struct InspectSwiftDiagnosticsTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -418,12 +811,53 @@ public struct InspectSwiftDiagnosticsTool:
 }
 
 public struct SearchSwiftSymbolsTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticSymbolSearchToolInput
-    public typealias Output = SearchSwiftSymbolsToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        public let query: String
+        public let limit: Int?
 
-    public static let identifier: AgentToolIdentifier =
+        public init(
+            query: String,
+            limit: Int? = nil
+        ) {
+            self.query = query
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let query: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let symbols: [SwiftSemanticWorkspaceSymbol]
+
+        public init(
+            query: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            symbols: [SwiftSemanticWorkspaceSymbol]
+        ) {
+            self.query = query
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.symbols = symbols
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "search_swift_symbols"
 
     public static let description =
@@ -432,7 +866,13 @@ public struct SearchSwiftSymbolsTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -444,19 +884,15 @@ public struct SearchSwiftSymbolsTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             summary:
                 "Search Swift compiler symbols matching '\(input.query)' at the selected workspace location."
@@ -465,11 +901,11 @@ public struct SearchSwiftSymbolsTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -497,12 +933,57 @@ public struct SearchSwiftSymbolsTool:
 }
 
 public struct InspectSwiftSymbolTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticPositionToolInput
-    public typealias Output = InspectSwiftSymbolToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// One-based source line.
+        public let line: Int
+
+        /// One-based UTF-16 code-unit column used by compiler semantics.
+        public let utf16Column: Int
+
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            line: Int,
+            utf16Column: Int,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.line = line
+            self.utf16Column = utf16Column
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let symbols: [SwiftSemanticCompilerSymbol]
+
+        public init(
+            path: String,
+            symbols: [SwiftSemanticCompilerSymbol]
+        ) {
+            self.path = path
+            self.symbols = symbols
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "inspect_swift_symbol"
 
     public static let description =
@@ -511,7 +992,13 @@ public struct InspectSwiftSymbolTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -523,25 +1010,21 @@ public struct InspectSwiftSymbolTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -551,20 +1034,20 @@ public struct InspectSwiftSymbolTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let position = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -589,12 +1072,57 @@ public struct InspectSwiftSymbolTool:
 }
 
 public struct InspectSwiftHoverTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticPositionToolInput
-    public typealias Output = InspectSwiftHoverToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// One-based source line.
+        public let line: Int
+
+        /// One-based UTF-16 code-unit column used by compiler semantics.
+        public let utf16Column: Int
+
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            line: Int,
+            utf16Column: Int,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.line = line
+            self.utf16Column = utf16Column
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let hover: SwiftSemanticHover?
+
+        public init(
+            path: String,
+            hover: SwiftSemanticHover?
+        ) {
+            self.path = path
+            self.hover = hover
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "inspect_swift_hover"
 
     public static let description =
@@ -603,7 +1131,13 @@ public struct InspectSwiftHoverTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -615,25 +1149,21 @@ public struct InspectSwiftHoverTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -643,20 +1173,20 @@ public struct InspectSwiftHoverTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let position = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -673,12 +1203,56 @@ public struct InspectSwiftHoverTool:
 }
 
 public struct InspectSwiftDocumentSymbolsTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticFileToolInput
-    public typealias Output = InspectSwiftDocumentSymbolsToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let symbols: [SwiftSemanticDocumentSymbol]
+
+        public init(
+            path: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            symbols: [SwiftSemanticDocumentSymbol]
+        ) {
+            self.path = path
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.symbols = symbols
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "inspect_swift_document_symbols"
 
     public static let description =
@@ -687,7 +1261,13 @@ public struct InspectSwiftDocumentSymbolsTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -699,19 +1279,15 @@ public struct InspectSwiftDocumentSymbolsTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -721,15 +1297,15 @@ public struct InspectSwiftDocumentSymbolsTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -757,12 +1333,66 @@ public struct InspectSwiftDocumentSymbolsTool:
 }
 
 public struct InspectSwiftCallersTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticPositionToolInput
-    public typealias Output = InspectSwiftCallersToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// One-based source line.
+        public let line: Int
+
+        /// One-based UTF-16 code-unit column used by compiler semantics.
+        public let utf16Column: Int
+
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            line: Int,
+            utf16Column: Int,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.line = line
+            self.utf16Column = utf16Column
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let calls: [SwiftSemanticIncomingCall]
+
+        public init(
+            path: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            calls: [SwiftSemanticIncomingCall]
+        ) {
+            self.path = path
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.calls = calls
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "inspect_swift_callers"
 
     public static let description =
@@ -771,7 +1401,13 @@ public struct InspectSwiftCallersTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -783,25 +1419,21 @@ public struct InspectSwiftCallersTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -811,20 +1443,20 @@ public struct InspectSwiftCallersTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let position = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -853,12 +1485,66 @@ public struct InspectSwiftCallersTool:
 }
 
 public struct InspectSwiftCalleesTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticPositionToolInput
-    public typealias Output = InspectSwiftCalleesToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// One-based source line.
+        public let line: Int
+
+        /// One-based UTF-16 code-unit column used by compiler semantics.
+        public let utf16Column: Int
+
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            line: Int,
+            utf16Column: Int,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.line = line
+            self.utf16Column = utf16Column
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let calls: [SwiftSemanticOutgoingCall]
+
+        public init(
+            path: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            calls: [SwiftSemanticOutgoingCall]
+        ) {
+            self.path = path
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.calls = calls
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "inspect_swift_callees"
 
     public static let description =
@@ -867,7 +1553,13 @@ public struct InspectSwiftCalleesTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -879,25 +1571,21 @@ public struct InspectSwiftCalleesTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -907,20 +1595,20 @@ public struct InspectSwiftCalleesTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let position = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -949,12 +1637,66 @@ public struct InspectSwiftCalleesTool:
 }
 
 public struct InspectSwiftSupertypesTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticPositionToolInput
-    public typealias Output = InspectSwiftTypeHierarchyToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// One-based source line.
+        public let line: Int
+
+        /// One-based UTF-16 code-unit column used by compiler semantics.
+        public let utf16Column: Int
+
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            line: Int,
+            utf16Column: Int,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.line = line
+            self.utf16Column = utf16Column
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let types: [SwiftSemanticTypeHierarchyItem]
+
+        public init(
+            path: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            types: [SwiftSemanticTypeHierarchyItem]
+        ) {
+            self.path = path
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.types = types
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "inspect_swift_supertypes"
 
     public static let description =
@@ -963,7 +1705,13 @@ public struct InspectSwiftSupertypesTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -975,25 +1723,21 @@ public struct InspectSwiftSupertypesTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -1003,20 +1747,20 @@ public struct InspectSwiftSupertypesTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let position = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -1026,21 +1770,82 @@ public struct InspectSwiftSupertypesTool:
             at: position
         )
 
-        return typeHierarchyOutput(
-            path: input.path,
+        let bounded = boundedTypeHierarchy(
             values: values,
             limit: input.limit
+        )
+
+        return .init(
+            path: input.path,
+            totalCount: values.count,
+            returnedCount: bounded.count,
+            truncated: bounded.count < values.count,
+            types: bounded
         )
     }
 }
 
 public struct InspectSwiftSubtypesTool:
-    AgentTool
+    Tool
 {
-    public typealias Input = SwiftSemanticPositionToolInput
-    public typealias Output = InspectSwiftTypeHierarchyToolOutput
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Swift source path relative to the selected Swift package root.
+        public let path: String
 
-    public static let identifier: AgentToolIdentifier =
+        /// One-based source line.
+        public let line: Int
+
+        /// One-based UTF-16 code-unit column used by compiler semantics.
+        public let utf16Column: Int
+
+        /// Optional maximum number of returned items.
+        public let limit: Int?
+
+        public init(
+            path: String,
+            line: Int,
+            utf16Column: Int,
+            limit: Int? = nil
+        ) {
+            self.path = path
+            self.line = line
+            self.utf16Column = utf16Column
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable
+    {
+        public let path: String
+        public let totalCount: Int
+        public let returnedCount: Int
+        public let truncated: Bool
+        public let types: [SwiftSemanticTypeHierarchyItem]
+
+        public init(
+            path: String,
+            totalCount: Int,
+            returnedCount: Int,
+            truncated: Bool,
+            types: [SwiftSemanticTypeHierarchyItem]
+        ) {
+            self.path = path
+            self.totalCount = totalCount
+            self.returnedCount = returnedCount
+            self.truncated = truncated
+            self.types = types
+        }
+    }
+
+public static let identifier: ToolIdentifier =
         "inspect_swift_subtypes"
 
     public static let description =
@@ -1049,7 +1854,13 @@ public struct InspectSwiftSubtypesTool:
     public static let risk: ActionRisk =
         .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -1061,25 +1872,21 @@ public struct InspectSwiftSubtypesTool:
         Self.risk
     }
 
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
-
     public init() {}
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         return try SwiftSemanticToolSupport.preflight(
             context: context,
-            toolName: name,
+            toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
             summary:
@@ -1089,20 +1896,20 @@ public struct InspectSwiftSubtypesTool:
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
             input.path,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let position = try SwiftSemanticToolSupport.position(
             line: input.line,
             utf16Column: input.utf16Column,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
             for: execution
@@ -1112,56 +1919,47 @@ public struct InspectSwiftSubtypesTool:
             at: position
         )
 
-        return typeHierarchyOutput(
-            path: input.path,
+        let bounded = boundedTypeHierarchy(
             values: values,
             limit: input.limit
+        )
+
+        return .init(
+            path: input.path,
+            totalCount: values.count,
+            returnedCount: bounded.count,
+            truncated: bounded.count < values.count,
+            types: bounded
         )
     }
 }
 
-private func locationOutput(
-    path: String,
+private func boundedLocations(
     values: [SwiftSemanticLocation],
     limit requestedLimit: Int?
-) -> SwiftSemanticLocationsToolOutput {
+) -> [SwiftSemanticLocation] {
     let limit = SwiftSemanticToolSupport.limit(
         requestedLimit
     )
-    let returned = Array(
+
+    return Array(
         values.prefix(
             limit
         )
-    )
-
-    return .init(
-        path: path,
-        totalCount: values.count,
-        returnedCount: returned.count,
-        truncated: returned.count < values.count,
-        locations: returned
     )
 }
 
-private func typeHierarchyOutput(
-    path: String,
+private func boundedTypeHierarchy(
     values: [SwiftSemanticTypeHierarchyItem],
     limit requestedLimit: Int?
-) -> InspectSwiftTypeHierarchyToolOutput {
+) -> [SwiftSemanticTypeHierarchyItem] {
     let limit = SwiftSemanticToolSupport.limit(
         requestedLimit
     )
-    let returned = Array(
+
+    return Array(
         values.prefix(
             limit
         )
-    )
-
-    return .init(
-        path: path,
-        totalCount: values.count,
-        returnedCount: returned.count,
-        truncated: returned.count < values.count,
-        types: returned
     )
 }

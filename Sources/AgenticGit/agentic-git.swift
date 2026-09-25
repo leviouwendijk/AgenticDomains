@@ -1,1 +1,4 @@
-public enum AgenticGit {}
+import Agentic
+
+@Domain
+public enum Git {}

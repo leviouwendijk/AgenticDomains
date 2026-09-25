@@ -1,206 +1,184 @@
-import AgenticRecovery
 import Agentic
-import AgenticExecution
-import Schema
 import Macros
+import Schema
+import Workspace
 
-@JSONSchema
-public struct AppleRemindersEmptyToolInput:
-    Codable,
-    Sendable,
-    Hashable
-{
-    public init() {}
-}
-
-@JSONSchema
-public struct RemindersToolInput:
-    Codable,
-    Sendable,
-    Hashable
-{
-    /// Maximum number of reminders to return. The provider clamps this to 1...200.
-    public let limit: Int
-
-    public init(
-        limit: Int
-    ) {
-        self.limit = limit
-    }
-}
-
-public struct RemindersAuthorizationStatusTool:
-    AgentTool
-{
-    public typealias Input = AppleRemindersEmptyToolInput
-    public typealias Output = RemindersAuthorizationStatus
-
-    public static let toolIdentifier: AgentToolIdentifier =
-        "reminders_authorization_status"
-
-    public let identifier: AgentToolIdentifier =
-        Self.toolIdentifier
-    public let description =
-        "Observe the current macOS Reminders authorization status without requesting permission."
-    public let risk: ActionRisk = .observe
-
-    private let provider: any AppleRemindersProvider
-
-    public init(
-        provider: any AppleRemindersProvider
-    ) {
-        self.provider = provider
-    }
-
-    public func call(
-        _ input: Input,
-        context: AgentToolExecutionContext
-    ) async throws -> Output {
-        _ = input
-        _ = context
-        return await provider.authorizationStatus()
-    }
-}
-
-public struct RemindersRequestFullAccessTool:
-    AgentTool
-{
-    public typealias Input = AppleRemindersEmptyToolInput
-    public typealias Output = RemindersAuthorizationRequestResult
-
-    public static let toolIdentifier: AgentToolIdentifier =
-        "reminders_request_full_access"
-
-    public let identifier: AgentToolIdentifier =
-        Self.toolIdentifier
-    public let description =
-        "Request full access to the user's reminders through the macOS EventKit privacy permission flow."
-    public let risk: ActionRisk = .boundedmutate
-
-    private let provider: any AppleRemindersProvider
-
-    public init(
-        provider: any AppleRemindersProvider
-    ) {
-        self.provider = provider
-    }
-
-    public func call(
-        _ input: Input,
-        context: AgentToolExecutionContext
-    ) async throws -> Output {
-        _ = input
-        _ = context
-        return try await provider.requestFullAccess()
-    }
-}
-
-public struct RemindersCreateTool:
-    AgentTool
-{
-    public typealias Input = ReminderCreation
-    public typealias Output = ReminderItem
-
-    public static let toolIdentifier:
-        AgentToolIdentifier = "reminders_create"
-
-    public let identifier: AgentToolIdentifier =
-        Self.toolIdentifier
-    public let description =
-        "Create exactly one reminder in an explicit reminder list or the configured default reminders list."
-    public let risk: ActionRisk = .boundedmutate
-
-    private let provider: any AppleRemindersProvider
-
-    public init(
-        provider: any AppleRemindersProvider
-    ) {
-        self.provider = provider
-    }
-
-    public func preflight(
-        _ input: Input,
-        context: AgentToolExecutionContext
-    ) async throws -> ToolPreflight {
-        let destination =
-            input.listTitle ?? "default reminders list"
-
-        return ToolPreflight(
-            toolName: identifier.rawValue,
-            risk: risk,
-            workspaceRoot: context.workspace?.rootURL.path,
-            summary: "Create reminder '\(input.title)' in \(destination)."
-        )
-    }
-
-    public func call(
-        _ input: Input,
-        context: AgentToolExecutionContext
-    ) async throws -> Output {
-        _ = context
-
-        return try await provider.createReminder(
-            input
-        )
-    }
-
-    public func classify(
-        _ error: any Error,
-        phase: AgentToolCallPhase,
-        input _: Input?,
-        context: AgentToolExecutionContext
-    ) -> Recovery.Incident? {
-        guard
-            phase == .call,
-            let error = error
-                as? RemindersAuthorizationRequiredError
-        else {
-            return nil
+public extension AppleServices.Tools {
+    @Tool("reminders_authorization_status")
+    struct ReadRemindersAuthorizationStatus {
+        @JSONSchema
+        public struct Input:
+            Codable,
+            Sendable,
+            Hashable
+        {
+            public init() {}
         }
 
-        return Recovery.Incident(
-            kind: .authorization_required,
-            stage: .execution,
-            effectState: .not_applied,
-            retrySafety: .safe,
-            scope: .init(
-                kind: .tool,
-                identifier:
-                    context.toolCallID
-                    ?? identifier.rawValue
-            ),
-            message: error.localizedDescription
-        )
-    }
-}
+        public typealias Output = RemindersAuthorizationStatus
 
-public struct RemindersTool:
-    AgentTool
-{
-    public typealias Input = RemindersToolInput
-    public typealias Output = [ReminderItem]
+        public static let purpose =
+            "Observe the current macOS Reminders authorization status without requesting permission."
+        public static let risk: ActionRisk = .observe
 
-    public let identifier: AgentToolIdentifier =
-        "reminders"
-    public let description =
-        "Read reminders using the configured Apple Reminders provider."
-    public let risk: ActionRisk = .observe
+        private let provider: any AppleRemindersProvider
 
-    private let provider: any AppleRemindersProvider
+        public init(
+            provider: any AppleRemindersProvider
+        ) {
+            self.provider = provider
+        }
 
-    public init(
-        provider: any AppleRemindersProvider
-    ) {
-        self.provider = provider
+        public func call(
+            _ input: Input,
+            workspace _: WorkspaceContext?
+        ) async throws -> Output {
+            _ = input
+            return await provider.authorizationStatus()
+        }
     }
 
-    public func call(
-        _ input: Input,
-        context: AgentToolExecutionContext
-    ) async throws -> Output {
-        _ = context
-        return try await provider.reminders(
-            limit: input.limit
-        )
+    @Tool("reminders_request_full_access")
+    struct RequestRemindersFullAccess {
+        @JSONSchema
+        public struct Input:
+            Codable,
+            Sendable,
+            Hashable
+        {
+            public init() {}
+        }
+
+        public typealias Output = RemindersAuthorizationRequestResult
+
+        public static let purpose =
+            "Request full access to the user's reminders through the macOS EventKit privacy permission flow."
+        public static let risk: ActionRisk = .boundedmutate
+
+        private let provider: any AppleRemindersProvider
+
+        public init(
+            provider: any AppleRemindersProvider
+        ) {
+            self.provider = provider
+        }
+
+        public func call(
+            _ input: Input,
+            workspace _: WorkspaceContext?
+        ) async throws -> Output {
+            _ = input
+            return try await provider.requestFullAccess()
+        }
+    }
+
+    @Tool("reminders_create")
+    struct CreateReminder {
+        public typealias Input = ReminderCreation
+        public typealias Output = ReminderItem
+
+        public static let purpose =
+            "Create exactly one reminder in an explicit reminder list or the configured default reminders list."
+        public static let risk: ActionRisk = .boundedmutate
+
+        private let provider: any AppleRemindersProvider
+
+        public init(
+            provider: any AppleRemindersProvider
+        ) {
+            self.provider = provider
+        }
+
+        public func preflight(
+            _ input: Input,
+            workspace _: WorkspaceContext?
+        ) async throws -> ToolPreflight {
+            let destination =
+                input.listTitle ?? "default reminders list"
+
+            return ToolPreflight(
+                tool: Self.definition.identifier,
+                risk: Self.definition.risk,
+                summary: "Create reminder '\(input.title)' in \(destination)."
+            )
+        }
+
+        public func call(
+            _ input: Input,
+            workspace _: WorkspaceContext?
+        ) async throws -> Output {
+            try await provider.createReminder(
+                input
+            )
+        }
+
+        public func classify(
+            _ error: any Error,
+            phase: ToolCall.Phase,
+            input _: Input?
+        ) -> Recovery.Incident? {
+            guard
+                phase == .call,
+                let error = error
+                    as? RemindersAuthorizationRequiredError
+            else {
+                return nil
+            }
+
+            return Recovery.Incident(
+                kind: .authorization_required,
+                stage: .execution,
+                effectState: .not_applied,
+                retrySafety: .safe,
+                scope: .init(
+                    kind: .tool,
+                    identifier:
+                        Self.definition.identifier.rawValue
+                ),
+                message: error.localizedDescription
+            )
+        }
+    }
+
+    @Tool("reminders")
+    struct ReadReminders {
+        @JSONSchema
+        public struct Input:
+            Codable,
+            Sendable,
+            Hashable
+        {
+            /// Maximum number of reminders to return. The provider clamps this to 1...200.
+            public let limit: Int
+
+            public init(
+                limit: Int
+            ) {
+                self.limit = limit
+            }
+        }
+
+        public typealias Output = [ReminderItem]
+
+        public static let purpose =
+            "Read reminders using the configured Apple Reminders provider."
+        public static let risk: ActionRisk = .observe
+
+        private let provider: any AppleRemindersProvider
+
+        public init(
+            provider: any AppleRemindersProvider
+        ) {
+            self.provider = provider
+        }
+
+        public func call(
+            _ input: Input,
+            workspace _: WorkspaceContext?
+        ) async throws -> Output {
+            try await provider.reminders(
+                limit: input.limit
+            )
+        }
     }
 }

@@ -1,26 +1,24 @@
 import AgenticExecution
 
-public struct AgenticGitToolSet: AgentToolSet {
+public struct AgenticGitToolProvider: AgentToolProvider {
     public init() {}
 
-    public func register(
+    public func registerTools(
         into registry: inout ToolRegistry
     ) throws {
-        try registry.register {
-            GitRepositoryStateTool()
-            GitDiffTool()
-            GitWorktreeListTool()
-            GitWorktreeCreateTool()
-            GitWorktreeRemoveTool()
-            GitIntegrationPlanTool()
-            GitIntegrationPrepareTool()
-            GitIntegrationPromoteTool()
-            GitIntegrationCleanupTool()
-            GitReconciliationPlanTool()
-            GitPullTool()
-            GitPrepareCommitTool()
-            GitCommitPreparedTool()
-            GitPushTool()
-        }
+        try registry.register(GitRepositoryStateTool(), execution: .targetable)
+        try registry.register(GitDiffTool(), execution: .targetable)
+        try registry.register(GitWorktreeListTool(), execution: .targetable)
+        try registry.register(GitWorktreeCreateTool(), execution: .targetable)
+        try registry.register(GitWorktreeRemoveTool(), execution: .targetable)
+        try registry.register(GitIntegrationPlanTool(), execution: .targetable)
+        try registry.register(GitIntegrationPrepareTool(), execution: .targetable)
+        try registry.register(GitIntegrationPromoteTool(), execution: .targetable)
+        try registry.register(GitIntegrationCleanupTool(), execution: .targetable)
+        try registry.register(GitReconciliationPlanTool(), execution: .targetable)
+        try registry.register(GitPullTool(), execution: .targetable)
+        try registry.register(GitPrepareCommitTool(), execution: .targetable)
+        try registry.register(GitCommitPreparedTool(), execution: .targetable)
+        try registry.register(GitPushTool(), execution: .targetable)
     }
 }

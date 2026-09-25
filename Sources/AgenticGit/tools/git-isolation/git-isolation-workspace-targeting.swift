@@ -1,44 +1,18 @@
-import AgenticExecution
-import AgenticWorkspace
+import Workspace
 
-func agenticGitScopedWorkspace(
-    _ context: AgentToolExecutionContext,
+func agenticGitWorkspace(
+    _ candidate: WorkspaceContext?,
     toolName: String
-) async throws -> AgentWorkspace {
-    let execution = try await GitWorkspaceExecution.resolve(
-        context,
+) async throws -> WorkspaceContext {
+    let workspace = try AgenticGitToolSupport.requireWorkspace(
+        candidate,
         toolName: toolName
     )
 
-    return try AgentWorkspace(
-        root: execution.repositoryRoot
+    try await AgenticGitToolSupport.requireRepositoryRoot(
+        workspace,
+        toolName: toolName
     )
-}
 
-extension GitWorktreeListTool {
-    public var execution: AgentToolExecutionContract { .targetable }
-}
-
-extension GitWorktreeCreateTool {
-    public var execution: AgentToolExecutionContract { .targetable }
-}
-
-extension GitWorktreeRemoveTool {
-    public var execution: AgentToolExecutionContract { .targetable }
-}
-
-extension GitIntegrationPlanTool {
-    public var execution: AgentToolExecutionContract { .targetable }
-}
-
-extension GitIntegrationPrepareTool {
-    public var execution: AgentToolExecutionContract { .targetable }
-}
-
-extension GitIntegrationPromoteTool {
-    public var execution: AgentToolExecutionContract { .targetable }
-}
-
-extension GitIntegrationCleanupTool {
-    public var execution: AgentToolExecutionContract { .targetable }
+    return workspace
 }

@@ -1,19 +1,70 @@
 import Agentic
+import Macros
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Primitives
 import Schema
 
-public struct ListSwiftSymbolsTool: AgentTool {
-    public typealias Input = ListSwiftSymbolsToolInput
-    public typealias Output = ListSwiftSymbolsToolOutput
-    public static let identifier: AgentToolIdentifier = "list_swift_symbols"
+public struct ListSwiftSymbolsTool: Tool {
+    @JSONSchema
+    public struct Input: Sendable, Codable, Hashable {
+        /// Swift source file path relative to the current Agentic workspace.
+        public let path: String
+
+        /// Optional Swift symbol kinds to include. Omit or pass an empty array to include all kinds.
+        @Schema(required: false)
+        public let includeKinds: [SwiftSymbolKind]
+
+        /// Optional maximum number of symbols to return. Defaults to 200 and is clamped to at least 1.
+        public let maxSymbols: Int?
+
+        public init(
+            path: String,
+            includeKinds: [SwiftSymbolKind] = [],
+            maxSymbols: Int? = nil
+        ) {
+            self.path = path
+            self.includeKinds = includeKinds
+            self.maxSymbols = maxSymbols
+        }
+    }
+
+    @JSONSchema
+    public struct Output: Sendable, Codable, Hashable {
+        public let path: String
+        public let totalSymbolCount: Int
+        public let returnedSymbolCount: Int
+        public let truncated: Bool
+        public let symbols: [SwiftSymbolSummary]
+
+        public init(
+            path: String,
+            totalSymbolCount: Int,
+            returnedSymbolCount: Int,
+            truncated: Bool,
+            symbols: [SwiftSymbolSummary]
+        ) {
+            self.path = path
+            self.totalSymbolCount = totalSymbolCount
+            self.returnedSymbolCount = returnedSymbolCount
+            self.truncated = truncated
+            self.symbols = symbols
+        }
+    }
+
+public static let identifier: ToolIdentifier = "list_swift_symbols"
     public static let description = "List Swift symbols discovered in a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe
 
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
     public let collector: SwiftSymbolCollector
 
-    public var identifier: AgentToolIdentifier {
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -33,40 +84,43 @@ public struct ListSwiftSymbolsTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
 
         let renderedPath = try AgenticSwiftToolSupport.resolvedPreflightPath(
             input.path,
-            workspace: context.workspace
+            workspace: context
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: context.workspace?.rootURL.path,
-            targetPaths: [renderedPath],
             summary: summary(
                 for: input,
                 renderedPath: renderedPath
+            ),
+            access: .init(
+                targets: [renderedPath]
             )
         )
     }
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
-            toolName: name
+            context,
+            toolName: Self.definition.identifier.rawValue
         )
-        let path = try workspace.resolve(
-            input.path
+        let file = try AgenticSwiftToolSupport.projectFileURL(
+            input.path,
+            workspace: workspace,
+            toolName: Self.definition.identifier.rawValue
         )
 
         var symbols = try collector.collect(
-            in: path
+            in: file
         )
 
         if input.filtersByKind {
@@ -87,11 +141,9 @@ public struct ListSwiftSymbolsTool: AgentTool {
             )
         )
 
-        return ListSwiftSymbolsToolOutput(
-                path: path.presentingRelative(
-                    filetype: true
-                ),
-                totalSymbolCount: totalSymbolCount,
+        return Output(
+            path: input.path,
+            totalSymbolCount: totalSymbolCount,
                 returnedSymbolCount: returnedSymbols.count,
                 truncated: returnedSymbols.count < totalSymbolCount,
                 symbols: returnedSymbols
@@ -101,7 +153,7 @@ public struct ListSwiftSymbolsTool: AgentTool {
 
 private extension ListSwiftSymbolsTool {
     func summary(
-        for input: ListSwiftSymbolsToolInput,
+        for input: ListSwiftSymbolsTool.Input,
         renderedPath: String
     ) -> String {
         guard input.filtersByKind else {
@@ -113,5 +165,57 @@ private extension ListSwiftSymbolsTool {
         )
 
         return "List Swift symbols in \(renderedPath) filtered to: \(kinds)"
+    }
+}
+
+private extension ListSwiftSymbolsTool.Input {
+    enum CodingKeys:
+        String,
+        CodingKey
+    {
+        case path
+        case includeKinds
+        case maxSymbols
+    }
+}
+
+public extension ListSwiftSymbolsTool.Input {
+    init(
+        from decoder: Decoder
+    ) throws {
+        let container = try decoder.container(
+            keyedBy: CodingKeys.self
+        )
+
+        self.init(
+            path: try container.decode(
+                String.self,
+                forKey: .path
+            ),
+            includeKinds: try container.decodeIfPresent(
+                [SwiftSymbolKind].self,
+                forKey: .includeKinds
+            ) ?? [],
+            maxSymbols: try container.decodeIfPresent(
+                Int.self,
+                forKey: .maxSymbols
+            )
+        )
+    }
+}
+
+public extension ListSwiftSymbolsTool.Input {
+
+
+    var clampedMaxSymbols: Int {
+        guard let maxSymbols else {
+            return 200
+        }
+
+        return max(1, maxSymbols)
+    }
+
+    var filtersByKind: Bool {
+        !includeKinds.isEmpty
     }
 }

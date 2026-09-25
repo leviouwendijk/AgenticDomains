@@ -1,6 +1,6 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Foundation
 import Interfaces
 import Primitives
@@ -31,10 +31,10 @@ public struct GitIntegrationPromoteToolInput:
     }
 }
 
-public struct GitIntegrationPromoteTool: AgentTool {
+public struct GitIntegrationPromoteTool: Tool {
     public typealias Input = GitIntegrationPromoteToolInput
     public typealias Output = GitManagerIntegrationPromotion
-    public static let identifier: AgentToolIdentifier =
+    public static let identifier: ToolIdentifier =
         "git_integration_promote"
 
     public static let description =
@@ -42,7 +42,13 @@ public struct GitIntegrationPromoteTool: AgentTool {
 
     public static let risk: ActionRisk = .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -58,11 +64,11 @@ public struct GitIntegrationPromoteTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let context = try await resolvedContext(
@@ -71,13 +77,16 @@ public struct GitIntegrationPromoteTool: AgentTool {
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: context.workspace.rootURL.path,
-            targetPaths: [context.workspace.rootURL.path]
-                + (context.execution.worktree.map { [$0.path] } ?? []),
             summary: "Fast-forward local branch \(context.input.targetBranch) from exact target \(context.execution.plan.target.commit) to prepared integration \(context.execution.integrationHead ?? "missing").",
-            estimatedWriteCount: 1,
+            access: .init(
+                targets: [context.workspace.absoluteURL.path]
+                    + (context.execution.worktree.map { [$0.path] } ?? [])
+            ),
+            estimates: .init(
+                write: .init(count: 1)
+            ),
             sideEffects: [
                 "advance one local target branch only by fast-forward",
                 "update its checked-out clean working tree when the branch is occupied",
@@ -107,11 +116,11 @@ public struct GitIntegrationPromoteTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let context = try await resolvedContext(
@@ -122,7 +131,7 @@ public struct GitIntegrationPromoteTool: AgentTool {
         return try await GitManagerIntegrationExecutor.promote(
                 context.execution,
                 targetBranch: context.input.targetBranch,
-                at: context.workspace.rootURL
+                at: context.workspace.absoluteURL
             )
     }
 }
@@ -130,22 +139,22 @@ public struct GitIntegrationPromoteTool: AgentTool {
 private extension GitIntegrationPromoteTool {
     struct Context {
         let input: GitIntegrationPromoteToolInput
-        let workspace: AgentWorkspace
+        let workspace: WorkspaceContext
         let execution: GitManagerIntegrationExecution
     }
 
     func resolvedContext(
         _ input: GitIntegrationPromoteToolInput,
-        workspace candidate: AgentWorkspace?
+        workspace candidate: WorkspaceContext?
     ) async throws -> Context {
         let workspace = try AgenticGitToolSupport.requireWorkspace(
             candidate,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let execution = try AgenticGitIntegrationReceipt.decode(
@@ -162,7 +171,7 @@ private extension GitIntegrationPromoteTool {
         if let worktree = execution.worktree {
             _ = try AgenticGitManagedWorktrees.requireManaged(
                 worktree,
-                repository: workspace.rootURL,
+                repository: workspace.absoluteURL,
                 kind: .integration
             )
         }
@@ -203,6 +212,7 @@ public struct GitIntegrationCleanupToolInput:
     }
 }
 
+@JSONSchema
 public struct GitIntegrationCleanupToolOutput:
     Sendable,
     Codable,
@@ -223,10 +233,10 @@ public struct GitIntegrationCleanupToolOutput:
     }
 }
 
-public struct GitIntegrationCleanupTool: AgentTool {
+public struct GitIntegrationCleanupTool: Tool {
     public typealias Input = GitIntegrationCleanupToolInput
     public typealias Output = GitIntegrationCleanupToolOutput
-    public static let identifier: AgentToolIdentifier =
+    public static let identifier: ToolIdentifier =
         "git_integration_cleanup"
 
     public static let description =
@@ -234,7 +244,13 @@ public struct GitIntegrationCleanupTool: AgentTool {
 
     public static let risk: ActionRisk = .privileged
 
-    public var identifier: AgentToolIdentifier {
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -250,11 +266,11 @@ public struct GitIntegrationCleanupTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let context = try await resolvedContext(
@@ -263,14 +279,19 @@ public struct GitIntegrationCleanupTool: AgentTool {
         )
 
         return .init(
-            toolName: name,
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: context.workspace.rootURL.path,
-            targetPaths: context.execution.worktree.map { [$0.path] } ?? [],
             summary: context.input.resolvedDiscard
                 ? "Explicitly discard disposable integration state \(context.execution.integrationBranch ?? "none")."
                 : "Clean disposable integration state only after Interfaces proves the prepared integration is incorporated into its target.",
-            estimatedWriteCount: context.execution.worktree == nil ? 0 : 1,
+            access: .init(
+                targets: context.execution.worktree.map { [$0.path] } ?? []
+            ),
+            estimates: .init(
+                write: .init(
+                    count: context.execution.worktree == nil ? 0 : 1
+                )
+            ),
             sideEffects: [
                 "remove only the disposable Agentic-managed integration worktree",
                 "delete only the disposable integration branch",
@@ -296,11 +317,11 @@ public struct GitIntegrationCleanupTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
-        let workspace = try await agenticGitScopedWorkspace(
+        let workspace = try await agenticGitWorkspace(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let context = try await resolvedContext(
@@ -312,7 +333,7 @@ public struct GitIntegrationCleanupTool: AgentTool {
         try await GitManagerIntegrationExecutor.cleanup(
             context.execution,
             discard: context.input.resolvedDiscard,
-            at: context.workspace.rootURL
+            at: context.workspace.absoluteURL
         )
 
         return GitIntegrationCleanupToolOutput(
@@ -326,22 +347,22 @@ public struct GitIntegrationCleanupTool: AgentTool {
 private extension GitIntegrationCleanupTool {
     struct Context {
         let input: GitIntegrationCleanupToolInput
-        let workspace: AgentWorkspace
+        let workspace: WorkspaceContext
         let execution: GitManagerIntegrationExecution
     }
 
     func resolvedContext(
         _ input: GitIntegrationCleanupToolInput,
-        workspace candidate: AgentWorkspace?
+        workspace candidate: WorkspaceContext?
     ) async throws -> Context {
         let workspace = try AgenticGitToolSupport.requireWorkspace(
             candidate,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await AgenticGitToolSupport.requireRepositoryRoot(
             workspace,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let execution = try AgenticGitIntegrationReceipt.decode(
@@ -352,7 +373,7 @@ private extension GitIntegrationCleanupTool {
         if let worktree = execution.worktree {
             _ = try AgenticGitManagedWorktrees.requireManaged(
                 worktree,
-                repository: workspace.rootURL,
+                repository: workspace.absoluteURL,
                 kind: .integration
             )
         }

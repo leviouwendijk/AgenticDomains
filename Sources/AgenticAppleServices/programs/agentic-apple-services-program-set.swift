@@ -1,7 +1,7 @@
-import AgenticPrograms
+import Agentic
 
-public struct AgenticAppleServicesProgramSet:
-    AgentProgramSet,
+public struct AppleServicesProgramSet:
+    ProgramSet,
     Sendable
 {
     private let calendar: any AppleCalendarProvider
@@ -25,14 +25,15 @@ public struct AgenticAppleServicesProgramSet:
         into registry: inout ProgramRegistry
     ) throws {
         try registry.register(
-            PrepareDayProgram(
+            AppleServices.Programs.PrepareDay(
                 calendar: calendar,
                 reminders: reminders,
                 weather: weather
             )
         )
+
         try registry.register(
-            CreateReminderProgram()
+            AppleServices.Programs.CreateReminder()
         )
     }
 }

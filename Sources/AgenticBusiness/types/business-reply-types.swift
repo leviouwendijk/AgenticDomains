@@ -175,6 +175,7 @@ public struct BusinessReplyDraft:
     }
 }
 
+@JSONSchema
 public struct BusinessReplyAssistance:
     Sendable,
     Codable,

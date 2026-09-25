@@ -1,56 +1,61 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Foundation
 import Primitives
 import Schema
 import Macros
 
-@JSONSchema
-public struct SwiftParseToolInput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    /// Workspace-relative Swift source file to parse with swiftc -parse.
-    public let path: String
+public struct SwiftParseTool: Tool {
+    @JSONSchema
+    public struct Input:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        /// Workspace-relative Swift source file to parse with swiftc -parse.
+        public let path: String
 
-    public init(
-        path: String
-    ) {
-        self.path = path
+        public init(
+            path: String
+        ) {
+            self.path = path
+        }
     }
-}
 
-public struct SwiftParseToolOutput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    public let path: String
-    public let stdout: String
-    public let stderr: String
+    @JSONSchema
+    public struct Output:
+        Sendable,
+        Codable,
+        Hashable
+    {
+        public let path: String
+        public let stdout: String
+        public let stderr: String
 
-    public init(
-        path: String,
-        stdout: String,
-        stderr: String
-    ) {
-        self.path = path
-        self.stdout = stdout
-        self.stderr = stderr
+        public init(
+            path: String,
+            stdout: String,
+            stderr: String
+        ) {
+            self.path = path
+            self.stdout = stdout
+            self.stderr = stderr
+        }
     }
-}
 
-public struct SwiftParseTool: AgentTool {
-    public typealias Input = SwiftParseToolInput
-    public typealias Output = SwiftParseToolOutput
-    public static let identifier: AgentToolIdentifier = "swift_parse"
+public static let identifier: ToolIdentifier = "swift_parse"
     public static let description =
         "Parse one Swift source file with the compiler parser through Executable.SwiftCompiler."
     public static let risk: ActionRisk = .observe
-    public var identifier: AgentToolIdentifier {
+
+    public static let definition = ToolDefinition(
+        identifier: identifier,
+        purpose: description,
+        risk: risk
+    )
+    public var identifier: ToolIdentifier {
         Self.identifier
     }
 
@@ -66,22 +71,25 @@ public struct SwiftParseTool: AgentTool {
 
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let path = try AgenticSwiftToolSupport.resolvedPreflightPath(
             input.path,
-            workspace: context.workspace
+            workspace: context
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: context.workspace?.rootURL.path,
-            targetPaths: [
-                path,
-            ],
             summary: "Parse Swift syntax in \(path).",
-            commandPreview: "swiftc -parse \(path)",
+            access: .init(
+                targets: [
+                    path
+                ]
+            ),
+            preview: .init(
+                command: "swiftc -parse \(path)"
+            ),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -93,28 +101,25 @@ public struct SwiftParseTool: AgentTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
-            toolName: name
+            context,
+            toolName: Self.definition.identifier.rawValue
         )
-        let path = try workspace.resolve(
+        let file = try AgenticSwiftToolSupport.projectFileURL(
             input.path,
-            type: .file
-        )
-        let file = try workspace.absoluteURL(
-            for: path,
-            type: .file
+            workspace: workspace,
+            toolName: Self.definition.identifier.rawValue
         )
         let result = try await SwiftCompiler.parse(
             file,
-            workingDirectory: workspace.rootURL
+            workingDirectory: workspace.absoluteURL
         )
 
         guard result.isSuccess else {
             throw AgenticSwiftToolError.operationFailed(
-                toolName: name,
+                toolName: Self.definition.identifier.rawValue,
                 operation: "parse Swift source '\(input.path)'",
                 exitCode: result.exitCode.map(Int.init),
                 signal: result.signal.map(Int.init),
@@ -124,12 +129,10 @@ public struct SwiftParseTool: AgentTool {
             )
         }
 
-        return SwiftParseToolOutput(
-                path: path.presentingRelative(
-                    filetype: true
-                ),
-                stdout: result.stdoutText,
-                stderr: result.stderrText
-            )
+        return Output(
+            path: input.path,
+            stdout: result.stdoutText,
+            stderr: result.stderrText
+        )
     }
 }

@@ -22,28 +22,8 @@ public struct LintSwiftPackageForbiddenTargetDependency:
     }
 }
 
+
 @JSONSchema
-public struct LintSwiftPackageToolInput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    public let forbiddenTargetDependencies:
-        [LintSwiftPackageForbiddenTargetDependency]
-    public let forbiddenPackageDependencies: [String]
-
-    public init(
-        forbiddenTargetDependencies:
-            [LintSwiftPackageForbiddenTargetDependency] = [],
-        forbiddenPackageDependencies: [String] = []
-    ) {
-        self.forbiddenTargetDependencies =
-            forbiddenTargetDependencies
-        self.forbiddenPackageDependencies =
-            forbiddenPackageDependencies
-    }
-}
-
 public enum SwiftPackageRuleLintSubject:
     Sendable,
     Codable,
@@ -66,6 +46,7 @@ public enum SwiftPackageRuleLintSubject:
     )
 }
 
+@JSONSchema
 public struct SwiftPackageRuleLintDiagnostic:
     Sendable,
     Codable,
@@ -89,34 +70,3 @@ public struct SwiftPackageRuleLintDiagnostic:
     }
 }
 
-public struct LintSwiftPackageToolOutput:
-    Sendable,
-    Codable,
-    Hashable
-{
-    public let package: String
-    public let diagnostics: [SwiftPackageRuleLintDiagnostic]
-    public let diagnosticCount: Int
-    public let errorCount: Int
-    public let warningCount: Int
-    public let informationCount: Int
-    public let hintCount: Int
-
-    public init(
-        package: String,
-        diagnostics: [SwiftPackageRuleLintDiagnostic],
-        diagnosticCount: Int,
-        errorCount: Int,
-        warningCount: Int,
-        informationCount: Int,
-        hintCount: Int
-    ) {
-        self.package = package
-        self.diagnostics = diagnostics
-        self.diagnosticCount = diagnosticCount
-        self.errorCount = errorCount
-        self.warningCount = warningCount
-        self.informationCount = informationCount
-        self.hintCount = hintCount
-    }
-}

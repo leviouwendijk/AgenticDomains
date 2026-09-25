@@ -1,1 +1,4 @@
-public enum AgenticWeb {}
+import Agentic
+
+@Domain
+public enum Web {}

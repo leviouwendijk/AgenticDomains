@@ -1,29 +1,27 @@
 import Agentic
 import AgenticExecution
-import AgenticWorkspace
+import Workspace
 import Executable
 import Foundation
 import Primitives
 import Version
 
 private struct SwiftWorkspaceExecution {
-    let workspace: AgentWorkspace
+    let workspace: WorkspaceContext
     let projectRoot: URL
 
     static func resolve(
-        _ context: AgentToolExecutionContext,
+        _ context: WorkspaceContext?,
         toolName: String
     ) throws -> Self {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context.workspace,
+            context,
             toolName: toolName
         )
 
         return .init(
             workspace: workspace,
-            projectRoot:
-                context.workingDirectoryURL
-                    ?? workspace.rootURL
+            projectRoot: workspace.absoluteURL
         )
     }
 
@@ -62,76 +60,50 @@ private struct SwiftWorkspaceExecution {
             )
         }
 
-        let workspaceComponents =
-            workspace.rootURL
-                .standardizedFileURL
-                .pathComponents
-        let projectComponents =
-            projectRoot
-                .standardizedFileURL
-                .pathComponents
+        let candidate = projectRoot
+            .appendingPathComponent(normalized)
+            .standardizedFileURL
+        let rootComponents = projectRoot
+            .standardizedFileURL
+            .pathComponents
 
-        guard projectComponents.starts(
-            with: workspaceComponents
-        ) else {
+        guard candidate.pathComponents.starts(with: rootComponents) else {
             throw AgenticSwiftToolError.operationFailed(
                 toolName: "swift_app_bundle",
-                operation: "resolve selected project root",
+                operation: "resolve project-relative file path",
                 exitCode: nil,
                 signal: nil,
-                detail:
-                    "Selected project root is outside the attached Agentic workspace."
+                detail: "Resolved path escaped the selected Swift package root."
             )
         }
 
-        let projectPrefix = projectComponents
-            .dropFirst(
-                workspaceComponents.count
-            )
-            .joined(
-                separator: "/"
-            )
-        let workspaceRelativePath =
-            projectPrefix.isEmpty
-                ? normalized
-                : "\(projectPrefix)/\(normalized)"
-        let path = try workspace.resolve(
-            workspaceRelativePath,
-            type: .file
-        )
-
-        return try workspace.absoluteURL(
-            for: path,
-            type: .file
-        )
+        return candidate
     }
 }
 
 extension SwiftExecutableProductsTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         _ = input
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectRoot.path,
-            ],
-            summary:
-                "Discover executable SwiftPM products at the selected workspace location.",
-            commandPreview:
-                "swift package dump-package",
+            summary: "Discover executable SwiftPM products at the selected workspace location.",
+            access: .init(
+                targets: [
+                    execution.projectRoot.path
+                ]
+            ),
+            preview: .init(
+                command: "swift package dump-package"
+            ),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -143,12 +115,12 @@ extension SwiftExecutableProductsTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         _ = input
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let discovered: [ExecutableProduct]
 
@@ -160,7 +132,7 @@ extension SwiftExecutableProductsTool {
             discovered = []
         }
 
-        return SwiftExecutableProductsToolOutput(
+        return Output(
                 products:
                     discovered
                         .sorted {
@@ -177,35 +149,37 @@ extension SwiftExecutableProductsTool {
 }
 
 extension SwiftUpdateTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectPath("Package.resolved").path,
-                execution.projectPath(
-                    ".build",
-                    isDirectory: true
-                ).path,
-            ],
-            summary:
-                "Update Swift package dependencies at the selected workspace location.",
-            commandPreview:
-                "swift package update",
-            estimatedWriteCount: 2,
-            estimatedRuntimeSeconds: 300,
+            summary: "Update Swift package dependencies at the selected workspace location.",
+            access: .init(
+                targets: [
+                    execution.projectPath("Package.resolved").path,
+                    execution.projectPath(
+                        ".build",
+                        isDirectory: true
+                    ).path,
+                ]
+            ),
+            estimates: .init(
+                write: .init(
+                    count: 2
+                ),
+                runtime: 300
+            ),
+            preview: .init(
+                command: "swift package update"
+            ),
             sideEffects: [
                 "May update Package.resolved.",
                 "May fetch package dependencies over the network.",
@@ -225,11 +199,11 @@ extension SwiftUpdateTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let result = try await Package.update(
             at: execution.projectRoot
@@ -237,7 +211,7 @@ extension SwiftUpdateTool {
 
         guard result.exitCode == 0 else {
             throw AgenticSwiftToolError.operationFailed(
-                toolName: name,
+                toolName: Self.definition.identifier.rawValue,
                 operation: "swift package update",
                 exitCode: Int(result.exitCode),
                 signal: nil,
@@ -250,7 +224,7 @@ extension SwiftUpdateTool {
             )
         }
 
-        let output = SwiftPackageOperationToolOutput(
+        let output = Output(
             operation: "update",
             isSuccess: true,
             exitCode: Int(result.exitCode),
@@ -264,44 +238,42 @@ extension SwiftUpdateTool {
             )
         )
 
-        await output.observe(
-            in: context
-        )
-
         return output
     }
 }
 
 extension SwiftResolveTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectPath("Package.resolved").path,
-                execution.projectPath(
-                    ".build",
-                    isDirectory: true
-                ).path,
-            ],
-            summary:
-                "Resolve Swift package dependencies at the selected workspace location.",
-            commandPreview:
-                "swift package resolve",
-            estimatedWriteCount: 2,
-            estimatedRuntimeSeconds: 300,
+            summary: "Resolve Swift package dependencies at the selected workspace location.",
+            access: .init(
+                targets: [
+                    execution.projectPath("Package.resolved").path,
+                    execution.projectPath(
+                        ".build",
+                        isDirectory: true
+                    ).path,
+                ]
+            ),
+            estimates: .init(
+                write: .init(
+                    count: 2
+                ),
+                runtime: 300
+            ),
+            preview: .init(
+                command: "swift package resolve"
+            ),
             sideEffects: [
                 "May update Package.resolved.",
                 "May fetch package dependencies over the network.",
@@ -321,11 +293,11 @@ extension SwiftResolveTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let result = try await Package.resolve(
             at: execution.projectRoot
@@ -333,7 +305,7 @@ extension SwiftResolveTool {
 
         guard result.exitCode == 0 else {
             throw AgenticSwiftToolError.operationFailed(
-                toolName: name,
+                toolName: Self.definition.identifier.rawValue,
                 operation: "swift package resolve",
                 exitCode: Int(result.exitCode),
                 signal: nil,
@@ -346,7 +318,7 @@ extension SwiftResolveTool {
             )
         }
 
-        let output = SwiftPackageOperationToolOutput(
+        let output = Output(
             operation: "resolve",
             isSuccess: true,
             exitCode: Int(result.exitCode),
@@ -360,44 +332,42 @@ extension SwiftResolveTool {
             )
         )
 
-        await output.observe(
-            in: context
-        )
-
         return output
     }
 }
 
 extension SwiftCleanTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectPath(
-                    ".build",
-                    isDirectory: true
-                ).path,
-            ],
-            summary:
-                "Clean SwiftPM build artifacts at the selected workspace location.",
-            commandPreview:
-                "swift package clean",
-            estimatedWriteCount: 1,
+            summary: "Clean SwiftPM build artifacts at the selected workspace location.",
+            access: .init(
+                targets: [
+                    execution.projectPath(
+                        ".build",
+                        isDirectory: true
+                    ).path
+                ]
+            ),
+            estimates: .init(
+                write: .init(
+                    count: 1
+                )
+            ),
+            preview: .init(
+                command: "swift package clean"
+            ),
             sideEffects: [
-                "Removes SwiftPM build artifacts under .build.",
+                "Removes SwiftPM build artifacts under .build."
             ],
             policyChecks: [
                 "workspace_required",
@@ -410,46 +380,43 @@ extension SwiftCleanTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         try await Build.clean(
             at: execution.projectRoot
         )
 
-        return SwiftCleanToolOutput(
+        return Output(
             status: "passed"
         )
     }
 }
 
 extension SwiftVersionTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectPath("build-object.pkl").path,
-                execution.projectPath("compiled.pkl").path,
-            ],
-            summary:
-                "Inspect Swift project version state at the selected workspace location.",
+            summary: "Inspect Swift project version state at the selected workspace location.",
+            access: .init(
+                targets: [
+                    execution.projectPath("build-object.pkl").path,
+                    execution.projectPath("compiled.pkl").path,
+                ]
+            ),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -461,17 +428,17 @@ extension SwiftVersionTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let snapshot = try await ExecutableVersion.inspect(
             at: execution.projectRoot
         )
 
-        return SwiftVersionToolOutput(
+        return Output(
                 name: snapshot.name,
                 types: snapshot.types,
                 compiled: snapshot.compiled.string(
@@ -489,30 +456,32 @@ extension SwiftVersionTool {
 }
 
 extension SwiftIncrementVersionTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectPath("build-object.pkl").path,
-            ],
             summary:
                 "Increment Swift release \(input.level.rawValue) version at the selected workspace location.",
-            estimatedWriteCount: 1,
+            access: .init(
+                targets: [
+                    execution.projectPath("build-object.pkl").path
+                ]
+            ),
+            estimates: .init(
+                write: .init(
+                    count: 1
+                )
+            ),
             sideEffects: [
-                "Updates the release version in build-object.pkl.",
+                "Updates the release version in build-object.pkl."
             ],
             policyChecks: [
                 "workspace_required",
@@ -524,18 +493,18 @@ extension SwiftIncrementVersionTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let result = try ExecutableVersion.incrementRelease(
             at: execution.projectRoot,
             level: input.level
         )
 
-        return SwiftIncrementVersionToolOutput(
+        return Output(
             before: result.before.string(
                 prefixStyle: .short,
                 prefixSpace: false
@@ -551,39 +520,36 @@ extension SwiftIncrementVersionTool {
 }
 
 extension SwiftKillSwiftPMTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectRoot.path,
-            ],
-            summary:
-                input.dryRun == true
-                    ? "Inspect SwiftPM processes for the selected workspace location without signaling them."
-                    : "Terminate detected SwiftPM process trees for the selected workspace location.",
-            commandPreview:
-                input.dryRun == true
+            summary: input.dryRun == true
+                ? "Inspect SwiftPM processes for the selected workspace location without signaling them."
+                : "Terminate detected SwiftPM process trees for the selected workspace location.",
+            access: .init(
+                targets: [
+                    execution.projectRoot.path
+                ]
+            ),
+            preview: .init(
+                command: input.dryRun == true
                     ? "kill-swiftpm --dry-run"
-                    : "kill-swiftpm",
-            sideEffects:
-                input.dryRun == true
-                    ? []
-                    : [
-                        "Sends termination signals to detected Swift/SwiftPM process trees.",
-                    ],
+                    : "kill-swiftpm"
+            ),
+            sideEffects: input.dryRun == true
+                ? []
+                : [
+                    "Sends termination signals to detected Swift/SwiftPM process trees."
+                ],
             policyChecks: [
                 "workspace_required",
                 "workspace_location_selected",
@@ -595,11 +561,11 @@ extension SwiftKillSwiftPMTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let processes = try await SwiftPMProcesses().killAll(
             force: input.force ?? false,
@@ -607,7 +573,7 @@ extension SwiftKillSwiftPMTool {
             cwd: execution.projectRoot
         )
 
-        return SwiftKillSwiftPMToolOutput(
+        return Output(
             count: String(processes.count),
             dryRun: input.dryRun ?? false,
             processes: processes.map { process in
@@ -621,29 +587,26 @@ extension SwiftKillSwiftPMTool {
 }
 
 extension SwiftBuildLibraryTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths:
-                input.local == true
+            summary: "Build Swift library distribution artifacts at the selected workspace location.",
+            access: .init(
+                targets: input.local == true
                     ? [
                         execution.projectPath(
                             ".build",
                             isDirectory: true
-                        ).path,
+                        ).path
                     ]
                     : [
                         execution.projectPath(
@@ -651,10 +614,11 @@ extension SwiftBuildLibraryTool {
                             isDirectory: true
                         ).path,
                         BuildLibrary.defaultModulesRoot.path,
-                    ],
-            summary:
-                "Build Swift library distribution artifacts at the selected workspace location.",
-            estimatedRuntimeSeconds: 300,
+                    ]
+            ),
+            estimates: .init(
+                runtime: 300
+            ),
             sideEffects: [
                 "Runs SwiftPM builds.",
                 "May export module/library artifacts outside the workspace.",
@@ -670,11 +634,11 @@ extension SwiftBuildLibraryTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let configuration =
             input.configuration
@@ -693,7 +657,7 @@ extension SwiftBuildLibraryTool {
             modulesRoot: BuildLibrary.defaultModulesRoot
         )
 
-        return SwiftBuildLibraryToolOutput(
+        return Output(
             package: result.packageName,
             artifacts: result.artifactsDir.path,
             buildDir: result.builtDir.path
@@ -702,29 +666,30 @@ extension SwiftBuildLibraryTool {
 }
 
 extension SwiftBuildObjectInitTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectPath("build-object.pkl").path,
-                execution.projectPath("compiled.pkl").path,
-            ],
-            summary:
-                "Initialize Swift build-object configuration at the selected workspace location.",
-            estimatedWriteCount: 2,
+            summary: "Initialize Swift build-object configuration at the selected workspace location.",
+            access: .init(
+                targets: [
+                    execution.projectPath("build-object.pkl").path,
+                    execution.projectPath("compiled.pkl").path,
+                ]
+            ),
+            estimates: .init(
+                write: .init(
+                    count: 2
+                )
+            ),
             policyChecks: [
                 "workspace_required",
                 "workspace_location_selected",
@@ -735,11 +700,11 @@ extension SwiftBuildObjectInitTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
         let result: BuildObjectLifecycle.InitializeResult
@@ -764,7 +729,7 @@ extension SwiftBuildObjectInitTool {
             )
         }
 
-        return SwiftBuildObjectInitToolOutput(
+        return Output(
             configuration: result.configurationURL.path,
             compiled: result.compiledURL.path,
             createdConfiguration: result.createdConfiguration,
@@ -774,37 +739,37 @@ extension SwiftBuildObjectInitTool {
 }
 
 extension SwiftBuildObjectModernizeTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths:
-                input.backup == false
+            summary:
+                "Modernize legacy Swift build-object configuration at the selected workspace location.",
+            access: .init(
+                targets: input.backup == false
                     ? [
-                        execution.projectPath("build-object.pkl").path,
+                        execution.projectPath("build-object.pkl").path
                     ]
                     : [
                         execution.projectPath("build-object.pkl").path,
                         execution.projectPath("build-object.pkl.bak").path,
-                    ],
-            summary:
-                "Modernize legacy Swift build-object configuration at the selected workspace location.",
-            estimatedWriteCount:
-                input.backup == false
-                    ? 1
-                    : 2,
+                    ]
+            ),
+            estimates: .init(
+                write: .init(
+                    count: input.backup == false
+                        ? 1
+                        : 2
+                )
+            ),
             policyChecks: [
                 "workspace_required",
                 "workspace_location_selected",
@@ -815,18 +780,18 @@ extension SwiftBuildObjectModernizeTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let result = try BuildObjectLifecycle.modernize(
             at: execution.projectRoot,
             backup: input.backup ?? true
         )
 
-        return SwiftBuildObjectModernizeToolOutput(
+        return Output(
             path: result.configurationURL.path,
             name: result.name,
             modernized: result.modernized,
@@ -836,35 +801,36 @@ extension SwiftBuildObjectModernizeTool {
 }
 
 extension SwiftAppBundleTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let appName =
             input.appName
                 ?? input.target
                 ?? execution.projectRoot.lastPathComponent
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectPath(
-                    "\(appName).app",
-                    isDirectory: true
-                ).path,
-            ],
-            summary:
-                "Create or refresh the selected project's app bundle.",
-            estimatedWriteCount: 4,
+            summary: "Create or refresh the selected project's app bundle.",
+            access: .init(
+                targets: [
+                    execution.projectPath(
+                        "\(appName).app",
+                        isDirectory: true
+                    ).path
+                ]
+            ),
+            estimates: .init(
+                write: .init(
+                    count: 4
+                )
+            ),
             sideEffects: [
                 "Creates or replaces app-bundle symlinks and Info.plist materialization.",
                 "Uses already-built artifacts under .build and does not run a build itself.",
@@ -879,11 +845,11 @@ extension SwiftAppBundleTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let plist =
             try input.plist.map {
@@ -909,7 +875,7 @@ extension SwiftAppBundleTool {
             )
         )
 
-        return SwiftAppBundleToolOutput(
+        return Output(
             app: result.appDirectory.path,
             buildDir: result.buildDirectory.path,
             appName: result.appName,
@@ -919,38 +885,41 @@ extension SwiftAppBundleTool {
 }
 
 extension SwiftDeployTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let resolved = try await targetedDeployResolution(
             input,
             project: execution.projectRoot
         )
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                resolved.destination.path,
-            ],
             summary:
                 "Deploy Swift executable product(s) from the selected workspace location: \(resolved.plan.selectedProductNames.joined(separator: ", ")).",
-            commandPreview:
-                "deploy \(input.configuration.rawValue) -> \(resolved.destination.path)",
-            estimatedWriteCount: max(
-                1,
-                resolved.plan.selectedProductNames.count * 2
+            access: .init(
+                targets: [
+                    resolved.destination.path
+                ]
             ),
-            estimatedRuntimeSeconds: 60,
+            estimates: .init(
+                write: .init(
+                    count: max(
+                        1,
+                        resolved.plan.selectedProductNames.count * 2
+                    )
+                ),
+                runtime: 60
+            ),
+            preview: .init(
+                command: "deploy \(input.configuration.rawValue) -> \(resolved.destination.path)"
+            ),
             sideEffects: [
                 "Moves built executable artifacts from .build into the deployment destination.",
                 "Replaces existing deployed products when present.",
@@ -972,11 +941,11 @@ extension SwiftDeployTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let resolved = try await targetedDeployResolution(
             input,
@@ -992,7 +961,7 @@ extension SwiftDeployTool {
                 resolved.plan.perProductDestinations
         )
 
-        return SwiftDeployToolOutput(
+        return Output(
                 configuration: input.configuration.rawValue,
                 destination: resolved.destination.path,
                 products: resolved.plan.selectedProductNames
@@ -1000,7 +969,7 @@ extension SwiftDeployTool {
     }
 
     private func targetedDeployResolution(
-        _ input: SwiftDeployToolInput,
+        _ input: Input,
         project: URL
     ) async throws -> (
         destination: URL,
@@ -1042,16 +1011,13 @@ extension SwiftDeployTool {
 }
 
 extension SwiftRunProductTool {
-    public var execution: AgentToolExecutionContract {
-        .targetable
-    }
     public func preflight(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let available: [ExecutableProduct]
 
@@ -1082,22 +1048,28 @@ extension SwiftRunProductTool {
                 ? " --verbose"
                 : ""
 
-        return .init(
-            toolName: name,
+        return ToolPreflight(
+            tool: Self.definition.identifier,
             risk: risk,
-            workspaceRoot: execution.workspace.rootURL.path,
-            targetPaths: [
-                execution.projectPath(
-                    ".build",
-                    isDirectory: true
-                ).path,
-            ],
             summary:
                 "Run Swift executable product '\(input.product)' at the selected workspace location.",
-            commandPreview:
-                "swift run \(input.product)\(suffix)",
-            estimatedWriteCount: 1,
-            estimatedRuntimeSeconds: 300,
+            access: .init(
+                targets: [
+                    execution.projectPath(
+                        ".build",
+                        isDirectory: true
+                    ).path
+                ]
+            ),
+            estimates: .init(
+                write: .init(
+                    count: 1
+                ),
+                runtime: 300
+            ),
+            preview: .init(
+                command: "swift run \(input.product)\(suffix)"
+            ),
             sideEffects: [
                 "May build the selected executable product under .build before execution.",
                 "Executes repository-owned code with the current host filesystem, process, environment, and network permissions.",
@@ -1119,11 +1091,11 @@ extension SwiftRunProductTool {
 
     public func call(
         _ input: Input,
-        context: AgentToolExecutionContext
+        workspace context: WorkspaceContext?
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context,
-            toolName: name
+            toolName: Self.definition.identifier.rawValue
         )
         let arguments =
             input.verbose
@@ -1147,7 +1119,7 @@ extension SwiftRunProductTool {
 
         guard result.isSuccess else {
             throw AgenticSwiftToolError.operationFailed(
-                toolName: name,
+                toolName: Self.definition.identifier.rawValue,
                 operation:
                     "run Swift executable product '\(result.product)'",
                 exitCode:
@@ -1165,7 +1137,7 @@ extension SwiftRunProductTool {
             )
         }
 
-        let output = SwiftRunProductToolOutput(
+        let output = Output(
                 product: result.product,
                 isSuccess: result.isSuccess,
                 exitCode: result.exitCode,
@@ -1174,16 +1146,6 @@ extension SwiftRunProductTool {
                 stderr: result.stderrText
         )
 
-        if !output.stdout.isEmpty {
-            await context.observe(
-                .init(kind: .standard_output, label: "stdout", content: output.stdout)
-            )
-        }
-        if !output.stderr.isEmpty {
-            await context.observe(
-                .init(kind: .standard_error, label: "stderr", content: output.stderr)
-            )
-        }
 
         return output
     }
@@ -1193,9 +1155,8 @@ extension SwiftRunProductTool {
 extension SwiftUpdateTool {
     public func process(
         _ output: Output,
-        input _: Input,
-        context _: AgentToolExecutionContext
-    ) -> AgentToolResultProjection? {
+        input _: Input
+    ) -> ToolCall.ResultProjection? {
         output.projection
     }
 }
@@ -1203,9 +1164,8 @@ extension SwiftUpdateTool {
 extension SwiftResolveTool {
     public func process(
         _ output: Output,
-        input _: Input,
-        context _: AgentToolExecutionContext
-    ) -> AgentToolResultProjection? {
+        input _: Input
+    ) -> ToolCall.ResultProjection? {
         output.projection
     }
 }
@@ -1213,9 +1173,8 @@ extension SwiftResolveTool {
 extension SwiftDeployTool {
     public func process(
         _ output: Output,
-        input _: Input,
-        context _: AgentToolExecutionContext
-    ) -> AgentToolResultProjection? {
+        input _: Input
+    ) -> ToolCall.ResultProjection? {
         .init(
             status: "passed",
             summary: "Swift deployment completed successfully.",
@@ -1231,10 +1190,9 @@ extension SwiftDeployTool {
 extension SwiftRunProductTool {
     public func process(
         _ output: Output,
-        input _: Input,
-        context _: AgentToolExecutionContext
-    ) -> AgentToolResultProjection? {
-        var facts: [AgentToolResultProjection.Fact] = [
+        input _: Input
+    ) -> ToolCall.ResultProjection? {
+        var facts: [ToolCall.ResultProjection.Fact] = [
             .init(label: "product", value: output.product)
         ]
 

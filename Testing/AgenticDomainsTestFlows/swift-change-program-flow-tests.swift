@@ -1,5 +1,4 @@
-import AgenticInference
-import AgenticPrograms
+import Agentic
 import AgenticSwift
 import Foundation
 import TestFlows

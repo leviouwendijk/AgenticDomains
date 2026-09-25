@@ -106,6 +106,7 @@ public struct SwiftChangePlan:
     }
 }
 
+@JSONSchema
 public struct SwiftChangeAssessment:
     Sendable,
     Codable,

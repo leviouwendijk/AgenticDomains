@@ -129,7 +129,7 @@ enum AgenticDomainsFlowTesting {
         )
 
         let tool = SwiftParseTool()
-        let input = SwiftParseToolInput(
+        let input = SwiftParseTool.Input(
                 path: "Fixture.swift"
             )
 
@@ -190,7 +190,7 @@ enum AgenticDomainsFlowTesting {
         }
 
         let listTool = SwiftDeployedProductsTool()
-        let listInput = SwiftDeployedProductsToolInput(
+        let listInput = SwiftDeployedProductsTool.Input(
                 includeDetails: false
             )
         let listPreflight = try await listTool.preflight(
@@ -214,7 +214,7 @@ enum AgenticDomainsFlowTesting {
 
         let removeTool = SwiftRemoveDeployedTool()
         let product = "agentic-domains-fixture-do-not-remove"
-        let removeInput = SwiftRemoveDeployedToolInput(
+        let removeInput = SwiftRemoveDeployedTool.Input(
                 product: product
             )
         let removePreflight = try await removeTool.preflight(
@@ -263,11 +263,9 @@ enum AgenticDomainsFlowTesting {
             fixture.remove()
         }
 
-        let empty = AgenticSwiftEmptyToolInput()
-
         let update = SwiftUpdateTool()
         let updatePreflight = try await update.preflight(
-            empty,
+            SwiftUpdateTool.Input(),
             context: .init(
                 workspace: fixture.workspace
             )
@@ -275,7 +273,7 @@ enum AgenticDomainsFlowTesting {
 
         let resolve = SwiftResolveTool()
         let resolvePreflight = try await resolve.preflight(
-            empty,
+            SwiftResolveTool.Input(),
             context: .init(
                 workspace: fixture.workspace
             )
@@ -389,7 +387,7 @@ enum AgenticDomainsFlowTesting {
             id: "swift-build-reported-failure",
             name: tool.identifier.rawValue,
             input: try JSONToolBridge.encode(
-                SwiftBuildToolInput(
+                SwiftBuildTool.Input(
                     configuration: .debug
                 )
             )
@@ -401,7 +399,7 @@ enum AgenticDomainsFlowTesting {
             )
         )
         let output = try JSONToolBridge.decode(
-            SwiftBuildToolOutput.self,
+            SwiftBuildTool.Output.self,
             from: result.output
         )
         let processing = try Expect.notNil(
