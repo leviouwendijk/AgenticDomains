@@ -90,6 +90,7 @@ let package = Package(
             name: "AgenticSwift",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticStandard", package: "Agentic"),
                 .product(name: "AgenticIO", package: "AgenticIO"),
                 .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "Workspace", package: "Workspace"),

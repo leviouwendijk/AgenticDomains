@@ -1,5 +1,5 @@
 {
-  "originHash" : "1d70f33a03d64edf4888d9d0880967b76b3c3c50fb7dbdac4de915f0b6126f26",
+  "originHash" : "af612237a796ecee6d742fb3ee095e0859bc1650f494f9b063465e1d62ab62af",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "f7d2ccf3a2f54c6f1d571dbc76483384da5c271c"
+        "revision" : "cb74747bc51b760b4b2de41966d4d5837c6714d0"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticExecution.git",
       "state" : {
         "branch" : "master",
-        "revision" : "a78f57922c402a7061602f5ec7f1f6423efe8d2f"
+        "revision" : "2785e4d27d77352d7452694dc1fad8d827f4da30"
       }
     },
     {
@@ -25,13 +25,13 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "66aaf65f8ff16ed7136b1e60f979e0e110485cb2"
+        "revision" : "ca7eb1de7da90f3573ecd9d7c30e94e460411926"
       }
     },
     {
       "identity" : "ansi",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/leviouwendijk/ANSI",
+      "location" : "https://github.com/leviouwendijk/ANSI.git",
       "state" : {
         "branch" : "master",
         "revision" : "073d9ca7870b688a312608acf14eae6ba052c0d6"
@@ -79,7 +79,7 @@
       "location" : "https://github.com/leviouwendijk/Difference.git",
       "state" : {
         "branch" : "master",
-        "revision" : "1938bd3531e7d4c9476b67d10d052375f24c41e3"
+        "revision" : "ad07eb01d829b868cc6349503f40fa38148b52fd"
       }
     },
     {
@@ -151,7 +151,7 @@
       "location" : "https://github.com/leviouwendijk/Guidelines.git",
       "state" : {
         "branch" : "master",
-        "revision" : "0a5bd3f30af7eaeb79c0ac37007f10322920f95a"
+        "revision" : "1c8f590184daecad0488b1bb2514070b0f11491c"
       }
     },
     {
@@ -196,7 +196,7 @@
       "location" : "https://github.com/leviouwendijk/Macros.git",
       "state" : {
         "branch" : "master",
-        "revision" : "cfcf3c3595a90c52cce313a60cd42e04f245490f"
+        "revision" : "e01a42e9d0ee8061e861bc68c1fb2a02d26cbde4"
       }
     },
     {
@@ -403,7 +403,7 @@
       "location" : "https://github.com/leviouwendijk/SwiftSemantics.git",
       "state" : {
         "branch" : "master",
-        "revision" : "f26c8d4215c1467e95712f76a864501c974fcd2c"
+        "revision" : "1b0b0aa878163a09932363e2249db03b09751c88"
       }
     },
     {
@@ -457,7 +457,7 @@
       "location" : "https://github.com/leviouwendijk/Version.git",
       "state" : {
         "branch" : "master",
-        "revision" : "25ff3c90cfef8053119f607910219a6ecdb304b7"
+        "revision" : "44bf2fd32106873356b33b3d810724c4bde49caa"
       }
     },
     {
@@ -466,7 +466,7 @@
       "location" : "https://github.com/leviouwendijk/Workspace.git",
       "state" : {
         "branch" : "master",
-        "revision" : "bb0a7031b250ef31b343480754a6427ca9f634b1"
+        "revision" : "0a88d98969ec53c1927293062fe6c4165d99e641"
       }
     },
     {

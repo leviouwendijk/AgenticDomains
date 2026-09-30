@@ -1,5 +1,6 @@
 import Agentic
 import AgenticIO
+import AgenticStandard
 import Macros
 import Schema
 
@@ -7,7 +8,7 @@ public extension SwiftLang.Agents {
     @Agent
     enum Reviewer {
         @JSONSchema
-        public struct Input: HashableProduct {
+        public struct Input: HashableSource {
             public let objective: String
             public let changedPaths: [String]
             public let context: String?
@@ -24,7 +25,7 @@ public extension SwiftLang.Agents {
         }
 
         @JSONSchema
-        public struct Output: HashableProduct {
+        public struct Output: HashableResult {
             public let findings: [String]
             public let risks: [String]
             public let recommendations: [String]
@@ -40,8 +41,9 @@ public extension SwiftLang.Agents {
             }
         }
 
-        public static let purpose =
-            "Review Swift changes for correctness, architectural fit, regressions, and evidence gaps."
+        public static let purpose = """
+        Review Swift changes for correctness, architectural fit, regressions, and evidence gaps.
+        """
 
         public static let instructions = """
         Review the actual changed code and its surrounding contracts.
@@ -57,7 +59,19 @@ public extension SwiftLang.Agents {
                 ],
                 members: [
                     SystemIO.Tools.ReadFile.identifier,
-                    SystemIO.Tools.ScanPaths.identifier
+                    SystemIO.Tools.ReadSelection.identifier,
+
+                    SystemIO.Tools.ScanPaths.identifier,
+                    SystemIO.Tools.FindPaths.identifier,
+
+                    SystemIO.Tools.SearchSources.identifier,
+                    SystemIO.Tools.LoadSearchContext.identifier,
+                    SystemIO.Tools.ProveSearchResults.identifier,
+
+                    Standard.Tools.FindGuidelines.identifier,
+                    Standard.Tools.GuidelineIndex.identifier,
+                    Standard.Tools.ReadGuideline.identifier,
+                    Standard.Tools.ReadGuidelineChapter.identifier
                 ]
             ),
             programs: .init(
