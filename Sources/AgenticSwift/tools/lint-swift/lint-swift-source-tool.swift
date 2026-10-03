@@ -2,7 +2,6 @@ import Agentic
 import Macros
 import Schema
 import Workspace
-import AgenticExecution
 
 public struct LintSwiftSourceTool:
     Tool

@@ -2,7 +2,6 @@ import Agentic
 import Macros
 import Schema
 import Workspace
-import AgenticExecution
 import Documentation
 
 public struct InspectSwiftArchitectureTool:

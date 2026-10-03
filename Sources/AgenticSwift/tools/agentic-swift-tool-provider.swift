@@ -1,4 +1,4 @@
-import AgenticExecution
+import Agentic
 
 public struct AgenticSwiftToolProvider: AgentToolProvider {
     public init() {}
@@ -79,6 +79,11 @@ public struct AgenticSwiftToolProvider: AgentToolProvider {
             execution: .targetable
         )
         try registry.register(SwiftDeployedProductsTool())
+        try registry.register(SwiftCrashReportsTool())
+        try registry.register(
+            SwiftPackageCyclesTool(),
+            execution: .targetable
+        )
         try registry.register(ReadSwiftSymbolTool())
         try registry.register(
             SwiftVersionTool(),

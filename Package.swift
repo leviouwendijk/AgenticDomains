@@ -43,7 +43,6 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AgenticIO.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/AgenticExecution.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Workspace.git", branch: "master"),
 
         .package(url: "https://github.com/leviouwendijk/SwiftSemantics.git", branch: "master"),
@@ -77,7 +76,6 @@ let package = Package(
             name: "AgenticDomains",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
-                .product(name: "AgenticExecution", package: "AgenticExecution"),
                 "AgenticSwift",
                 "AgenticWeb",
                 "AgenticGit",
@@ -92,7 +90,6 @@ let package = Package(
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticStandard", package: "Agentic"),
                 .product(name: "AgenticIO", package: "AgenticIO"),
-                .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "Workspace", package: "Workspace"),
 
                 .product(name: "Primitives", package: "Primitives"),
@@ -119,46 +116,43 @@ let package = Package(
 
                 .product(name: "Executable", package: "Executable"),
                 .product(name: "Version", package: "Version"),
-            ]
+            ],
         ),
         .target(
             name: "AgenticWeb",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
-                .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "Parsers", package: "Parsers"),
-            ]
+            ],
         ),
 
         .target(
             name: "AgenticGit",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
-                .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "Interfaces", package: "Interfaces"),
-            ]
+            ],
         ),
 
         .target(
             name: "AgenticAppleServices",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
-                .product(name: "AgenticExecution", package: "AgenticExecution"),
                 .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Milieu", package: "Milieu"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "Interfaces", package: "Interfaces"),
-            ]
+            ],
         ),
 
         .target(
@@ -167,7 +161,7 @@ let package = Package(
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
-            ]
+            ],
         ),
 
         // .target(
