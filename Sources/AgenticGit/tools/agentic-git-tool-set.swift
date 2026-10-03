@@ -7,7 +7,7 @@ public struct AgenticGitToolProvider: AgentToolProvider {
         into registry: inout ToolRegistry
     ) throws {
         try registry.register(GitRepositoryStateTool(), execution: .targetable)
-        try registry.register(GitDiffTool(), execution: .targetable)
+        try registry.register(Git.Tools.Diff(), execution: .targetable)
         try registry.register(GitWorktreeListTool(), execution: .targetable)
         try registry.register(GitWorktreeCreateTool(), execution: .targetable)
         try registry.register(GitWorktreeRemoveTool(), execution: .targetable)
@@ -17,8 +17,8 @@ public struct AgenticGitToolProvider: AgentToolProvider {
         try registry.register(GitIntegrationCleanupTool(), execution: .targetable)
         try registry.register(GitReconciliationPlanTool(), execution: .targetable)
         try registry.register(GitPullTool(), execution: .targetable)
-        try registry.register(GitPrepareCommitTool(), execution: .targetable)
-        try registry.register(GitCommitPreparedTool(), execution: .targetable)
-        try registry.register(GitPushTool(), execution: .targetable)
+        try registry.register(Git.Tools.PrepareCommit(), execution: .targetable)
+        try registry.register(Git.Tools.CommitPrepared(), execution: .targetable)
+        try registry.register(Git.Tools.Push(), execution: .targetable)
     }
 }

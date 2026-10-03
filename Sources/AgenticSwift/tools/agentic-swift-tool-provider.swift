@@ -98,7 +98,7 @@ public struct AgenticSwiftToolProvider: AgentToolProvider {
             execution: .targetable
         )
         try registry.register(
-            SwiftUpdateTool(),
+            SwiftLang.Tools.PackageUpdate(),
             execution: .targetable
         )
         try registry.register(
@@ -131,7 +131,7 @@ public struct AgenticSwiftToolProvider: AgentToolProvider {
         )
         try registry.register(ListSwiftSymbolsTool())
         try registry.register(
-            SwiftRunProductTool(),
+            SwiftLang.Tools.RunProduct(),
             execution: .targetable
         )
         try registry.register(
@@ -139,7 +139,7 @@ public struct AgenticSwiftToolProvider: AgentToolProvider {
             execution: .targetable
         )
         try registry.register(
-            SwiftBuildTool(),
+            SwiftLang.Tools.Build(),
             execution: .targetable
         )
         try registry.register(SwiftRemoveDeployedTool())

@@ -6,7 +6,7 @@ import Schema
 import Macros
 
 
-private extension SwiftRunProductTool.Input {
+private extension SwiftLang.Tools.RunProduct.Input {
     enum CodingKeys:
         String,
         CodingKey
@@ -16,7 +16,7 @@ private extension SwiftRunProductTool.Input {
     }
 }
 
-public extension SwiftRunProductTool.Input {
+public extension SwiftLang.Tools.RunProduct.Input {
     init(
         from decoder: Decoder
     ) throws {
@@ -46,9 +46,9 @@ public extension SwiftRunProductTool.Input {
 }
 
 
-public struct SwiftRunProductTool:
-    Tool
-{
+public extension SwiftLang.Tools {
+    @Tool("swift_run_product")
+    struct RunProduct {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -101,11 +101,7 @@ public struct SwiftRunProductTool:
         }
     }
 
-public static let identifier:
-        ToolIdentifier =
-            "swift_run_product"
-
-    public static let description =
+    public static let purpose =
         """
         Run one discovered executable SwiftPM product in the current workspace through Executable and Processes. The model cannot supply arbitrary process arguments.
         """
@@ -113,24 +109,9 @@ public static let identifier:
     public static let risk:
         ActionRisk = .privileged
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
+    public static let execution: AgentToolExecutionContract = .targetable
 
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
-
+    }
 }

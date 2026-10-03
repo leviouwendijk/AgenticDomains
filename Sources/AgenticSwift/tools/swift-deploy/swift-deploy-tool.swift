@@ -27,7 +27,7 @@ public extension SwiftDeployTool.Input {
 
         self.init(
             configuration: try container.decodeIfPresent(
-                SwiftBuildTool.Input.Configuration.self,
+                SwiftLang.Tools.Build.Input.Configuration.self,
                 forKey: .configuration
             ) ?? .debug,
             products: try container.decodeIfPresent(
@@ -48,14 +48,14 @@ public struct SwiftDeployTool: Tool {
     {
         /// Built Swift configuration to deploy. Defaults to debug.
         @Schema(required: false)
-        public let configuration: SwiftBuildTool.Input.Configuration
+        public let configuration: SwiftLang.Tools.Build.Input.Configuration
 
         /// Optional executable product names to deploy. Omit or pass an empty array to deploy every executable product.
         @Schema(required: false)
         public let products: [String]
 
         public init(
-            configuration: SwiftBuildTool.Input.Configuration = .debug,
+            configuration: SwiftLang.Tools.Build.Input.Configuration = .debug,
             products: [String] = []
         ) {
             self.configuration = configuration

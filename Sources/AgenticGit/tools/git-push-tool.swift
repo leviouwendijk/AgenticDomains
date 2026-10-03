@@ -208,16 +208,12 @@ public struct GitPushToolOutput:
     }
 }
 
-public struct GitPushTool:
-    Tool
-{
+public extension Git.Tools {
+    @Tool("git_push")
+    struct Push {
     public typealias Input = GitPushToolInput
     public typealias Output = GitPushToolOutput
-    public static let identifier:
-        ToolIdentifier =
-            "git_push"
-
-    public static let description =
+    public static let purpose =
         """
         Push committed Git history to the configured upstream or to an explicitly approved remote and branch without changing branches.
         """
@@ -226,25 +222,9 @@ public struct GitPushTool:
         ActionRisk =
             .privileged
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
+    public static let execution: AgentToolExecutionContract = .targetable
 
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
-
-
+    }
 }

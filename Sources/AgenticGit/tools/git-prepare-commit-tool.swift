@@ -90,16 +90,12 @@ public struct GitPrepareCommitToolOutput:
     }
 }
 
-public struct GitPrepareCommitTool:
-    Tool
-{
+public extension Git.Tools {
+    @Tool("git_prepare_commit")
+    struct PrepareCommit {
     public typealias Input = GitPrepareCommitToolInput
     public typealias Output = GitPrepareCommitToolOutput
-    public static let identifier:
-        ToolIdentifier =
-            "git_prepare_commit"
-
-    public static let description =
+    public static let purpose =
         """
         Stage an explicitly reviewed set of paths in the current Agentic workspace Git repository without committing or pushing.
         """
@@ -108,25 +104,9 @@ public struct GitPrepareCommitTool:
         ActionRisk =
             .boundedmutate
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
+    public static let execution: AgentToolExecutionContract = .targetable
 
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
-
-
+    }
 }

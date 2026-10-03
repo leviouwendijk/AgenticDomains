@@ -64,16 +64,12 @@ public struct GitCommitPreparedToolOutput:
     }
 }
 
-public struct GitCommitPreparedTool:
-    Tool
-{
+public extension Git.Tools {
+    @Tool("git_commit_prepared")
+    struct CommitPrepared {
     public typealias Input = GitCommitPreparedToolInput
     public typealias Output = GitCommitPreparedToolOutput
-    public static let identifier:
-        ToolIdentifier =
-            "git_commit_prepared"
-
-    public static let description =
+    public static let purpose =
         """
         Create a local Git commit from the exact currently staged index without staging more paths or pushing.
         """
@@ -82,31 +78,14 @@ public struct GitCommitPreparedTool:
         ActionRisk =
             .privileged
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
+    public static let execution: AgentToolExecutionContract = .targetable
 
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
-
-
-
+    }
 }
 
-private extension GitCommitPreparedTool {
+private extension Git.Tools.CommitPrepared {
     func stagedPaths(
         at root: URL
     ) async throws -> [String] {

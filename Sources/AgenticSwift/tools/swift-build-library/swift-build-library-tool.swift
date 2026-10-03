@@ -13,13 +13,13 @@ public struct SwiftBuildLibraryTool: Tool {
         Hashable
     {
         /// Library build configuration. Defaults to release.
-        public let configuration: SwiftBuildTool.Input.Configuration?
+        public let configuration: SwiftLang.Tools.Build.Input.Configuration?
 
         /// Keep artifacts in .build instead of exporting. Defaults to false.
         public let local: Bool?
 
         public init(
-            configuration: SwiftBuildTool.Input.Configuration? = nil,
+            configuration: SwiftLang.Tools.Build.Input.Configuration? = nil,
             local: Bool? = nil
         ) {
             self.configuration = configuration

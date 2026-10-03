@@ -147,7 +147,7 @@ extension SwiftExecutableProductsTool {
     }
 }
 
-extension SwiftUpdateTool {
+extension SwiftLang.Tools.PackageUpdate {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -1009,7 +1009,7 @@ extension SwiftDeployTool {
     }
 }
 
-extension SwiftRunProductTool {
+extension SwiftLang.Tools.RunProduct {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -1151,7 +1151,7 @@ extension SwiftRunProductTool {
 }
 
 
-extension SwiftUpdateTool {
+extension SwiftLang.Tools.PackageUpdate {
     public func process(
         _ output: Output,
         input _: Input
@@ -1186,7 +1186,7 @@ extension SwiftDeployTool {
     }
 }
 
-extension SwiftRunProductTool {
+extension SwiftLang.Tools.RunProduct {
     public func process(
         _ output: Output,
         input _: Input

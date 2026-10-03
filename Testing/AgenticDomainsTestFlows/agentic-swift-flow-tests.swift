@@ -96,7 +96,7 @@ enum AgenticDomainsFlowTesting {
             ),
             .field(
                 "package-update",
-                SwiftUpdateTool.identifier.rawValue
+                SwiftLang.Tools.PackageUpdate.identifier.rawValue
             ),
             .field(
                 "package-resolve",
@@ -262,9 +262,9 @@ enum AgenticDomainsFlowTesting {
             fixture.remove()
         }
 
-        let update = SwiftUpdateTool()
+        let update = SwiftLang.Tools.PackageUpdate()
         let updatePreflight = try await update.preflight(
-            SwiftUpdateTool.Input(),
+            SwiftLang.Tools.PackageUpdate.Input(),
             context: .init(
                 workspace: fixture.workspace
             )
@@ -279,7 +279,7 @@ enum AgenticDomainsFlowTesting {
         )
 
         try Expect.equal(
-            SwiftUpdateTool.identifier.rawValue,
+            SwiftLang.Tools.PackageUpdate.identifier.rawValue,
             "swift_package_update",
             "package update identifier"
         )
@@ -318,7 +318,7 @@ enum AgenticDomainsFlowTesting {
         return [
             .field(
                 "update",
-                SwiftUpdateTool.identifier.rawValue
+                SwiftLang.Tools.PackageUpdate.identifier.rawValue
             ),
             .field(
                 "resolve",
@@ -378,7 +378,7 @@ enum AgenticDomainsFlowTesting {
             encoding: .utf8
         )
 
-        let tool = SwiftBuildTool()
+        let tool = SwiftLang.Tools.Build()
         let registry = try ToolRegistry {
             tool
         }
@@ -386,7 +386,7 @@ enum AgenticDomainsFlowTesting {
             id: "swift-build-reported-failure",
             name: tool.identifier.rawValue,
             input: try JSONToolBridge.encode(
-                SwiftBuildTool.Input(
+                SwiftLang.Tools.Build.Input(
                     configuration: .debug
                 )
             )
@@ -398,7 +398,7 @@ enum AgenticDomainsFlowTesting {
             )
         )
         let output = try JSONToolBridge.decode(
-            SwiftBuildTool.Output.self,
+            SwiftLang.Tools.Build.Output.self,
             from: result.output
         )
         let processing = try Expect.notNil(

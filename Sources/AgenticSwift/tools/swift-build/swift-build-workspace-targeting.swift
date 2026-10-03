@@ -3,7 +3,7 @@ import Workspace
 import Executable
 import Foundation
 
-extension SwiftBuildTool {
+extension SwiftLang.Tools.Build {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -117,10 +117,10 @@ extension SwiftBuildTool {
             project: project
         )
         do {
-            let plan = try await Build.resolve(
+            let plan = try await Executable.Build.resolve(
                 request
             )
-            let execution = try await Build.execute(
+            let execution = try await Executable.Build.execute(
                 plan,
                 captureOutput: true
             )
@@ -191,7 +191,7 @@ extension SwiftBuildTool {
     private func targetedBuildRequest(
         _ input: Input,
         project: URL
-    ) throws -> Build.Request {
+    ) throws -> Executable.Build.Request {
         guard let configuration = input.configuration else {
             return try SwiftBuildCommand.projectDefaultRequest(
                 from: project,
@@ -199,7 +199,7 @@ extension SwiftBuildTool {
             )
         }
 
-        let mode: Build.Config.Mode =
+        let mode: Executable.Build.Config.Mode =
             switch configuration {
             case .debug:
                 .debug
@@ -208,7 +208,7 @@ extension SwiftBuildTool {
                 .release
             }
 
-        return Build.Request(
+        return Executable.Build.Request(
             project: project,
             config: .init(
                 mode: mode,

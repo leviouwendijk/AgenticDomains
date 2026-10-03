@@ -9,9 +9,9 @@ import Macros
 /// Configure a Swift package build invocation.
 
 
-public struct SwiftBuildTool:
-    Tool
-{
+public extension SwiftLang.Tools {
+    @Tool("swift_build")
+    struct Build {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -87,11 +87,7 @@ public struct SwiftBuildTool:
         }
     }
 
-public static let identifier:
-        ToolIdentifier =
-            "swift_build"
-
-    public static let description =
+    public static let purpose =
         """
         Build the current SwiftPM workspace through Executable's typed Build.Request -> Build.resolve -> Build.execute workflow. Omit configuration to use normal sbm project defaults, including enabled build-object.pkl interception and deployment behavior. Explicit debug/release overrides do not deploy. Agentic disables built-version bookkeeping.
         """
@@ -99,33 +95,18 @@ public static let identifier:
     public static let risk:
         ActionRisk = .privileged
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
+    public static let execution: AgentToolExecutionContract = .targetable
 
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
-
+    }
 }
 
-private extension SwiftBuildTool {
+private extension SwiftLang.Tools.Build {
     func buildRequest(
-        _ input: SwiftBuildTool.Input,
+        _ input: SwiftLang.Tools.Build.Input,
         workspace: WorkspaceContext
-    ) throws -> Build.Request {
+    ) throws -> Executable.Build.Request {
         guard let configuration = input.configuration else {
             return try SwiftBuildCommand.projectDefaultRequest(
                 from: workspace.absoluteURL,
@@ -134,7 +115,7 @@ private extension SwiftBuildTool {
         }
 
         let mode:
-            Build.Config.Mode =
+            Executable.Build.Config.Mode =
                 switch configuration {
                 case .debug:
                     .debug
@@ -143,7 +124,7 @@ private extension SwiftBuildTool {
                     .release
                 }
 
-        return Build.Request(
+        return Executable.Build.Request(
             project: workspace.absoluteURL,
             config: .init(
                 mode: mode,

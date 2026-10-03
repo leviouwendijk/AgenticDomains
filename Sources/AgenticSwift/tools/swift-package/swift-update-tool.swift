@@ -5,7 +5,9 @@ import Workspace
 import Executable
 import Primitives
 
-public struct SwiftUpdateTool: Tool {
+public extension SwiftLang.Tools {
+    @Tool("swift_package_update")
+    struct PackageUpdate {
     @JSONSchema
     public struct Input:
         Codable,
@@ -54,36 +56,16 @@ public struct SwiftUpdateTool: Tool {
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "swift_package_update"
-
-    public static let description =
+    public static let purpose =
         """
         Run SwiftPM dependency update for the current workspace through Executable.Package.update.
         """
 
     public static let risk: ActionRisk = .privileged
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
+    public static let execution: AgentToolExecutionContract = .targetable
 
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
-
-
-
+    }
 }

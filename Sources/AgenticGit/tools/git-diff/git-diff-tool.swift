@@ -103,16 +103,12 @@ public extension GitDiffToolInput {
     }
 }
 
-public struct GitDiffTool:
-    Tool
-{
+public extension Git.Tools {
+    @Tool("git_diff")
+    struct Diff {
     public typealias Input = GitDiffToolInput
     public typealias Output = GitManagerDiffResult
-    public static let identifier:
-        ToolIdentifier =
-            "git_diff"
-
-    public static let description =
+    public static let purpose =
         """
         Observe bounded tracked Git working-tree and staged patches for the current Agentic workspace repository.
         """
@@ -121,25 +117,9 @@ public struct GitDiffTool:
         ActionRisk =
             .observe
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
+    public static let execution: AgentToolExecutionContract = .targetable
 
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
-
-
+    }
 }

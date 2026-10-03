@@ -14,7 +14,7 @@ public struct SwiftAppBundleTool: Tool {
         Hashable
     {
         /// Previously built configuration. Defaults to release.
-        public let configuration: SwiftBuildTool.Input.Configuration?
+        public let configuration: SwiftLang.Tools.Build.Input.Configuration?
 
         /// App bundle name. Defaults from target/package.
         public let appName: String?
@@ -32,7 +32,7 @@ public struct SwiftAppBundleTool: Tool {
         public let resourcesBundle: String?
 
         public init(
-            configuration: SwiftBuildTool.Input.Configuration? = nil,
+            configuration: SwiftLang.Tools.Build.Input.Configuration? = nil,
             appName: String? = nil,
             target: String? = nil,
             plist: String? = nil,

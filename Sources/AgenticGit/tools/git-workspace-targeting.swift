@@ -132,7 +132,7 @@ extension GitReconciliationPlanTool {
     }
 }
 
-extension GitDiffTool {
+extension Git.Tools.Diff {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -255,7 +255,7 @@ private extension GitPrepareCommitToolInput {
     }
 }
 
-extension GitPrepareCommitTool {
+extension Git.Tools.PrepareCommit {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -333,7 +333,7 @@ extension GitPrepareCommitTool {
     }
 }
 
-extension GitCommitPreparedTool {
+extension Git.Tools.CommitPrepared {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -580,7 +580,7 @@ extension GitPullTool {
     }
 }
 
-extension GitPushTool {
+extension Git.Tools.Push {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -679,7 +679,7 @@ extension GitPushTool {
 }
 
 
-extension GitCommitPreparedTool {
+extension Git.Tools.CommitPrepared {
     public func process(
         _ output: Output,
         input _: Input
