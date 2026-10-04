@@ -7,75 +7,75 @@ public struct AgenticSwiftToolProvider: AgentToolProvider {
         into registry: inout ToolRegistry
     ) throws {
         try registry.register(
-            InspectSwiftArchitectureTool(),
+            SwiftLang.Tools.InspectArchitecture(),
             execution: .targetable
         )
         try registry.register(
-            SearchSwiftArchitectureTool(),
+            SwiftLang.Tools.SearchArchitecture(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftArchitectureSymbolTool(),
+            SwiftLang.Tools.InspectArchitectureSymbol(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftArchitectureRelationshipsTool(),
+            SwiftLang.Tools.InspectArchitectureRelationships(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftRepositoryArchitectureTool(),
+            SwiftLang.Tools.InspectRepositoryArchitecture(),
             execution: .targetable
         )
         try registry.register(
-            InspectPackageGraphTool(),
+            SwiftLang.Tools.InspectPackageGraph(),
             execution: .targetable
         )
         try registry.register(
-            FindSwiftDefinitionTool(),
+            SwiftLang.Tools.FindDefinition(),
             execution: .targetable
         )
         try registry.register(
-            FindSwiftReferencesTool(),
+            SwiftLang.Tools.FindReferences(),
             execution: .targetable
         )
         try registry.register(
-            FindSwiftImplementationsTool(),
+            SwiftLang.Tools.FindImplementations(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftDiagnosticsTool(),
+            SwiftLang.Tools.InspectDiagnostics(),
             execution: .targetable
         )
         try registry.register(
-            SearchSwiftSymbolsTool(),
+            SwiftLang.Tools.SearchSymbols(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftSymbolTool(),
+            SwiftLang.Tools.InspectSymbol(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftHoverTool(),
+            SwiftLang.Tools.InspectHover(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftDocumentSymbolsTool(),
+            SwiftLang.Tools.InspectDocumentSymbols(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftCallersTool(),
+            SwiftLang.Tools.InspectCallers(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftCalleesTool(),
+            SwiftLang.Tools.InspectCallees(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftSupertypesTool(),
+            SwiftLang.Tools.InspectSupertypes(),
             execution: .targetable
         )
         try registry.register(
-            InspectSwiftSubtypesTool(),
+            SwiftLang.Tools.InspectSubtypes(),
             execution: .targetable
         )
         try registry.register(SwiftDeployedProductsTool())
@@ -117,10 +117,10 @@ public struct AgenticSwiftToolProvider: AgentToolProvider {
             SwiftDeployTool(),
             execution: .targetable
         )
-        try registry.register(LintSwiftSourceTool())
-        try registry.register(LintSwiftFilesTool())
+        try registry.register(SwiftLang.Tools.LintSource())
+        try registry.register(SwiftLang.Tools.LintFiles())
         try registry.register(
-            LintSwiftPackageTool(),
+            SwiftLang.Tools.LintPackage(),
             execution: .targetable
         )
         try registry.register(ReadSwiftStructureTool())

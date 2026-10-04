@@ -30,36 +30,18 @@ public struct GitIntegrationPromoteToolInput:
     }
 }
 
-public struct GitIntegrationPromoteTool: Tool {
-    public typealias Input = GitIntegrationPromoteToolInput
-    public typealias Output = GitManagerIntegrationPromotion
-    public static let identifier: ToolIdentifier =
-        "git_integration_promote"
+public extension Git.Tools {
+    @Tool("git_integration_promote")
+    struct IntegrationPromote {
+        public typealias Input = GitIntegrationPromoteToolInput
+        public typealias Output = GitManagerIntegrationPromotion
 
-    public static let description =
-        "Promote a ready disposable integration to its reviewed target branch only when all exact-state and clean-worktree checks still hold. Never rebases, force-pushes, or resolves conflicts."
+        public static let purpose =
+            "Promote a ready disposable integration to its reviewed target branch only when all exact-state and clean-worktree checks still hold. Never rebases, force-pushes, or resolves conflicts."
 
-    public static let risk: ActionRisk = .privileged
+        public static let risk: ActionRisk = .privileged
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
+        public init() {}
 
     public func preflight(
         _ input: Input,
@@ -134,8 +116,9 @@ public struct GitIntegrationPromoteTool: Tool {
             )
     }
 }
+}
 
-private extension GitIntegrationPromoteTool {
+private extension Git.Tools.IntegrationPromote {
     struct Context {
         let input: GitIntegrationPromoteToolInput
         let workspace: WorkspaceContext
@@ -232,36 +215,18 @@ public struct GitIntegrationCleanupToolOutput:
     }
 }
 
-public struct GitIntegrationCleanupTool: Tool {
-    public typealias Input = GitIntegrationCleanupToolInput
-    public typealias Output = GitIntegrationCleanupToolOutput
-    public static let identifier: ToolIdentifier =
-        "git_integration_cleanup"
+public extension Git.Tools {
+    @Tool("git_integration_cleanup")
+    struct IntegrationCleanup {
+        public typealias Input = GitIntegrationCleanupToolInput
+        public typealias Output = GitIntegrationCleanupToolOutput
 
-    public static let description =
-        "Clean up only an Agentic-managed disposable integration worktree and its integration branch. The original task/source branch is never deleted. Explicit discard is required for conflicted or unpromoted state."
+        public static let purpose =
+            "Clean up only an Agentic-managed disposable integration worktree and its integration branch. The original task/source branch is never deleted. Explicit discard is required for conflicted or unpromoted state."
 
-    public static let risk: ActionRisk = .privileged
+        public static let risk: ActionRisk = .privileged
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
+        public init() {}
 
     public func preflight(
         _ input: Input,
@@ -342,8 +307,9 @@ public struct GitIntegrationCleanupTool: Tool {
             )
     }
 }
+}
 
-private extension GitIntegrationCleanupTool {
+private extension Git.Tools.IntegrationCleanup {
     struct Context {
         let input: GitIntegrationCleanupToolInput
         let workspace: WorkspaceContext

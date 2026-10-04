@@ -61,7 +61,7 @@ enum SwiftArchitectureToolSupport {
     }
 
     static func remoteSnapshot(
-        input: InspectSwiftRepositoryArchitectureTool.Input
+        input: SwiftLang.Tools.InspectRepositoryArchitecture.Input
     ) async throws -> DocumentationWorkspaceSnapshot {
         guard
             let origin = URL(

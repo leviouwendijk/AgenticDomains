@@ -50,49 +50,24 @@ public struct GitPullToolOutput:
     }
 }
 
-public struct GitPullTool:
-    Tool
-{
-    public typealias Input = GitPullToolInput
-    public typealias Output = GitPullToolOutput
-    public static let identifier:
-        ToolIdentifier =
-            "git_pull"
+public extension Git.Tools {
+    @Tool("git_pull")
+    struct Pull {
+        public typealias Input = GitPullToolInput
+        public typealias Output = GitPullToolOutput
 
-    public static let description =
-        """
-        Fast-forward the current Agentic workspace Git repository from its configured upstream. Requires a clean repository, a current branch, and a configured upstream. Never forces, rebases, creates a merge commit, checks out, or changes branches.
-        """
+        public static let purpose =
+            """
+            Fast-forward the current Agentic workspace Git repository from its configured upstream. Requires a clean repository, a current branch, and a configured upstream. Never forces, rebases, creates a merge commit, checks out, or changes branches.
+            """
 
-    public static let risk:
-        ActionRisk =
-            .privileged
+        public static let risk: ActionRisk = .privileged
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
+        public init() {}
     }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
-
-
-
 }
 
-private extension GitPullTool {
+private extension Git.Tools.Pull {
     struct PullContext:
         Sendable
     {

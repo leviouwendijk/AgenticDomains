@@ -80,7 +80,7 @@ extension AgenticDomainsFlowTesting {
             workspace: fixture.workspace
         )
 
-        let architecture = try await InspectSwiftArchitectureTool().call(
+        let architecture = try await SwiftLang.Tools.InspectArchitecture().call(
             .init(
                 minimumAccessLevel: .internal,
                 refresh: true
@@ -106,7 +106,7 @@ extension AgenticDomainsFlowTesting {
             "architecture inspection is complete when symbolLimit is omitted"
         )
 
-        let limitedArchitecture = try await InspectSwiftArchitectureTool().call(
+        let limitedArchitecture = try await SwiftLang.Tools.InspectArchitecture().call(
             .init(
                 minimumAccessLevel: .internal,
                 symbolLimit: 1,
@@ -142,7 +142,7 @@ extension AgenticDomainsFlowTesting {
             "architecture inspection includes internal symbols and module membership"
         )
 
-        let search = try await SearchSwiftArchitectureTool().call(
+        let search = try await SwiftLang.Tools.SearchArchitecture().call(
             .init(
                 query: "ArchitectureFixture",
                 module: "Core",
@@ -167,7 +167,7 @@ extension AgenticDomainsFlowTesting {
                 .missingFixtureSymbol
         }
 
-        let symbol = try await InspectSwiftArchitectureSymbolTool().call(
+        let symbol = try await SwiftLang.Tools.InspectArchitectureSymbol().call(
             .init(
                 identity: fixtureSymbol.identity,
                 minimumAccessLevel: .internal

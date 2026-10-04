@@ -77,7 +77,7 @@ extension AgenticDomainsFlowTesting {
             fixture.remove()
         }
 
-        let create = GitWorktreeCreateTool()
+        let create = Git.Tools.WorktreeCreate()
         let createInput = GitWorktreeCreateToolInput(
                 semanticKey: "agentic domains worktree fixture",
                 baseRef: "master"
@@ -118,7 +118,7 @@ extension AgenticDomainsFlowTesting {
             "created worktree owns semantic branch"
         )
 
-        let list = GitWorktreeListTool()
+        let list = Git.Tools.WorktreeList()
         let listed = try await list.call(
             AgenticGitEmptyToolInput(),
             context: .init(
@@ -134,7 +134,7 @@ extension AgenticDomainsFlowTesting {
             "git_worktree_list exposes created worktree"
         )
 
-        let remove = GitWorktreeRemoveTool()
+        let remove = Git.Tools.WorktreeRemove()
         let removeInput = GitWorktreeRemoveToolInput(
                 path: worktree.path.path
             )
@@ -200,7 +200,7 @@ extension AgenticDomainsFlowTesting {
             fixture.remove()
         }
 
-        let create = GitWorktreeCreateTool()
+        let create = Git.Tools.WorktreeCreate()
         let source = try await create.call(
             GitWorktreeCreateToolInput(
                         semanticKey: "agentic domains integration source",
@@ -334,7 +334,7 @@ extension AgenticDomainsFlowTesting {
             at: fixture.root
         )
 
-        let remove = GitWorktreeRemoveTool()
+        let remove = Git.Tools.WorktreeRemove()
         _ = try await remove.call(
             GitWorktreeRemoveToolInput(
                     path: sourcePath.path
@@ -378,7 +378,7 @@ private func proveAgenticGitPromotionAndSafeCleanup() async throws {
         fixture.remove()
     }
 
-    let create = GitWorktreeCreateTool()
+    let create = Git.Tools.WorktreeCreate()
     let source = try await create.call(
         GitWorktreeCreateToolInput(
                     semanticKey: "agentic domains promotion source",
@@ -520,7 +520,7 @@ private func proveAgenticGitPromotionAndSafeCleanup() async throws {
         "safe cleanup preserves source branch"
     )
 
-    let remove = GitWorktreeRemoveTool()
+    let remove = Git.Tools.WorktreeRemove()
     _ = try await remove.call(
         GitWorktreeRemoveToolInput(
                 path: sourcePath.path
@@ -540,7 +540,7 @@ private func proveAgenticGitConflictDiscardGate() async throws {
         fixture.remove()
     }
 
-    let create = GitWorktreeCreateTool()
+    let create = Git.Tools.WorktreeCreate()
     let source = try await create.call(
         GitWorktreeCreateToolInput(
                     semanticKey: "agentic domains conflict source",
@@ -659,7 +659,7 @@ private func proveAgenticGitConflictDiscardGate() async throws {
         "discarding conflicted integration preserves source branch"
     )
 
-    let remove = GitWorktreeRemoveTool()
+    let remove = Git.Tools.WorktreeRemove()
     _ = try await remove.call(
         GitWorktreeRemoveToolInput(
                 path: sourcePath.path

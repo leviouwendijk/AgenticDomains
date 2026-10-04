@@ -4,9 +4,9 @@ import Schema
 import Workspace
 import SwiftSemantics
 
-public struct InspectPackageGraphTool:
-    Tool
-{
+public extension SwiftLang.Tools {
+    @Tool("inspect_package_graph")
+    struct InspectPackageGraph {
     @JSONSchema
     public struct Input:
         Codable,
@@ -164,32 +164,12 @@ public struct InspectPackageGraphTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "inspect_package_graph"
 
-    public static let description =
+        public static let purpose =
         "Inspect the SwiftPM package graph for the selected Swift package root."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -230,9 +210,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct FindSwiftDefinitionTool:
-    Tool
-{
+    @Tool("find_swift_definition")
+    struct FindDefinition {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -290,32 +269,12 @@ public struct FindSwiftDefinitionTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "find_swift_definition"
 
-    public static let description =
+        public static let purpose =
         "Resolve compiler-semantic definitions for the Swift symbol at a source position."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -379,9 +338,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct FindSwiftReferencesTool:
-    Tool
-{
+    @Tool("find_swift_references")
+    struct FindReferences {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -438,32 +396,12 @@ public struct FindSwiftReferencesTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "find_swift_references"
 
-    public static let description =
+        public static let purpose =
         "Find compiler-semantic references to the Swift symbol at a source position."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -530,9 +468,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct FindSwiftImplementationsTool:
-    Tool
-{
+    @Tool("find_swift_implementations")
+    struct FindImplementations {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -590,32 +527,12 @@ public struct FindSwiftImplementationsTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "find_swift_implementations"
 
-    public static let description =
+        public static let purpose =
         "Find compiler-semantic implementations of the Swift declaration at a source position."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -679,9 +596,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct InspectSwiftDiagnosticsTool:
-    Tool
-{
+    @Tool("inspect_swift_diagnostics")
+    struct InspectDiagnostics {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -729,32 +645,12 @@ public struct InspectSwiftDiagnosticsTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "inspect_swift_diagnostics"
 
-    public static let description =
+        public static let purpose =
         "Inspect current compiler diagnostics for a Swift source file."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -809,9 +705,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct SearchSwiftSymbolsTool:
-    Tool
-{
+    @Tool("search_swift_symbols")
+    struct SearchSymbols {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -856,32 +751,12 @@ public struct SearchSwiftSymbolsTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "search_swift_symbols"
 
-    public static let description =
+        public static let purpose =
         "Search the compiler-semantic Swift workspace index for symbols."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -931,9 +806,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct InspectSwiftSymbolTool:
-    Tool
-{
+    @Tool("inspect_swift_symbol")
+    struct InspectSymbol {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -982,32 +856,12 @@ public struct InspectSwiftSymbolTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "inspect_swift_symbol"
 
-    public static let description =
+        public static let purpose =
         "Inspect compiler-resolved Swift symbol identity, including USR data when available."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -1070,9 +924,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct InspectSwiftHoverTool:
-    Tool
-{
+    @Tool("inspect_swift_hover")
+    struct InspectHover {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -1121,32 +974,12 @@ public struct InspectSwiftHoverTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "inspect_swift_hover"
 
-    public static let description =
+        public static let purpose =
         "Inspect compiler-generated Swift type, signature, and documentation hover information."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -1201,9 +1034,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct InspectSwiftDocumentSymbolsTool:
-    Tool
-{
+    @Tool("inspect_swift_document_symbols")
+    struct InspectDocumentSymbols {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -1251,32 +1083,12 @@ public struct InspectSwiftDocumentSymbolsTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "inspect_swift_document_symbols"
 
-    public static let description =
+        public static let purpose =
         "Inspect compiler-aware hierarchical symbols for one Swift source file."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -1331,9 +1143,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct InspectSwiftCallersTool:
-    Tool
-{
+    @Tool("inspect_swift_callers")
+    struct InspectCallers {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -1391,32 +1202,12 @@ public struct InspectSwiftCallersTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "inspect_swift_callers"
 
-    public static let description =
+        public static let purpose =
         "Inspect compiler-semantic callers of the Swift callable at a source position."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -1483,9 +1274,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct InspectSwiftCalleesTool:
-    Tool
-{
+    @Tool("inspect_swift_callees")
+    struct InspectCallees {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -1543,32 +1333,12 @@ public struct InspectSwiftCalleesTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "inspect_swift_callees"
 
-    public static let description =
+        public static let purpose =
         "Inspect compiler-semantic callees referenced by the Swift callable at a source position."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -1635,9 +1405,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct InspectSwiftSupertypesTool:
-    Tool
-{
+    @Tool("inspect_swift_supertypes")
+    struct InspectSupertypes {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -1695,32 +1464,12 @@ public struct InspectSwiftSupertypesTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "inspect_swift_supertypes"
 
-    public static let description =
+        public static let purpose =
         "Inspect direct compiler-semantic supertypes of the Swift type at a source position."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -1784,9 +1533,8 @@ public static let identifier: ToolIdentifier =
     }
 }
 
-public struct InspectSwiftSubtypesTool:
-    Tool
-{
+    @Tool("inspect_swift_subtypes")
+    struct InspectSubtypes {
     @JSONSchema
     public struct Input:
         Sendable,
@@ -1844,32 +1592,12 @@ public struct InspectSwiftSubtypesTool:
         }
     }
 
-public static let identifier: ToolIdentifier =
-        "inspect_swift_subtypes"
 
-    public static let description =
+        public static let purpose =
         "Inspect direct compiler-semantic subtypes of the Swift type at a source position."
 
     public static let risk: ActionRisk =
         .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init() {}
 
@@ -1931,34 +1659,6 @@ public static let identifier: ToolIdentifier =
             types: bounded
         )
     }
+    }
 }
 
-private func boundedLocations(
-    values: [SwiftSemanticLocation],
-    limit requestedLimit: Int?
-) -> [SwiftSemanticLocation] {
-    let limit = SwiftSemanticToolSupport.limit(
-        requestedLimit
-    )
-
-    return Array(
-        values.prefix(
-            limit
-        )
-    )
-}
-
-private func boundedTypeHierarchy(
-    values: [SwiftSemanticTypeHierarchyItem],
-    limit requestedLimit: Int?
-) -> [SwiftSemanticTypeHierarchyItem] {
-    let limit = SwiftSemanticToolSupport.limit(
-        requestedLimit
-    )
-
-    return Array(
-        values.prefix(
-            limit
-        )
-    )
-}

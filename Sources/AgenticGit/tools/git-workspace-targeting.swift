@@ -30,7 +30,7 @@ struct GitWorkspaceExecution {
     }
 }
 
-extension GitRepositoryStateTool {
+extension Git.Tools.RepositoryState {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -80,7 +80,7 @@ extension GitRepositoryStateTool {
     }
 }
 
-extension GitReconciliationPlanTool {
+extension Git.Tools.ReconciliationPlan {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -495,7 +495,7 @@ private func targetedGitPullContext(
     )
 }
 
-extension GitPullTool {
+extension Git.Tools.Pull {
     public func preflight(
         _ input: Input,
         workspace context: WorkspaceContext?
@@ -696,7 +696,7 @@ extension Git.Tools.CommitPrepared {
     }
 }
 
-extension GitPullTool {
+extension Git.Tools.Pull {
     public func process(
         _ output: Output,
         input _: Input

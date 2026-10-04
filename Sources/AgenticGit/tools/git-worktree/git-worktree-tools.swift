@@ -6,36 +6,18 @@ import Primitives
 import Schema
 import Macros
 
-public struct GitWorktreeListTool: Tool {
-    public typealias Input = AgenticGitEmptyToolInput
-    public typealias Output = [GitManagerWorktreeRecord]
-    public static let identifier: ToolIdentifier =
-        "git_worktree_list"
+public extension Git.Tools {
+    @Tool("git_worktree_list")
+    struct WorktreeList {
+        public typealias Input = AgenticGitEmptyToolInput
+        public typealias Output = [GitManagerWorktreeRecord]
 
-    public static let description =
-        "List Git worktrees for the current Agentic workspace repository without mutating the repository."
+        public static let purpose =
+            "List Git worktrees for the current Agentic workspace repository without mutating the repository."
 
-    public static let risk: ActionRisk = .observe
+        public static let risk: ActionRisk = .observe
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
+        public init() {}
 
     public func preflight(
         _ input: Input,
@@ -86,6 +68,7 @@ public struct GitWorktreeListTool: Tool {
                 at: workspace.absoluteURL
             )
     }
+}
 }
 
 /// Create an Agentic-managed isolated Git worktree on a new semantic branch.
@@ -152,37 +135,18 @@ public struct GitWorktreeCreateToolOutput:
     }
 }
 
-public struct GitWorktreeCreateTool: Tool {
-    public typealias Input = GitWorktreeCreateToolInput
-    public typealias Output = GitWorktreeCreateToolOutput
+public extension Git.Tools {
+    @Tool("git_worktree_create")
+    struct WorktreeCreate {
+        public typealias Input = GitWorktreeCreateToolInput
+        public typealias Output = GitWorktreeCreateToolOutput
 
-    public static let identifier: ToolIdentifier =
-        "git_worktree_create"
+        public static let purpose =
+            "Create an isolated Agentic-managed Git worktree and durable semantic branch from an exact resolved base commit. The model does not choose the filesystem destination."
 
-    public static let description =
-        "Create an isolated Agentic-managed Git worktree and durable semantic branch from an exact resolved base commit. The model does not choose the filesystem destination."
+        public static let risk: ActionRisk = .boundedmutate
 
-    public static let risk: ActionRisk = .boundedmutate
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
+        public init() {}
 
     public func preflight(
         _ input: Input,
@@ -278,6 +242,7 @@ public struct GitWorktreeCreateTool: Tool {
     }
 }
 
+}
 /// Remove one Agentic-managed task worktree while preserving its branch.
 /// Arbitrary worktree paths and forced removal are not exposed.
 @JSONSchema
@@ -314,36 +279,18 @@ public struct GitWorktreeRemoveToolOutput:
     }
 }
 
-public struct GitWorktreeRemoveTool: Tool {
-    public typealias Input = GitWorktreeRemoveToolInput
-    public typealias Output = GitWorktreeRemoveToolOutput
-    public static let identifier: ToolIdentifier =
-        "git_worktree_remove"
+public extension Git.Tools {
+    @Tool("git_worktree_remove")
+    struct WorktreeRemove {
+        public typealias Input = GitWorktreeRemoveToolInput
+        public typealias Output = GitWorktreeRemoveToolOutput
 
-    public static let description =
-        "Remove one clean Agentic-managed task worktree without forcing removal and without deleting its durable branch."
+        public static let purpose =
+            "Remove one clean Agentic-managed task worktree without forcing removal and without deleting its durable branch."
 
-    public static let risk: ActionRisk = .boundedmutate
+        public static let risk: ActionRisk = .boundedmutate
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
+        public init() {}
 
     public func preflight(
         _ input: Input,
@@ -410,8 +357,9 @@ public struct GitWorktreeRemoveTool: Tool {
             )
     }
 }
+}
 
-private extension GitWorktreeRemoveTool {
+private extension Git.Tools.WorktreeRemove {
     struct RemovalContext {
         let workspace: WorkspaceContext
         let worktree: GitManagerWorktreeRecord

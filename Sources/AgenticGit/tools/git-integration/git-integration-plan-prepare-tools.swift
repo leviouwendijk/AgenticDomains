@@ -51,36 +51,18 @@ public struct GitIntegrationPlanToolOutput:
     }
 }
 
-public struct GitIntegrationPlanTool: Tool {
-    public typealias Input = GitIntegrationPlanToolInput
-    public typealias Output = GitIntegrationPlanToolOutput
-    public static let identifier: ToolIdentifier =
-        "git_integration_plan"
+public extension Git.Tools {
+    @Tool("git_integration_plan")
+    struct IntegrationPlan {
+        public typealias Input = GitIntegrationPlanToolInput
+        public typealias Output = GitIntegrationPlanToolOutput
 
-    public static let description =
-        "Build an immutable, non-mutating Git integration plan with exact source and target commits, drift detection, changed-path overlap, and merge conflict classification."
+        public static let purpose =
+            "Build an immutable, non-mutating Git integration plan with exact source and target commits, drift detection, changed-path overlap, and merge conflict classification."
 
-    public static let risk: ActionRisk = .observe
+        public static let risk: ActionRisk = .observe
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
+        public init() {}
 
     public func preflight(
         _ input: Input,
@@ -141,8 +123,9 @@ public struct GitIntegrationPlanTool: Tool {
             )
     }
 }
+}
 
-private extension GitIntegrationPlanTool {
+private extension Git.Tools.IntegrationPlan {
     struct Context {
         let workspace: WorkspaceContext
         let plan: GitManagerIntegrationPlan
@@ -217,36 +200,18 @@ public struct GitIntegrationPrepareToolOutput:
     }
 }
 
-public struct GitIntegrationPrepareTool: Tool {
-    public typealias Input = GitIntegrationPrepareToolInput
-    public typealias Output = GitIntegrationPrepareToolOutput
-    public static let identifier: ToolIdentifier =
-        "git_integration_prepare"
+public extension Git.Tools {
+    @Tool("git_integration_prepare")
+    struct IntegrationPrepare {
+        public typealias Input = GitIntegrationPrepareToolInput
+        public typealias Output = GitIntegrationPrepareToolOutput
 
-    public static let description =
-        "Revalidate an immutable integration plan and perform the merge only inside a disposable Agentic-managed integration worktree. Canonical target and source branches remain untouched."
+        public static let purpose =
+            "Revalidate an immutable integration plan and perform the merge only inside a disposable Agentic-managed integration worktree. Canonical target and source branches remain untouched."
 
-    public static let risk: ActionRisk = .boundedmutate
+        public static let risk: ActionRisk = .boundedmutate
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
+        public init() {}
 
     public func preflight(
         _ input: Input,
@@ -344,8 +309,9 @@ public struct GitIntegrationPrepareTool: Tool {
             )
     }
 }
+}
 
-private extension GitIntegrationPrepareTool {
+private extension Git.Tools.IntegrationPrepare {
     struct Context {
         let workspace: WorkspaceContext
         let current: GitManagerIntegrationPlan
