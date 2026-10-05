@@ -175,12 +175,12 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = input
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             usesCompilerProvider: false,
@@ -191,12 +191,12 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         _ = input
 
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
@@ -280,7 +280,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -289,7 +289,7 @@ public extension SwiftLang.Tools {
         )
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -300,10 +300,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -407,7 +407,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -416,7 +416,7 @@ public extension SwiftLang.Tools {
         )
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -427,10 +427,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -538,7 +538,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -547,7 +547,7 @@ public extension SwiftLang.Tools {
         )
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -558,10 +558,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -656,10 +656,10 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -670,10 +670,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -762,10 +762,10 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             summary:
@@ -775,10 +775,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
@@ -867,7 +867,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -876,7 +876,7 @@ public extension SwiftLang.Tools {
         )
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -887,10 +887,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -985,7 +985,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -994,7 +994,7 @@ public extension SwiftLang.Tools {
         )
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -1005,10 +1005,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -1094,10 +1094,10 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -1108,10 +1108,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -1213,7 +1213,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -1222,7 +1222,7 @@ public extension SwiftLang.Tools {
         )
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -1233,10 +1233,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -1344,7 +1344,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -1353,7 +1353,7 @@ public extension SwiftLang.Tools {
         )
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -1364,10 +1364,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -1475,7 +1475,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -1484,7 +1484,7 @@ public extension SwiftLang.Tools {
         )
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -1495,10 +1495,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(
@@ -1603,7 +1603,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -1612,7 +1612,7 @@ public extension SwiftLang.Tools {
         )
 
         return try SwiftSemanticToolSupport.preflight(
-            context: context,
+            context: context.workspace,
             toolName: Self.definition.identifier.rawValue,
             risk: risk,
             path: input.path,
@@ -1623,10 +1623,10 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let file = try execution.projectFile(

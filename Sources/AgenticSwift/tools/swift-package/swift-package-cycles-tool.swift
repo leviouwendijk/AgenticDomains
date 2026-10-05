@@ -87,10 +87,10 @@ public struct SwiftPackageCyclesTool: Tool {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let project = workspace.absoluteURL
@@ -134,10 +134,10 @@ public struct SwiftPackageCyclesTool: Tool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let report = try await SwiftPackageCycles.scan(

@@ -83,11 +83,11 @@ private struct SwiftWorkspaceExecution {
 extension SwiftExecutableProductsTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = input
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -114,11 +114,11 @@ extension SwiftExecutableProductsTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         _ = input
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let discovered: [ExecutableProduct]
@@ -150,10 +150,10 @@ extension SwiftExecutableProductsTool {
 extension SwiftLang.Tools.PackageUpdate {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -198,10 +198,10 @@ extension SwiftLang.Tools.PackageUpdate {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let result = try await Package.update(
@@ -244,10 +244,10 @@ extension SwiftLang.Tools.PackageUpdate {
 extension SwiftResolveTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -292,10 +292,10 @@ extension SwiftResolveTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let result = try await Package.resolve(
@@ -338,10 +338,10 @@ extension SwiftResolveTool {
 extension SwiftCleanTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -379,10 +379,10 @@ extension SwiftCleanTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -399,10 +399,10 @@ extension SwiftCleanTool {
 extension SwiftVersionTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -427,10 +427,10 @@ extension SwiftVersionTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let snapshot = try await ExecutableVersion.inspect(
@@ -457,10 +457,10 @@ extension SwiftVersionTool {
 extension SwiftIncrementVersionTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -492,10 +492,10 @@ extension SwiftIncrementVersionTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let result = try ExecutableVersion.incrementRelease(
@@ -521,10 +521,10 @@ extension SwiftIncrementVersionTool {
 extension SwiftKillSwiftPMTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -560,10 +560,10 @@ extension SwiftKillSwiftPMTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let processes = try await SwiftPMProcesses().killAll(
@@ -588,10 +588,10 @@ extension SwiftKillSwiftPMTool {
 extension SwiftBuildLibraryTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -633,10 +633,10 @@ extension SwiftBuildLibraryTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let configuration =
@@ -667,10 +667,10 @@ extension SwiftBuildLibraryTool {
 extension SwiftBuildObjectInitTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -699,10 +699,10 @@ extension SwiftBuildObjectInitTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -740,10 +740,10 @@ extension SwiftBuildObjectInitTool {
 extension SwiftBuildObjectModernizeTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -779,10 +779,10 @@ extension SwiftBuildObjectModernizeTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let result = try BuildObjectLifecycle.modernize(
@@ -802,10 +802,10 @@ extension SwiftBuildObjectModernizeTool {
 extension SwiftAppBundleTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let appName =
@@ -844,10 +844,10 @@ extension SwiftAppBundleTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let plist =
@@ -886,10 +886,10 @@ extension SwiftAppBundleTool {
 extension SwiftDeployTool {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let resolved = try await targetedDeployResolution(
@@ -940,10 +940,10 @@ extension SwiftDeployTool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let resolved = try await targetedDeployResolution(
@@ -1012,10 +1012,10 @@ extension SwiftDeployTool {
 extension SwiftLang.Tools.RunProduct {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let available: [ExecutableProduct]
@@ -1090,10 +1090,10 @@ extension SwiftLang.Tools.RunProduct {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let arguments =

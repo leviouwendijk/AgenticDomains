@@ -53,7 +53,8 @@ public extension SwiftLang.Agents {
         """
 
         public static let capabilities = AgentCapabilities(
-            tools: .init(
+            available: .init(
+                tools: .init(
                 domains: [
                     SwiftLang.definition.namespace,
                 ],
@@ -79,6 +80,7 @@ public extension SwiftLang.Agents {
                     SwiftLang.definition.namespace,
                 ]
             )
+        )
         )
     }
 }

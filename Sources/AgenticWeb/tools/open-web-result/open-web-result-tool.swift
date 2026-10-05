@@ -92,7 +92,7 @@ public extension Web.Tools {
 
         public func preflight(
             _ input: Input,
-            workspace _: WorkspaceContext?
+            in _: ToolContext
         ) async throws -> ToolPreflight {
             let record = try await requiredRecord(
                 searchID: input.searchID
@@ -124,7 +124,7 @@ public extension Web.Tools {
 
         public func call(
             _ input: Input,
-            workspace _: WorkspaceContext?
+            in _: ToolContext
         ) async throws -> Output {
             let record = try await requiredRecord(
                 searchID: input.searchID

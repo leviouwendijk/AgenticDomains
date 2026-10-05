@@ -222,7 +222,7 @@ public extension Git.Tools {
         ActionRisk =
             .privileged
 
-    public static let execution: AgentToolExecutionContract = .targetable
+
 
 
     public init() {}

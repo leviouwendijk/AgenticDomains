@@ -56,12 +56,12 @@ public extension SwiftLang.Tools {
 
         public func preflight(
             _ input: Input,
-            workspace context: WorkspaceContext?
+            in context: ToolContext
         ) async throws -> ToolPreflight {
             _ = input
 
             return try SwiftArchitectureToolSupport.preflight(
-                context: context,
+                context: context.workspace,
                 toolName: Self.definition.identifier.rawValue,
                 summary:
                     "Search compiler-derived Swift architecture semantics."
@@ -70,10 +70,10 @@ public extension SwiftLang.Tools {
 
         public func call(
             _ input: Input,
-            workspace context: WorkspaceContext?
+            in context: ToolContext
         ) async throws -> Output {
             let snapshot = try await SwiftArchitectureToolSupport.localSnapshot(
-                context: context,
+                context: context.workspace,
                 access: input.minimumAccessLevel,
                 refresh: input.refresh,
                 toolName: Self.definition.identifier.rawValue

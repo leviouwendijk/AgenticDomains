@@ -6,10 +6,10 @@ import Foundation
 extension SwiftLang.Tools.Build {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let project = workspace.absoluteURL
@@ -105,10 +105,10 @@ extension SwiftLang.Tools.Build {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let project = workspace.absoluteURL

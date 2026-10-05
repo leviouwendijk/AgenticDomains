@@ -48,7 +48,7 @@ public extension AppleServices.Tools {
 
         public func call(
             _ input: Input,
-            workspace _: WorkspaceContext?
+            in _: ToolContext
         ) async throws -> Output {
             try await provider.events(
                 .init(

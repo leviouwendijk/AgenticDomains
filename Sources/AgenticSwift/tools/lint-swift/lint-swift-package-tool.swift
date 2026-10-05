@@ -70,11 +70,11 @@ public extension SwiftLang.Tools {
 
         public func call(
             _ input: Input,
-            workspace context: WorkspaceContext?
+            in context: ToolContext
         ) async throws -> Output {
             let toolName = Self.definition.identifier.rawValue
             let execution = try SwiftSemanticToolSupport.resolve(
-                context,
+                context.workspace,
                 toolName: toolName
             )
             let workspace = await SwiftSemanticToolSupport.semanticWorkspace(

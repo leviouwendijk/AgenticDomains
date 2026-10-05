@@ -117,7 +117,7 @@ public extension Git.Tools {
         ActionRisk =
             .observe
 
-    public static let execution: AgentToolExecutionContract = .targetable
+
 
 
     public init() {}

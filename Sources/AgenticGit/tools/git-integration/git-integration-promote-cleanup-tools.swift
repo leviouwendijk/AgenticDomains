@@ -45,10 +45,10 @@ public extension Git.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let workspace = try await agenticGitWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -97,10 +97,10 @@ public extension Git.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let workspace = try await agenticGitWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -230,10 +230,10 @@ public extension Git.Tools {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let workspace = try await agenticGitWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -281,10 +281,10 @@ public extension Git.Tools {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let workspace = try await agenticGitWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 

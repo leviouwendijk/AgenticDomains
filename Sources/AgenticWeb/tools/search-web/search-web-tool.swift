@@ -88,7 +88,7 @@ public extension Web.Tools {
 
         public func preflight(
             _ input: Input,
-            workspace _: WorkspaceContext?
+            in _: ToolContext
         ) async throws -> ToolPreflight {
             let query = try normalizedQuery(
                 input.query
@@ -115,7 +115,7 @@ public extension Web.Tools {
 
         public func call(
             _ input: Input,
-            workspace _: WorkspaceContext?
+            in _: ToolContext
         ) async throws -> Output {
             let query = try normalizedQuery(
                 input.query

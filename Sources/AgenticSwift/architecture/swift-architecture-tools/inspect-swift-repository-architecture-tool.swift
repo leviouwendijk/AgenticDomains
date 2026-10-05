@@ -105,10 +105,10 @@ public extension SwiftLang.Tools {
 
         public func preflight(
             _ input: Input,
-            workspace context: WorkspaceContext?
+            in context: ToolContext
         ) async throws -> ToolPreflight {
             try SwiftArchitectureToolSupport.preflight(
-                context: context,
+                context: context.workspace,
                 toolName: Self.definition.identifier.rawValue,
                 summary:
                     "Materialize \(input.origin) at the explicitly selected revision and derive compiler-backed Swift architecture semantics.",
@@ -118,7 +118,7 @@ public extension SwiftLang.Tools {
 
         public func call(
             _ input: Input,
-            workspace context: WorkspaceContext?
+            in context: ToolContext
         ) async throws -> Output {
             _ = context
 

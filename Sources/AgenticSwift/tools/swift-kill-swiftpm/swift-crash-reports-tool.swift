@@ -117,10 +117,10 @@ public struct SwiftCrashReportsTool: Tool {
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try AgenticSwiftToolSupport.requireWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -147,10 +147,10 @@ public struct SwiftCrashReportsTool: Tool {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         _ = try AgenticSwiftToolSupport.requireWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 

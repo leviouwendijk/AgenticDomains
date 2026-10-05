@@ -63,7 +63,7 @@ public extension SwiftLang.Tools {
 
     public static let risk: ActionRisk = .privileged
 
-    public static let execution: AgentToolExecutionContract = .targetable
+
 
 
     public init() {}

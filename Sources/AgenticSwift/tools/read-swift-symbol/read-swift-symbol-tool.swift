@@ -116,7 +116,7 @@ public static let identifier: ToolIdentifier = "read_swift_symbol"
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
 
         guard input.hasLookup else {
@@ -125,7 +125,7 @@ public static let identifier: ToolIdentifier = "read_swift_symbol"
 
         let renderedPath = try AgenticSwiftToolSupport.resolvedPreflightPath(
             input.path,
-            workspace: context
+            workspace: context.workspace
         )
 
         return ToolPreflight(
@@ -143,10 +143,10 @@ public static let identifier: ToolIdentifier = "read_swift_symbol"
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 

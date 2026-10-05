@@ -104,7 +104,7 @@ public extension Git.Tools {
         ActionRisk =
             .boundedmutate
 
-    public static let execution: AgentToolExecutionContract = .targetable
+
 
 
     public init() {}

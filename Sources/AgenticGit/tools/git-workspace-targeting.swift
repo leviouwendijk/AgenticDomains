@@ -33,11 +33,11 @@ struct GitWorkspaceExecution {
 extension Git.Tools.RepositoryState {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -64,11 +64,11 @@ extension Git.Tools.RepositoryState {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let state = try await GitManagerRepositoryInspector.state(
@@ -83,11 +83,11 @@ extension Git.Tools.RepositoryState {
 extension Git.Tools.ReconciliationPlan {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -114,11 +114,11 @@ extension Git.Tools.ReconciliationPlan {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         _ = input
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let result = try await GitManagerReconciler.reconcile(
@@ -135,10 +135,10 @@ extension Git.Tools.ReconciliationPlan {
 extension Git.Tools.Diff {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -165,10 +165,10 @@ extension Git.Tools.Diff {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let result = try await GitManagerDiff.observe(
@@ -258,10 +258,10 @@ private extension GitPrepareCommitToolInput {
 extension Git.Tools.PrepareCommit {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let paths = try input.validatedPaths(
@@ -297,10 +297,10 @@ extension Git.Tools.PrepareCommit {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let paths = try input.validatedPaths(
@@ -336,11 +336,11 @@ extension Git.Tools.PrepareCommit {
 extension Git.Tools.CommitPrepared {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let message = try input.validatedMessage()
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let paths = try await targetedStagedPaths(
@@ -381,11 +381,11 @@ extension Git.Tools.CommitPrepared {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let message = try input.validatedMessage()
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let paths = try await targetedStagedPaths(
@@ -498,11 +498,11 @@ private func targetedGitPullContext(
 extension Git.Tools.Pull {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = input
         let pull = try await targetedGitPullContext(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
 
@@ -547,11 +547,11 @@ extension Git.Tools.Pull {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         _ = input
         let pull = try await targetedGitPullContext(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let output = try await GitManagerAction.pull(
@@ -583,11 +583,11 @@ extension Git.Tools.Pull {
 extension Git.Tools.Push {
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         let target = try input.validatedTarget()
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let state = try await GitManagerRepositoryInspector.state(
@@ -635,11 +635,11 @@ extension Git.Tools.Push {
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         let target = try input.validatedTarget()
         let execution = try await GitWorkspaceExecution.resolve(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let before = try await GitManagerRepositoryInspector.state(

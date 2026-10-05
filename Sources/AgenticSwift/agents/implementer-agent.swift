@@ -56,7 +56,8 @@ public extension SwiftLang.Agents {
         """
 
         public static let capabilities = AgentCapabilities(
-            tools: .init(
+            available: .init(
+                tools: .init(
                 domains: [
                     SwiftLang.definition.namespace,
                 ],
@@ -99,6 +100,7 @@ public extension SwiftLang.Agents {
                     Verifier.definition.identifier,
                 ]
             )
+        )
         )
 
         public static let delegation = AgentDelegationPolicy.bounded(

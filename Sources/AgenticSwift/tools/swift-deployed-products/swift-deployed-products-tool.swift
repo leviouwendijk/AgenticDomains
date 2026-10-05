@@ -90,10 +90,10 @@ public static let identifier: ToolIdentifier = "swift_deployed_products"
 
     public func preflight(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> ToolPreflight {
         _ = try AgenticSwiftToolSupport.requireWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         return ToolPreflight(
@@ -115,10 +115,10 @@ public static let identifier: ToolIdentifier = "swift_deployed_products"
 
     public func call(
         _ input: Input,
-        workspace context: WorkspaceContext?
+        in context: ToolContext
     ) async throws -> Output {
         _ = try AgenticSwiftToolSupport.requireWorkspace(
-            context,
+            context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
         let products = try DeployedList.listBinaries(
