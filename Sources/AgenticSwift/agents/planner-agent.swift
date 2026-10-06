@@ -61,8 +61,8 @@ public extension SwiftLang.Agents {
                     SystemIO.Tools.ReadFile.identifier,
                     SystemIO.Tools.ReadSelection.identifier,
 
-                    SystemIO.Tools.ScanPaths.identifier,
-                    SystemIO.Tools.FindPaths.identifier,
+                    SystemIO.Tools.ScanFilepaths.identifier,
+                    SystemIO.Tools.SearchFilepaths.identifier,
 
                     SystemIO.Tools.SearchSources.identifier,
                     SystemIO.Tools.LoadSearchContext.identifier,
