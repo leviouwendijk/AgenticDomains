@@ -4,7 +4,7 @@ import AgenticIO
 /// Reusable guidance. Instructions neither install nor expose Tools.
 public extension SwiftLang.Instructions {
     @Instruction
-    enum StructuralReading {
+    enum StructuralReading: Instruction {
         public static let content = """
         Prefer Swift structural tools when inspecting Swift source.
 
@@ -18,7 +18,7 @@ public extension SwiftLang.Instructions {
     }
 
     @Instruction
-    enum TargetedEditing {
+    enum TargetedEditing: Instruction {
         public static let content = """
         Use symbol-level inspection before editing Swift files.
 
