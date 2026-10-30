@@ -58,49 +58,69 @@ public extension SwiftLang.Agents {
         public static let capabilities = AgentCapabilities(
             available: .init(
                 tools: .init(
-                domains: [
-                    SwiftLang.definition.namespace,
-                ],
-                members: [
-                    SystemIO.Tools.ReadFile.identifier,
-                    SystemIO.Tools.ReadSelection.identifier,
+                    domains: [
+                        SwiftLang.definition.namespace,
+                    ],
+                    members: [
+                        SystemIO.Tools.ReadFile.identifier,
+                        SystemIO.Tools.ReadSelection.identifier,
 
-                    SystemIO.Tools.ScanFilepaths.identifier,
-                    SystemIO.Tools.SearchFilepaths.identifier,
+                        SystemIO.Tools.ScanFilepaths.identifier,
+                        SystemIO.Tools.SearchFilepaths.identifier,
 
-                    SystemIO.Tools.SearchSources.identifier,
-                    SystemIO.Tools.LoadSearchContext.identifier,
-                    SystemIO.Tools.ProveSearchResults.identifier,
+                        SystemIO.Tools.SearchSources.identifier,
+                        SystemIO.Tools.LoadSearchContext.identifier,
+                        SystemIO.Tools.ProveSearchResults.identifier,
 
-                    SystemIO.Tools.MutateFiles.identifier,
+                        SystemIO.Tools.MutateFiles.identifier,
 
-                    // maybe clutters the context window redundantly?
+                        // maybe clutters the context window redundantly?
 
-                    // Standard.Tools.FindGuidelines.identifier,
-                    // Standard.Tools.GuidelineIndex.identifier,
-                    // Standard.Tools.ReadGuideline.identifier,
-                    // Standard.Tools.ReadGuidelineChapter.identifier
-                ]
+                        // Standard.Tools.FindGuidelines.identifier,
+                        // Standard.Tools.GuidelineIndex.identifier,
+                        // Standard.Tools.ReadGuideline.identifier,
+                        // Standard.Tools.ReadGuidelineChapter.identifier
+                    ]
+                ),
+                programs: .init(
+                    domains: [
+                        SwiftLang.definition.namespace,
+                    ]
+                ),
+                inferences: .init(
+                    domains: [
+                        SwiftLang.definition.namespace,
+                    ]
+                ),
+                agents: .init(
+                    members: [
+                        Planner.definition.identifier,
+                        Explorer.definition.identifier,
+                        Reviewer.definition.identifier,
+                        Verifier.definition.identifier,
+                    ]
+                )
             ),
-            programs: .init(
-                domains: [
-                    SwiftLang.definition.namespace,
-                ]
-            ),
-            inferences: .init(
-                domains: [
-                    SwiftLang.definition.namespace,
-                ]
-            ),
-            agents: .init(
-                members: [
-                    Planner.definition.identifier,
-                    Explorer.definition.identifier,
-                    Reviewer.definition.identifier,
-                    Verifier.definition.identifier,
-                ]
+            visible: .init(
+                tools: .init(
+                    domains: [
+                        SwiftLang.definition.namespace,
+                    ],
+                    members: [
+                        SystemIO.Tools.ReadFile.identifier,
+                        SystemIO.Tools.ReadSelection.identifier,
+
+                        SystemIO.Tools.ScanFilepaths.identifier,
+                        SystemIO.Tools.SearchFilepaths.identifier,
+
+                        SystemIO.Tools.SearchSources.identifier,
+                        SystemIO.Tools.LoadSearchContext.identifier,
+                        SystemIO.Tools.ProveSearchResults.identifier,
+
+                        SystemIO.Tools.MutateFiles.identifier,
+                    ]
+                ),
             )
-        )
         )
 
         public static let delegation = AgentDelegationPolicy.bounded(
