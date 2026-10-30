@@ -151,8 +151,8 @@ extension AgenticDomainsFlowTesting {
         let userInput = BusinessReplyUserInputFixture()
         var registry = ProgramRegistry()
 
-        try AgenticBusinessProgramSet().register(
-            into: &registry
+        try registry.register(
+            Business.Programs.PrepareReply()
         )
 
         try Expect.equal(

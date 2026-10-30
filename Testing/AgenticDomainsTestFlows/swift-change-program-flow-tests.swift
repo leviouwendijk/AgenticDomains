@@ -125,9 +125,7 @@ extension AgenticDomainsFlowTesting {
         let inference = SwiftChangeInferenceFixture()
         var registry = ProgramRegistry()
 
-        try AgenticSwiftProgramSet().register(
-            into: &registry
-        )
+        try registry.register(PlanSwiftChangeProgram())
 
         try Expect.equal(
             registry.count,

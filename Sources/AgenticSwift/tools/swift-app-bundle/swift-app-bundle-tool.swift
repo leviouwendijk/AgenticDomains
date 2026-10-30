@@ -6,6 +6,7 @@ import Primitives
 import Schema
 import Macros
 
+@DomainMember(SwiftLang.self)
 public struct SwiftAppBundleTool: Tool {
     @JSONSchema
     public struct Input:

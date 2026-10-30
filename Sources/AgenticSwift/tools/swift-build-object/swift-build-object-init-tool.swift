@@ -5,6 +5,7 @@ import Primitives
 import Schema
 import Macros
 
+@DomainMember(SwiftLang.self)
 public struct SwiftBuildObjectInitTool: Tool {
     @JSONSchema
     public struct Input:

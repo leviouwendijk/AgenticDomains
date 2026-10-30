@@ -6,8 +6,9 @@ public extension Business.Programs {
         public typealias Input = BusinessReplyRequest
         public typealias Output = BusinessReplyAssistance
 
-        public static let purpose =
-            "Understand a supplied business conversation, request optional operator guidance when a material communication decision remains unresolved, then prepare structured reply guidance and candidate responses for human review."
+        public static let purpose = """
+        Understand a supplied business conversation, request optional operator guidance when a material communication decision remains unresolved, then prepare structured reply guidance and candidate responses for human review.
+        """
 
         @InferenceSite
         public static var understanding:

@@ -7,6 +7,7 @@ import Version
 import Macros
 
 
+@DomainMember(SwiftLang.self)
 public struct SwiftVersionTool: Tool {
     @JSONSchema
     public struct Input:

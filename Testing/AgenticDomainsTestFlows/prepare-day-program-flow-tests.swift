@@ -289,12 +289,15 @@ extension AgenticDomainsFlowTesting {
 
         var registry = ProgramRegistry()
 
-        try AgenticAppleServicesProgramSet(
-            calendar: calendar,
-            reminders: reminders,
-            weather: weather
-        ).register(
-            into: &registry
+        try registry.register(
+            AppleServices.Programs.PrepareDay(
+                calendar: calendar,
+                reminders: reminders,
+                weather: weather
+            )
+        )
+        try registry.register(
+            AppleServices.Programs.CreateReminder()
         )
 
         try Expect.equal(

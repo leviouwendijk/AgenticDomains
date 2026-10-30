@@ -4,6 +4,7 @@ import Workspace
 import Primitives
 import Schema
 
+@DomainMember(SwiftLang.self)
 public struct ListSwiftSymbolsTool: Tool {
     @JSONSchema
     public struct Input: Sendable, Codable, Hashable {

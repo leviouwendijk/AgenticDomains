@@ -5,6 +5,7 @@ import Primitives
 import Schema
 import Macros
 
+@DomainMember(SwiftLang.self)
 public struct SwiftCleanTool: Tool {
     @JSONSchema
     public struct Input:

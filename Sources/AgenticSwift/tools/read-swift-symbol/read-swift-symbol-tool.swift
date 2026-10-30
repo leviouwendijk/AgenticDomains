@@ -7,6 +7,7 @@ import Primitives
 import Schema
 import Path
 
+@DomainMember(SwiftLang.self)
 public struct ReadSwiftSymbolTool: Tool {
     @JSONSchema
     public struct Input: Sendable, Codable, Hashable {

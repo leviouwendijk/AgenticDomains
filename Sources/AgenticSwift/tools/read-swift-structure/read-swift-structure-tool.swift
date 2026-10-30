@@ -7,6 +7,7 @@ import SwiftSemantics
 import Primitives
 import Schema
 
+@DomainMember(SwiftLang.self)
 public struct ReadSwiftStructureTool: Tool {
     @JSONSchema
     public struct Input: Sendable, Codable, Hashable {

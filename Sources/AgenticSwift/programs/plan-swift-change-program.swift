@@ -1,5 +1,6 @@
 import Agentic
 
+@DomainMember(SwiftLang.self)
 @Program
 public struct PlanSwiftChangeProgram {
     public typealias Input = SwiftChangeContext

@@ -5,6 +5,7 @@ import Workspace
 import Executable
 import Primitives
 
+@DomainMember(SwiftLang.self)
 public struct SwiftResolveTool: Tool {
     @JSONSchema
     public struct Input:

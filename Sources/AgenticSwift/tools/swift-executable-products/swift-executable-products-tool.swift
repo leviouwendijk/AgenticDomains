@@ -6,6 +6,7 @@ import Schema
 import Macros
 
 
+@DomainMember(SwiftLang.self)
 public struct SwiftExecutableProductsTool:
     Tool
 {

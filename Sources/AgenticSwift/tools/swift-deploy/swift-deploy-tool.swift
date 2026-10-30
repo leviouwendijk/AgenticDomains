@@ -39,6 +39,7 @@ public extension SwiftDeployTool.Input {
 }
 
 
+@DomainMember(SwiftLang.self)
 public struct SwiftDeployTool: Tool {
     @JSONSchema
     public struct Input:
