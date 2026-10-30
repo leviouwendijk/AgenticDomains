@@ -1,5 +1,5 @@
 {
-  "originHash" : "847a49e098c487cda0dc9874069b68b58d2bcd468336e9bdb0f82e3985cf5298",
+  "originHash" : "df54391a0093d314c25eaf6f559fbc11001b1dd0945782c38daa5f6c01277997",
   "pins" : [
     {
       "identity" : "agentic",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "256f2f334798651c576de2f92cc07c674bcb6dba"
+        "revision" : "9e9625d2f55cc48f7ff9e4e983d132844d2c0007"
       }
     },
     {
@@ -403,7 +403,7 @@
       "location" : "https://github.com/leviouwendijk/SwiftSemantics.git",
       "state" : {
         "branch" : "master",
-        "revision" : "6908c7a6d292ef3560c400651454444c3550e4f3"
+        "revision" : "32336afa0a08aa813eb810baaf64f1558017b785"
       }
     },
     {

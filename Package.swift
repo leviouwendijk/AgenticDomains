@@ -54,7 +54,7 @@ let package = Package(
         // .package(url: "https://github.com/leviouwendijk/Accounting.git", branch: "master"),
 
         // .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
-        // .package(url: "https://github.com/leviouwendijk/Writers.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Writers.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Readers.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/FileTypes.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Selection.git", branch: "master"),
@@ -96,6 +96,9 @@ let package = Package(
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "SwiftSemantics", package: "SwiftSemantics"),
+                .product(name: "SwiftRefactoring", package: "SwiftSemantics"),
+                .product(name: "SwiftRefactoringWriters", package: "SwiftSemantics"),
+                .product(name: "Writers", package: "Writers"),
                 .product(name: "Documentation", package: "Documentation"),
                 .product(name: "Path", package: "Path"),
                 .product(name: "Position", package: "Position"),
