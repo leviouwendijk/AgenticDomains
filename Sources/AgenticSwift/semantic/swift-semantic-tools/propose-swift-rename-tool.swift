@@ -20,6 +20,10 @@ public extension SwiftLang.Tools {
             public let symbolPath: [String]?
             /// Optional USR to verify the compiler-resolved symbol identity.
             public let expectedUSR: String?
+            /// Opt-in, bounded workspace index synchronization and reference checks.
+            public let requireIndexedReferences: Bool
+            /// Explicit files that must contain compiler-generated rename edits.
+            public let expectedAffectedPaths: [String]
             public let newName: String
 
             public init(
@@ -28,13 +32,17 @@ public extension SwiftLang.Tools {
                 line: Int? = nil,
                 utf16Column: Int? = nil,
                 symbolPath: [String]? = nil,
-                expectedUSR: String? = nil
+                expectedUSR: String? = nil,
+                requireIndexedReferences: Bool = false,
+                expectedAffectedPaths: [String] = []
             ) {
                 self.path = path
                 self.line = line
                 self.utf16Column = utf16Column
                 self.symbolPath = symbolPath
                 self.expectedUSR = expectedUSR
+                self.requireIndexedReferences = requireIndexedReferences
+                self.expectedAffectedPaths = expectedAffectedPaths
                 self.newName = newName
             }
         }
@@ -116,6 +124,20 @@ public extension SwiftLang.Tools {
                     throw failure("Compiler symbol identity did not match expected USR.")
                 }
             }
+            let indexedReferences: [SwiftSemanticLocation]
+            if input.requireIndexedReferences {
+                try await workspace.synchronizeIndex(timeoutSeconds: 30)
+                indexedReferences = try await workspace.references(
+                    in: file,
+                    at: position,
+                    includeDeclaration: true
+                )
+                guard !indexedReferences.isEmpty else {
+                    throw failure("Indexed reference query returned no locations; refusing an unverified cross-file rename.")
+                }
+            } else {
+                indexedReferences = []
+            }
             let proposal = try await workspace.rename(
                 in: file,
                 at: position,
@@ -124,6 +146,25 @@ public extension SwiftLang.Tools {
 
             guard proposal.documents.contains(where: { !$0.edits.isEmpty }) else {
                 throw failure("SourceKit-LSP returned no rename edits.")
+            }
+            for reference in indexedReferences {
+                let matched = proposal.documents.contains { document in
+                    document.uri.standardizedFileURL == reference.uri.standardizedFileURL
+                        && document.edits.contains { edit in
+                            contains(reference.range.start, in: edit.range)
+                        }
+                }
+                guard matched else {
+                    throw failure("SourceKit-LSP rename omits an indexed reference at \(reference.uri.path):\(reference.range.start.line):\(reference.range.start.utf16Column). No proposal retained.")
+                }
+            }
+            for expectedPath in input.expectedAffectedPaths {
+                let expectedFile = try sourceFile(expectedPath, execution: execution)
+                guard proposal.documents.contains(where: {
+                    $0.uri.standardizedFileURL == expectedFile && !$0.edits.isEmpty
+                }) else {
+                    throw failure("SourceKit-LSP rename omitted required affected file \(expectedPath). No proposal retained.")
+                }
             }
 
             let rootComponents = execution.projectRoot
@@ -161,7 +202,8 @@ public extension SwiftLang.Tools {
             let hasSymbol = input.symbolPath != nil
             guard hasCoordinate != hasSymbol,
                 (input.line == nil) == (input.utf16Column == nil),
-                !input.newName.isEmpty else {
+                !input.newName.isEmpty,
+                input.expectedAffectedPaths.allSatisfy({ !$0.isEmpty }) else {
                 throw failure("Provide either line+utf16Column or a symbolPath, and a nonempty newName.")
             }
             if let symbolPath = input.symbolPath {
@@ -176,6 +218,19 @@ public extension SwiftLang.Tools {
                     toolName: Self.definition.identifier.rawValue
                 )
             }
+        }
+
+        private func contains(
+            _ position: SwiftSemanticPosition,
+            in range: SwiftSemanticRange
+        ) -> Bool {
+            let afterStart = position.line > range.start.line
+                || (position.line == range.start.line
+                    && position.utf16Column >= range.start.utf16Column)
+            let beforeEnd = position.line < range.end.line
+                || (position.line == range.end.line
+                    && position.utf16Column < range.end.utf16Column)
+            return afterStart && beforeEnd
         }
 
         private func selectionPositions(

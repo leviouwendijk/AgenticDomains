@@ -198,6 +198,19 @@ extension AgenticDomainsFlowTesting {
             "inspect_package_graph projects SwiftPM targets"
         )
 
+        let indexedInput = SwiftLang.Tools.ProposeRename.Input(
+            path: "Sources/Core/Core.swift",
+            newName: "RenamedFixture",
+            symbolPath: ["SemanticFixture"],
+            requireIndexedReferences: true,
+            expectedAffectedPaths: ["Sources/Core/Core.swift"]
+        )
+        let restoredIndexedInput = try JSONDecoder().decode(
+            SwiftLang.Tools.ProposeRename.Input.self,
+            from: JSONEncoder().encode(indexedInput)
+        )
+        try Expect.equal(restoredIndexedInput, indexedInput, "indexed rename input round-trips")
+
         return [
             .field(
                 "risk",

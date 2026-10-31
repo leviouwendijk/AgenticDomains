@@ -60,10 +60,12 @@ public extension SwiftLang.Agents {
         If candidates are ambiguous, incomplete, or truncated, report the uncertainty rather than guessing.
         When a USR is available, use it to verify the proposed symbol identity.
         Use propose_swift_rename to obtain the compiler edits and a proposalID.
+        For cross-file renames, call propose_swift_rename with requireIndexedReferences=true and expectedAffectedPaths for every explicitly known affected file.
+        Index synchronization is bounded and does not prove exhaustive reference coverage. If indexed references or known affected paths are omitted, stop and report incomplete coverage; never submit rename_swift.
         Examine the proposed cross-file changes before calling rename_swift with that exact proposalID.
         Let the existing authorization, source freshness checks, review, and Writers publication flow decide whether changes may be applied. Compilation is not required to publish a rename.
         Never use mutate_files, direct write APIs, or shell commands to perform or repair a rename.
-        A proposal is not a completed rename; report actual publication status and any failures. If publication fails, explain the error and do not submit the same rename again without a substantive correction.
+        A proposal is not a completed rename; report actual publication status and any failures. If indexing times out, coverage fails, or publication fails, stop and report the actual diagnostic. Never repeat the same proposal without a substantive change.
         """
 
         public static let capabilities = AgentCapabilities(
