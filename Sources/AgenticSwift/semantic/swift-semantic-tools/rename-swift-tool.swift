@@ -40,11 +40,11 @@ public extension SwiftLang.Tools {
     struct RenameSwift {
         @JSONSchema
         public struct Input: Codable, Sendable, Hashable {
-            /// The ordered, unmodified result from propose_swift_rename.
-            public let proposal: SwiftSemanticRenameResult
+            /// Opaque handle returned by propose_swift_rename; arbitrary edits are not accepted.
+            public let proposalID: UUID
 
-            public init(proposal: SwiftSemanticRenameResult) {
-                self.proposal = proposal
+            public init(proposalID: UUID) {
+                self.proposalID = proposalID
             }
         }
 
@@ -72,6 +72,10 @@ public extension SwiftLang.Tools {
                 context.workspace,
                 toolName: Self.definition.identifier.rawValue
             ).workspace
+            let retained = try await SwiftRenameProposalStore.shared.resolve(
+                input.proposalID,
+                workspace: workspace
+            )
             let writer = try WorkspaceWriter(
                 root: workspace.absoluteURL,
                 rootIdentifier: workspace.rootIdentifier
@@ -80,11 +84,16 @@ public extension SwiftLang.Tools {
                 workspace: workspace,
                 writer: writer
             )
-            for document in input.proposal.documents where document.version != nil {
+            for (file, text) in retained.sources {
+                guard package.files[file] == text else {
+                    throw SwiftRefactoringError.staleSource(file)
+                }
+            }
+            for document in retained.proposal.documents where document.version != nil {
                 throw SwiftRenameToolError.unsupportedDocumentVersion(document.uri)
             }
             let rename = try SwiftRefactoringRenamePlanner().plan(
-                input.proposal,
+                retained.proposal,
                 sources: package.files
             )
             let draft = try SwiftRefactoringWritersAdapter().prepareReview(
@@ -155,7 +164,7 @@ public extension SwiftLang.Tools {
                 ],
                 warnings: [
                     "Only source-only SwiftPM packages are supported; the Sources/ scan is not SwiftPM's resolved inventory. A staged build is not a sandbox.",
-                    "Versioned SourceKit documents require a future authoritative document-version bridge."
+                    "Versioned SourceKit documents require an authoritative document-version bridge; proposals are short-lived and bound to source snapshots."
                 ]
             )
             let work = SwiftRenamePreparedWork(

@@ -1,4 +1,5 @@
 import Agentic
+import AgenticIO
 import Foundation
 import Macros
 import Schema
@@ -11,27 +12,45 @@ public extension SwiftLang.Tools {
         public struct Input: Codable, Sendable, Hashable {
             /// Swift source path relative to the selected package root.
             public let path: String
-            /// One-based source line.
-            public let line: Int
-            /// One-based UTF-16 column.
-            public let utf16Column: Int
-            /// Requested replacement symbol name.
+            /// Explicit one-based UTF-16 location (legacy selection mode).
+            public let line: Int?
+            public let utf16Column: Int?
+            /// Exact hierarchical names returned by inspect_swift_document_symbols.
+            /// Overloads or duplicate paths are rejected rather than guessed.
+            public let symbolPath: [String]?
+            /// Optional USR to verify the compiler-resolved symbol identity.
+            public let expectedUSR: String?
             public let newName: String
 
             public init(
                 path: String,
-                line: Int,
-                utf16Column: Int,
-                newName: String
+                newName: String,
+                line: Int? = nil,
+                utf16Column: Int? = nil,
+                symbolPath: [String]? = nil,
+                expectedUSR: String? = nil
             ) {
                 self.path = path
                 self.line = line
                 self.utf16Column = utf16Column
+                self.symbolPath = symbolPath
+                self.expectedUSR = expectedUSR
                 self.newName = newName
             }
         }
 
-        public typealias Output = SwiftSemanticRenameResult
+        @JSONSchema
+        public struct Output: Codable, Sendable, Hashable {
+            /// Opaque, short-lived reference; only this identifier is accepted by rename_swift.
+            public let proposalID: UUID
+            /// Compiler-produced preview for inspection only, not for replay.
+            public let proposal: SwiftSemanticRenameResult
+
+            public init(proposalID: UUID, proposal: SwiftSemanticRenameResult) {
+                self.proposalID = proposalID
+                self.proposal = proposal
+            }
+        }
 
         public static let purpose =
             "Request an ordered, cross-file Swift symbol rename proposal from SourceKit-LSP without applying edits. Compiler-semantic preparation may execute package tooling. The returned proposal is not approved for publication."
@@ -49,11 +68,7 @@ public extension SwiftLang.Tools {
                 toolName: Self.definition.identifier.rawValue
             )
             _ = try sourceFile(input.path, execution: execution)
-            _ = try SwiftSemanticToolSupport.position(
-                line: input.line,
-                utf16Column: input.utf16Column,
-                toolName: Self.definition.identifier.rawValue
-            )
+            try validateSelection(input)
             // A rename may inspect and propose edits across the package.
             // Review access is therefore package-wide, not limited to the
             // source location used to identify the symbol.
@@ -61,7 +76,7 @@ public extension SwiftLang.Tools {
                 context: context.workspace,
                 toolName: Self.definition.identifier.rawValue,
                 risk: Self.risk,
-                summary: "Request cross-file Swift rename proposal at \(input.path):\(input.line):\(input.utf16Column) to '\(input.newName)'. No source files will be modified."
+                summary: "Request a compiler-resolved cross-file Swift rename in \(input.path) to '\(input.newName)'. No source files will be modified."
             )
         }
 
@@ -74,14 +89,33 @@ public extension SwiftLang.Tools {
                 toolName: Self.definition.identifier.rawValue
             )
             let file = try sourceFile(input.path, execution: execution)
-            let position = try SwiftSemanticToolSupport.position(
-                line: input.line,
-                utf16Column: input.utf16Column,
-                toolName: Self.definition.identifier.rawValue
-            )
+            try validateSelection(input)
             let workspace = await SwiftSemanticToolSupport.semanticWorkspace(
                 for: execution
             )
+            let position: SwiftSemanticPosition
+            if let symbolPath = input.symbolPath {
+                let symbols = try await workspace.documentSymbols(for: file)
+                let matches = selectionPositions(in: symbols, path: symbolPath)
+                guard matches.count == 1, let selected = matches.first else {
+                    throw failure("Compiler document symbol path is missing or ambiguous: \(symbolPath.joined(separator: " / "))")
+                }
+                position = selected
+            } else if let line = input.line, let column = input.utf16Column {
+                position = try SwiftSemanticToolSupport.position(
+                    line: line,
+                    utf16Column: column,
+                    toolName: Self.definition.identifier.rawValue
+                )
+            } else {
+                throw failure("Invalid coordinate selector.")
+            }
+            if let expectedUSR = input.expectedUSR {
+                let resolved = try await workspace.symbolInfo(in: file, at: position)
+                guard resolved.contains(where: { $0.identifier == expectedUSR }) else {
+                    throw failure("Compiler symbol identity did not match expected USR.")
+                }
+            }
             let proposal = try await workspace.rename(
                 in: file,
                 at: position,
@@ -94,19 +128,70 @@ public extension SwiftLang.Tools {
 
             let rootComponents = execution.projectRoot
                 .resolvingSymlinksInPath().pathComponents
+            var sources: [URL: String] = [:]
             for document in proposal.documents {
                 let target = document.uri.standardizedFileURL
                 guard target.isFileURL,
                     target.pathExtension == "swift",
-                    target.resolvingSymlinksInPath().pathComponents
-                        .starts(with: rootComponents) else {
+                    target.resolvingSymlinksInPath() == target,
+                    target.pathComponents.starts(with: rootComponents) else {
                     throw failure(
                         "Rename proposal contains an unsupported or out-of-workspace document: \(document.uri.absoluteString)"
                     )
                 }
+                _ = try FileToolAccess.authorize(
+                    workspace: execution.workspace,
+                    rootID: execution.workspace.rootIdentifier,
+                    path: target.path,
+                    capability: .read,
+                    toolName: Self.definition.identifier.rawValue
+                )
+                sources[target] = try String(contentsOf: target, encoding: .utf8)
             }
+            let proposalID = await SwiftRenameProposalStore.shared.retain(
+                proposal,
+                workspace: execution.workspace,
+                sources: sources
+            )
+            return Output(proposalID: proposalID, proposal: proposal)
+        }
 
-            return proposal
+        private func validateSelection(_ input: Input) throws {
+            let hasCoordinate = input.line != nil && input.utf16Column != nil
+            let hasSymbol = input.symbolPath != nil
+            guard hasCoordinate != hasSymbol,
+                (input.line == nil) == (input.utf16Column == nil),
+                !input.newName.isEmpty else {
+                throw failure("Provide either line+utf16Column or a symbolPath, and a nonempty newName.")
+            }
+            if let symbolPath = input.symbolPath {
+                guard !symbolPath.isEmpty,
+                    symbolPath.allSatisfy({ !$0.isEmpty }) else {
+                    throw failure("symbolPath must contain nonempty compiler document-symbol names.")
+                }
+            } else if let line = input.line, let column = input.utf16Column {
+                _ = try SwiftSemanticToolSupport.position(
+                    line: line,
+                    utf16Column: column,
+                    toolName: Self.definition.identifier.rawValue
+                )
+            }
+        }
+
+        private func selectionPositions(
+            in symbols: [SwiftSemanticDocumentSymbol],
+            path: [String]
+        ) -> [SwiftSemanticPosition] {
+            guard let name = path.first else { return [] }
+            return symbols.filter { $0.name == name }.flatMap { symbol in
+                if path.count == 1 {
+                    return [symbol.selectionRange.start]
+                }
+                return selectionPositions(
+                    in: symbol.children,
+                    path: Array(path.dropFirst())
+                )
+            }
         }
 
         private func sourceFile(
