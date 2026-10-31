@@ -98,6 +98,7 @@ public extension SwiftLang.Agents {
                         Explorer.definition.identifier,
                         Reviewer.definition.identifier,
                         Verifier.definition.identifier,
+                        Renamer.definition.identifier,
                     ]
                 )
             ),
@@ -120,6 +121,11 @@ public extension SwiftLang.Agents {
                         SystemIO.Tools.MutateFiles.identifier,
                     ]
                 ),
+                agents: .init(
+                    members: [
+                        Renamer.definition.identifier,
+                    ]
+                )
             )
         )
 
@@ -130,6 +136,7 @@ public extension SwiftLang.Agents {
                     Explorer.definition.identifier,
                     Reviewer.definition.identifier,
                     Verifier.definition.identifier,
+                    Renamer.definition.identifier,
                 ]
             ),
             limits: .init(
