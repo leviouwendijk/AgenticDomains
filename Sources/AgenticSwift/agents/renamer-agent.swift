@@ -61,9 +61,9 @@ public extension SwiftLang.Agents {
         When a USR is available, use it to verify the proposed symbol identity.
         Use propose_swift_rename to obtain the compiler edits and a proposalID.
         Examine the proposed cross-file changes before calling rename_swift with that exact proposalID.
-        Let the existing authorization, review, compiler validation, and Writers publication flow decide whether changes may be applied.
+        Let the existing authorization, source freshness checks, review, and Writers publication flow decide whether changes may be applied. Compilation is not required to publish a rename.
         Never use mutate_files, direct write APIs, or shell commands to perform or repair a rename.
-        A proposal is not a completed rename; report actual publication status and any failures.
+        A proposal is not a completed rename; report actual publication status and any failures. If publication fails, explain the error and do not submit the same rename again without a substantive correction.
         """
 
         public static let capabilities = AgentCapabilities(

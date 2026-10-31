@@ -59,7 +59,7 @@ public extension SwiftLang.Tools {
         }
 
         public static let purpose =
-            "Review a SourceKit rename as the native Writers diff; after approval, build the exact reviewed SwiftPM source snapshot and publish or stage the unchanged plan."
+            "Review a compiler-produced, source-bound multi-file Swift rename as a Writers diff; after approval, recheck source freshness and publish or stage the exact reviewed plan without requiring a SwiftPM build."
         public static let risk: ActionRisk = .privileged
 
         public init() {}
@@ -141,7 +141,7 @@ public extension SwiftLang.Tools {
             let review = ToolPreflight(
                 tool: Self.definition.identifier,
                 risk: Self.risk,
-                summary: "Review and compile-validate a Swift rename affecting \(paths.count) file(s), then publish the approved edits.",
+                summary: "Review a semantic rename affecting \(paths.count) file(s), then publish the approved Writers plan after freshness checks.",
                 access: .init(
                     targets: Array(Set(paths + readPaths)).sorted(),
                     roots: [workspace.rootIdentifier.rawValue],
@@ -149,21 +149,20 @@ public extension SwiftLang.Tools {
                 ),
                 estimates: .init(
                     write: .init(count: draft.mutationPlan.entries.count),
-                    runtime: 120
+                    runtime: 15
                 ),
                 preview: .init(difference: difference),
                 sideEffects: [
-                    "After approval, SwiftPM may execute the supplied Package.swift and plugins in a disposable directory.",
-                    "After successful validation, source files will be changed or staged for coordinated publication."
+                    "After approval and source-freshness checks, the reviewed changes will be published or staged through Writers. No package build is performed."
                 ],
                 policyChecks: [
                     "workspace_authorized",
                     "reviewed_writers_plan_retained",
                     "source_tree_scanned_and_authorized",
-                    "compiler_validation_required_after_approval"
+                    "source_freshness_required_after_approval"
                 ],
                 warnings: [
-                    "Only source-only SwiftPM packages are supported; the Sources/ scan is not SwiftPM's resolved inventory. A staged build is not a sandbox.",
+                    "Rename scope is limited to the authorized SwiftPM package source tree; the Sources/ scan does not prove a complete external reference graph. Compilation is not performed.",
                     "Versioned SourceKit documents require an authoritative document-version bridge; proposals are short-lived and bound to source snapshots."
                 ]
             )
@@ -265,13 +264,11 @@ public extension SwiftLang.Tools {
                 mutationPlan: work.plan,
                 snapshot: .init(package: package)
             )
-            let validated = try await SwiftRefactoringWritersAdapter().validate(
-                draft,
-                workspace: writer
-            )
-            // Publication consumes the exact validated Writers plan.
+            // Compiler validation is optional, not a publication prerequisite.
+            // Recheck the exact source snapshot before Writers publication.
+            try draft.snapshot.requireCurrent(in: writer)
             let publication = try await PreparedWritersPublisher().publish(
-                validated.mutationPlan,
+                draft.mutationPlan,
                 in: workspace,
                 using: writer
             )
