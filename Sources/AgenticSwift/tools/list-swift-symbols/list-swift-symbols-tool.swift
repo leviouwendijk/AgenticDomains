@@ -4,8 +4,9 @@ import Workspace
 import Primitives
 import Schema
 
-@DomainMember(SwiftLang.self)
-public struct ListSwiftSymbolsTool: Tool {
+public extension SwiftLang.Tools {
+    @Tool("list_swift_symbols")
+    struct ListSymbols: Tool {
     @JSONSchema
     public struct Input: Sendable, Codable, Hashable {
         /// Swift source file path relative to the current Agentic workspace.
@@ -52,29 +53,10 @@ public struct ListSwiftSymbolsTool: Tool {
         }
     }
 
-public static let identifier: ToolIdentifier = "list_swift_symbols"
-    public static let description = "List Swift symbols discovered in a Swift source file in the workspace."
+    public static let purpose = "List Swift symbols discovered in a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
     public let collector: SwiftSymbolCollector
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init(
         collector: SwiftSymbolCollector = .init()
@@ -150,10 +132,11 @@ public static let identifier: ToolIdentifier = "list_swift_symbols"
             )
     }
 }
+}
 
-private extension ListSwiftSymbolsTool {
+private extension SwiftLang.Tools.ListSymbols {
     func summary(
-        for input: ListSwiftSymbolsTool.Input,
+        for input: SwiftLang.Tools.ListSymbols.Input,
         renderedPath: String
     ) -> String {
         guard input.filtersByKind else {
@@ -168,7 +151,7 @@ private extension ListSwiftSymbolsTool {
     }
 }
 
-private extension ListSwiftSymbolsTool.Input {
+private extension SwiftLang.Tools.ListSymbols.Input {
     enum CodingKeys:
         String,
         CodingKey
@@ -179,7 +162,7 @@ private extension ListSwiftSymbolsTool.Input {
     }
 }
 
-public extension ListSwiftSymbolsTool.Input {
+public extension SwiftLang.Tools.ListSymbols.Input {
     init(
         from decoder: Decoder
     ) throws {
@@ -204,7 +187,7 @@ public extension ListSwiftSymbolsTool.Input {
     }
 }
 
-public extension ListSwiftSymbolsTool.Input {
+public extension SwiftLang.Tools.ListSymbols.Input {
 
 
     var clampedMaxSymbols: Int {

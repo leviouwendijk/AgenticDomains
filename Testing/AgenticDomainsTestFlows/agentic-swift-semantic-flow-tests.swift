@@ -35,7 +35,7 @@ extension AgenticDomainsFlowTesting {
             workspace: fixture.workspace
         )
 
-        let listed = try await ListSwiftSymbolsTool().call(
+        let listed = try await SwiftLang.Tools.ListSymbols().call(
             .init(
                 path: "Fixture.swift"
             ),
@@ -49,7 +49,7 @@ extension AgenticDomainsFlowTesting {
             "list_swift_symbols projects SwiftSemantics callable identity"
         )
 
-        let read = try await ReadSwiftSymbolTool().call(
+        let read = try await SwiftLang.Tools.ReadSymbol().call(
             .init(
                 path: "Fixture.swift",
                 id: function.id
@@ -64,7 +64,7 @@ extension AgenticDomainsFlowTesting {
             "read_swift_symbol reads the SwiftSemantics-selected source range"
         )
 
-        let structure = try await ReadSwiftStructureTool().call(
+        let structure = try await SwiftLang.Tools.ReadStructure().call(
             .init(
                 path: "Fixture.swift",
                 queryKind: .member,

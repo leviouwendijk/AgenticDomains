@@ -7,8 +7,9 @@ import Primitives
 import Schema
 import Path
 
-@DomainMember(SwiftLang.self)
-public struct ReadSwiftSymbolTool: Tool {
+public extension SwiftLang.Tools {
+    @Tool("read_swift_symbol")
+    struct ReadSymbol: Tool {
     @JSONSchema
     public struct Input: Sendable, Codable, Hashable {
         /// Swift source file path relative to the current Agentic workspace.
@@ -85,29 +86,10 @@ public struct ReadSwiftSymbolTool: Tool {
         }
     }
 
-public static let identifier: ToolIdentifier = "read_swift_symbol"
-    public static let description = "Read one exact Swift symbol from a Swift source file in the workspace, disambiguated by symbol id or display name."
+    public static let purpose = "Read one exact Swift symbol from a Swift source file in the workspace, disambiguated by symbol id or display name."
     public static let risk: ActionRisk = .observe
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
     public let collector: SwiftSymbolCollector
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init(
         collector: SwiftSymbolCollector = .init()
@@ -187,10 +169,11 @@ public static let identifier: ToolIdentifier = "read_swift_symbol"
         )
     }
 }
+}
 
-private extension ReadSwiftSymbolTool {
+private extension SwiftLang.Tools.ReadSymbol {
     func resolveSymbol(
-        for input: ReadSwiftSymbolTool.Input,
+        for input: SwiftLang.Tools.ReadSymbol.Input,
         in file: URL
     ) throws -> SwiftSymbolSummary {
         let symbols = try collector.collect(
@@ -251,14 +234,14 @@ private extension ReadSwiftSymbolTool {
     }
 
     func summary(
-        for input: ReadSwiftSymbolTool.Input,
+        for input: SwiftLang.Tools.ReadSymbol.Input,
         renderedPath: String
     ) -> String {
         "Read Swift symbol in \(renderedPath) matching \(lookupDescription(for: input))"
     }
 
     func lookupDescription(
-        for input: ReadSwiftSymbolTool.Input
+        for input: SwiftLang.Tools.ReadSymbol.Input
     ) -> String {
         if let id = input.normalizedID {
             return "id '\(id)'"
@@ -294,7 +277,7 @@ private extension ReadSwiftSymbolTool {
 /// Supply either id or displayName.
 /// When using displayName, parentType and kind may further disambiguate the symbol.
 
-private extension ReadSwiftSymbolTool.Input {
+private extension SwiftLang.Tools.ReadSymbol.Input {
     enum CodingKeys:
         String,
         CodingKey
@@ -308,7 +291,7 @@ private extension ReadSwiftSymbolTool.Input {
     }
 }
 
-public extension ReadSwiftSymbolTool.Input {
+public extension SwiftLang.Tools.ReadSymbol.Input {
     init(
         from decoder: Decoder
     ) throws {
@@ -345,7 +328,7 @@ public extension ReadSwiftSymbolTool.Input {
     }
 }
 
-public extension ReadSwiftSymbolTool.Input {
+public extension SwiftLang.Tools.ReadSymbol.Input {
 
 
     var normalizedID: String? {

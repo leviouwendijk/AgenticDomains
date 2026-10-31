@@ -7,8 +7,9 @@ import SwiftSemantics
 import Primitives
 import Schema
 
-@DomainMember(SwiftLang.self)
-public struct ReadSwiftStructureTool: Tool {
+public extension SwiftLang.Tools {
+    @Tool("read_swift_structure")
+    struct ReadStructure: Tool {
     @JSONSchema
     public struct Input: Sendable, Codable, Hashable {
         /// Semantic structure query kind.
@@ -125,29 +126,10 @@ public struct ReadSwiftStructureTool: Tool {
         }
     }
 
-public static let identifier: ToolIdentifier = "read_swift_structure"
-    public static let description = "Read Swift declarations, types, members, imports, or the enclosing scope from a Swift source file in the workspace."
+    public static let purpose = "Read Swift declarations, types, members, imports, or the enclosing scope from a Swift source file in the workspace."
     public static let risk: ActionRisk = .observe
 
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
     public let selector: SwiftStructuralSelector
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
 
     public init(
         selector: SwiftStructuralSelector = .init()
@@ -233,10 +215,11 @@ public static let identifier: ToolIdentifier = "read_swift_structure"
         )
     }
 }
+}
 
-private extension ReadSwiftStructureTool {
+private extension SwiftLang.Tools.ReadStructure {
     func summary(
-        for input: ReadSwiftStructureTool.Input,
+        for input: SwiftLang.Tools.ReadStructure.Input,
         renderedPath: String
     ) -> String {
         switch input.queryKind {
@@ -476,7 +459,7 @@ enum AgenticSwiftToolError: Error, Sendable, LocalizedError {
 /// enclosing_scope requires a positive 1-based line and optionally a positive 1-based column.
 /// imports needs no additional query fields.
 
-private extension ReadSwiftStructureTool.Input {
+private extension SwiftLang.Tools.ReadStructure.Input {
     enum CodingKeys:
         String,
         CodingKey
@@ -492,7 +475,7 @@ private extension ReadSwiftStructureTool.Input {
     }
 }
 
-public extension ReadSwiftStructureTool.Input {
+public extension SwiftLang.Tools.ReadStructure.Input {
     init(
         from decoder: Decoder
     ) throws {
@@ -537,7 +520,7 @@ public extension ReadSwiftStructureTool.Input {
     }
 }
 
-public extension ReadSwiftStructureTool.Input {
+public extension SwiftLang.Tools.ReadStructure.Input {
 
 
     func structuralQuery() throws -> SwiftSemanticStructureQuery {

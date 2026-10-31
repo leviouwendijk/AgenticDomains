@@ -9,9 +9,9 @@ public extension SwiftLang.Instructions {
         Prefer Swift structural tools when inspecting Swift source.
 
         Workflow:
-        1. Use `\(ListSwiftSymbolsTool.identifier.rawValue)` to map symbols in a file before reading large source ranges.
-        2. Use `\(ReadSwiftSymbolTool.identifier.rawValue)` when an exact type, function, initializer, property, enum case, or extension is needed.
-        3. Use `\(ReadSwiftStructureTool.identifier.rawValue)` for enclosing scopes, imports, declarations, members, and type-level selections.
+        1. Use `\(SwiftLang.Tools.ListSymbols.identifier.rawValue)` to map symbols in a file before reading large source ranges.
+        2. Use `\(SwiftLang.Tools.ReadSymbol.identifier.rawValue)` when an exact type, function, initializer, property, enum case, or extension is needed.
+        3. Use `\(SwiftLang.Tools.ReadStructure.identifier.rawValue)` for enclosing scopes, imports, declarations, members, and type-level selections.
         4. Fall back to `read_file` only when the structural tools cannot answer the question.
         5. Preserve source line ranges in your explanation when they matter for review or patching.
         """

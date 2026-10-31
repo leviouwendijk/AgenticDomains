@@ -77,8 +77,9 @@ public extension SwiftLang.Agents {
                         SystemIO.Tools.SearchSources.identifier,
                         SystemIO.Tools.LoadSearchContext.identifier,
                         SystemIO.Tools.ProveSearchResults.identifier,
-                        ListSwiftSymbolsTool.identifier,
-                        ReadSwiftSymbolTool.identifier,
+
+                        SwiftLang.Tools.ListSymbols.identifier,
+                        SwiftLang.Tools.ReadSymbol.identifier,
                         SwiftLang.Tools.InspectDocumentSymbols.definition.identifier,
                         SwiftLang.Tools.InspectSymbol.definition.identifier,
                         SwiftLang.Tools.FindReferences.definition.identifier,
@@ -97,8 +98,9 @@ public extension SwiftLang.Agents {
                         SystemIO.Tools.SearchSources.identifier,
                         SystemIO.Tools.LoadSearchContext.identifier,
                         SystemIO.Tools.ProveSearchResults.identifier,
-                        ListSwiftSymbolsTool.identifier,
-                        ReadSwiftSymbolTool.identifier,
+
+                        SwiftLang.Tools.ListSymbols.identifier,
+                        SwiftLang.Tools.ReadSymbol.identifier,
                         SwiftLang.Tools.InspectDocumentSymbols.definition.identifier,
                         SwiftLang.Tools.InspectSymbol.definition.identifier,
                         SwiftLang.Tools.FindReferences.definition.identifier,
