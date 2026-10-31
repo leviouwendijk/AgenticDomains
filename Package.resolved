@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "02b1c79397b6a7df058575cd81aedcd7f1c9c731"
+        "revision" : "b1077a687b9c67598cdd7c70396d8ce3a40fabba"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "9e9625d2f55cc48f7ff9e4e983d132844d2c0007"
+        "revision" : "5b46dcd57651b63ddbda061ad866a7b6ba253c24"
       }
     },
     {
@@ -403,7 +403,7 @@
       "location" : "https://github.com/leviouwendijk/SwiftSemantics.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c99259a5b52e9486af9f635e8af759f6e5fcb873"
+        "revision" : "826e62b582892b5b173243c7c21ec3bb234419b7"
       }
     },
     {

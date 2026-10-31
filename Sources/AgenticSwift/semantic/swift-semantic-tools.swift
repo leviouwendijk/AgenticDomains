@@ -274,7 +274,7 @@ public extension SwiftLang.Tools {
         "Resolve compiler-semantic definitions for the Swift symbol at a source position."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -401,7 +401,7 @@ public extension SwiftLang.Tools {
         "Find compiler-semantic references to the Swift symbol at a source position."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -532,7 +532,7 @@ public extension SwiftLang.Tools {
         "Find compiler-semantic implementations of the Swift declaration at a source position."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -650,7 +650,7 @@ public extension SwiftLang.Tools {
         "Inspect current compiler diagnostics for a Swift source file."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -756,7 +756,7 @@ public extension SwiftLang.Tools {
         "Search the compiler-semantic Swift workspace index for symbols."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -861,7 +861,7 @@ public extension SwiftLang.Tools {
         "Inspect compiler-resolved Swift symbol identity, including USR data when available."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -979,7 +979,7 @@ public extension SwiftLang.Tools {
         "Inspect compiler-generated Swift type, signature, and documentation hover information."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -1088,7 +1088,7 @@ public extension SwiftLang.Tools {
         "Inspect compiler-aware hierarchical symbols for one Swift source file."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -1207,7 +1207,7 @@ public extension SwiftLang.Tools {
         "Inspect compiler-semantic callers of the Swift callable at a source position."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -1338,7 +1338,7 @@ public extension SwiftLang.Tools {
         "Inspect compiler-semantic callees referenced by the Swift callable at a source position."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -1469,7 +1469,7 @@ public extension SwiftLang.Tools {
         "Inspect direct compiler-semantic supertypes of the Swift type at a source position."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 
@@ -1597,7 +1597,7 @@ public extension SwiftLang.Tools {
         "Inspect direct compiler-semantic subtypes of the Swift type at a source position."
 
     public static let risk: ActionRisk =
-        .privileged
+        .observe
 
     public init() {}
 

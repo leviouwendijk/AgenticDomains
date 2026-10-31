@@ -195,6 +195,7 @@ enum SwiftSemanticToolSupport {
             estimates: .init(
                 runtime: 60
             ),
+            mayChangeSource: usesCompilerProvider ? false : nil,
             sideEffects: sideEffects,
             policyChecks: [
                 "workspace_required",
