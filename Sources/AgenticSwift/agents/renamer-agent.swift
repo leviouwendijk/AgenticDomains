@@ -88,6 +88,11 @@ public extension SwiftLang.Agents {
                         SwiftLang.Tools.ProposeRename.definition.identifier,
                         SwiftLang.Tools.RenameSwift.definition.identifier,
                     ]
+                ),
+                programs: .init(
+                    members: [
+                        SwiftLang.Programs.RenameSymbol.definition.identifier,
+                    ]
                 )
             ),
             visible: .init(
@@ -108,6 +113,11 @@ public extension SwiftLang.Agents {
                         SwiftLang.Tools.FindReferences.definition.identifier,
                         SwiftLang.Tools.ProposeRename.definition.identifier,
                         SwiftLang.Tools.RenameSwift.definition.identifier,
+                    ]
+                ),
+                programs: .init(
+                    members: [
+                        SwiftLang.Programs.RenameSymbol.definition.identifier,
                     ]
                 )
             )
