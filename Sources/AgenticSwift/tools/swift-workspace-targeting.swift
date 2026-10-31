@@ -1125,14 +1125,12 @@ extension SwiftLang.Tools.RunProduct {
                     result.exitCode.map(Int.init),
                 signal:
                     result.signal.map(Int.init),
-                detail:
-                    String(
-                        (
-                            result.stderrText.isEmpty
-                                ? result.stdoutText
-                                : result.stderrText
-                        ).prefix(16_384)
-                    )
+                detail: [
+                    "stdout (tail):",
+                    String(result.stdoutText.suffix(12_288)),
+                    "stderr (tail):",
+                    String(result.stderrText.suffix(4_096))
+                ].joined(separator: "\n")
             )
         }
 
