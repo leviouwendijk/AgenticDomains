@@ -135,7 +135,7 @@ public extension SwiftLang.Tools {
             let difference = try PreparedMutationDifferenceProjection.project(
                 draft.mutationPlan,
                 root: workspace.absoluteURL,
-                presentationPaths: paths,
+                presentationPaths: paths.map { [$0] },
                 title: "Swift semantic rename preview"
             )
             let review = ToolPreflight(

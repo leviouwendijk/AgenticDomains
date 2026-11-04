@@ -25,8 +25,6 @@ public struct GitCommitPreparedToolInput:
 }
 
 public extension GitCommitPreparedToolInput {
-
-
     func validatedMessage() throws -> String {
         let normalized = message.trimmingCharacters(
             in: .whitespacesAndNewlines
@@ -67,21 +65,16 @@ public struct GitCommitPreparedToolOutput:
 public extension Git.Tools {
     @Tool("git_commit_prepared")
     struct CommitPrepared {
-    public typealias Input = GitCommitPreparedToolInput
-    public typealias Output = GitCommitPreparedToolOutput
-    public static let purpose =
-        """
+        public typealias Input = GitCommitPreparedToolInput
+        public typealias Output = GitCommitPreparedToolOutput
+
+        public static let purpose = """
         Create a local Git commit from the exact currently staged index without staging more paths or pushing.
         """
 
-    public static let risk:
-        ActionRisk =
-            .privileged
+        public static let risk: ActionRisk = .privileged
 
-
-
-
-    public init() {}
+        public init() {} 
     }
 }
 
