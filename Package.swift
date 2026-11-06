@@ -39,6 +39,11 @@ let package = Package(
             targets: ["AgenticBusiness"]
         ),
 
+        .library(
+            name: "AgenticUniFi",
+            targets: ["AgenticUniFi"]
+        ),
+
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
@@ -70,6 +75,8 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Milieu.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Schema.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Macros.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/UniFi.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Difference.git", branch: "master"),
     ],
     targets: [
         .target(
@@ -81,6 +88,7 @@ let package = Package(
                 "AgenticGit",
                 "AgenticAppleServices",
                 "AgenticBusiness",
+                "AgenticUniFi",
             ]
         ),
 
@@ -162,6 +170,17 @@ let package = Package(
             name: "AgenticBusiness",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Schema", package: "Schema"),
+                .product(name: "Macros", package: "Macros"),
+            ],
+        ),
+
+        .target(
+            name: "AgenticUniFi",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "UniFiPlanning", package: "UniFi"),
+                .product(name: "Difference", package: "Difference"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
             ],

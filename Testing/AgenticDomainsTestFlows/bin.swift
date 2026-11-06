@@ -14,6 +14,12 @@ enum AgenticDomainsFlowSuite: TestFlowRegistry {
 
     static let flows: [TestFlow] = [
         TestFlow(
+            "agentic-unifi-planning-boundary",
+            tags: ["agentic-domains", "unifi", "network", "planning", "privacy"]
+        ) {
+            try await AgenticDomainsFlowTesting.runUniFiPlanningBoundary()
+        },
+        TestFlow(
             "agentic-apple-services-tool-surface",
             tags: [
                 "agentic-domains",
