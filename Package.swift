@@ -180,6 +180,10 @@ let package = Package(
             name: "AgenticUniFi",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticStandard", package: "Agentic"),
+                .product(name: "AgenticAssertions", package: "Agentic"),
+                .product(name: "AgenticMath", package: "Agentic"),
+
                 .product(name: "UniFiPlanning", package: "UniFi"),
                 .product(name: "Errors", package: "Errors"),
                 .product(name: "Difference", package: "Difference"),

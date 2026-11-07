@@ -2,6 +2,10 @@ import Agentic
 import Foundation
 import Macros
 import Schema
+// extra
+import AgenticStandard
+import AgenticMath
+import AgenticAssertions
 
 public extension UniFi.Agents {
     @Agent
@@ -114,32 +118,50 @@ public extension UniFi.Agents {
 
         public static let capabilities = AgentCapabilities(
             available: .init(
-                tools: .init(members: [
-                    UniFi.Tools.ListSites.definition.identifier,
-                    UniFi.Tools.CaptureSnapshot.definition.identifier,
-                    UniFi.Tools.ListNetworks.definition.identifier,
-                    UniFi.Tools.ListZones.definition.identifier,
-                    UniFi.Tools.ListPolicies.definition.identifier,
-                    UniFi.Tools.InspectNetwork.definition.identifier,
-                    UniFi.Tools.InspectPolicy.definition.identifier,
-                    UniFi.Tools.InspectTrafficPath.definition.identifier,
-                    UniFi.Tools.PlanChanges.definition.identifier,
-                    UniFi.Tools.InspectPlan.definition.identifier,
-                ])
+                domains: [
+                    Standard.self,
+                    // Harness.self,
+                    Math.self,
+                    Assertions.self,
+                    UniFi.self,
+                ],
+                // tools: .init(
+                //     members: [
+                //         UniFi.Tools.ListSites.definition.identifier,
+                //         UniFi.Tools.CaptureSnapshot.definition.identifier,
+                //         UniFi.Tools.ListNetworks.definition.identifier,
+                //         UniFi.Tools.ListZones.definition.identifier,
+                //         UniFi.Tools.ListPolicies.definition.identifier,
+                //         UniFi.Tools.InspectNetwork.definition.identifier,
+                //         UniFi.Tools.InspectPolicy.definition.identifier,
+                //         UniFi.Tools.InspectTrafficPath.definition.identifier,
+                //         UniFi.Tools.PlanChanges.definition.identifier,
+                //         UniFi.Tools.InspectPlan.definition.identifier,
+                //     ]
+                // )
             ),
             visible: .init(
-                tools: .init(members: [
-                    UniFi.Tools.ListSites.definition.identifier,
-                    UniFi.Tools.CaptureSnapshot.definition.identifier,
-                    UniFi.Tools.ListNetworks.definition.identifier,
-                    UniFi.Tools.ListZones.definition.identifier,
-                    UniFi.Tools.ListPolicies.definition.identifier,
-                    UniFi.Tools.InspectNetwork.definition.identifier,
-                    UniFi.Tools.InspectPolicy.definition.identifier,
-                    UniFi.Tools.InspectTrafficPath.definition.identifier,
-                    UniFi.Tools.PlanChanges.definition.identifier,
-                    UniFi.Tools.InspectPlan.definition.identifier,
-                ])
+                tools: .init(
+                    members: [
+                        Standard.Tools.ClarifyWithUser.self,
+                        Standard.Tools.InspectCapability.self,
+
+                        Standard.Tools.CreateGraph.self,
+                        Standard.Tools.CreateReport.self,
+                        Standard.Tools.CreateCallTree.self,
+
+                        UniFi.Tools.ListSites.self,
+                        UniFi.Tools.CaptureSnapshot.self,
+                        UniFi.Tools.ListNetworks.self,
+                        UniFi.Tools.ListZones.self,
+                        UniFi.Tools.ListPolicies.self,
+                        UniFi.Tools.InspectNetwork.self,
+                        UniFi.Tools.InspectPolicy.self,
+                        UniFi.Tools.InspectTrafficPath.self,
+                        UniFi.Tools.PlanChanges.self,
+                        UniFi.Tools.InspectPlan.self,
+                    ]
+                )
             )
         )
     }
