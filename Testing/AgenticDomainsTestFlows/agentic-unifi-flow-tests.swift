@@ -28,10 +28,12 @@ extension AgenticDomainsFlowTesting {
         let context = ToolContext(
             services: try ToolServices().inserting(runtime)
         )
-        try Expect.equal(registry.count, 10, "UniFi macro installs ten read/planning tools")
+        try Expect.equal(registry.count, 11, "UniFi macro installs ten inspection/planning tools and one privileged telemetry apply tool")
+        try Expect.equal(UniFi.Tools.ApplyPolicyTelemetry.definition.risk, .privileged,
+                         "telemetry writes are reviewed even under auto_bounded_mutate")
         try Expect.equal(
             registry.definitions.map(\.name).sorted(),
-            ["unifi_capture_snapshot", "unifi_inspect_network", "unifi_inspect_plan", "unifi_inspect_policy", "unifi_inspect_traffic_path", "unifi_list_networks", "unifi_list_policies", "unifi_list_sites", "unifi_list_zones", "unifi_plan_changes"],
+            ["unifi_apply_policy_telemetry", "unifi_capture_snapshot", "unifi_inspect_network", "unifi_inspect_plan", "unifi_inspect_policy", "unifi_inspect_traffic_path", "unifi_list_networks", "unifi_list_policies", "unifi_list_sites", "unifi_list_zones", "unifi_plan_changes"],
             "UniFi tool naming"
         )
         let discovery = try await registry.execute(
@@ -140,6 +142,6 @@ extension AgenticDomainsFlowTesting {
             try Expect.equal(detail.field, "ipVersion", "failure preserves static schema key")
             try Expect.equal(text.contains("192.168.5.1"), false, "failure report hides arbitrary coding keys")
         }
-        return [.field("tools", "10"), .field("sites", "1"), .field("plans", "1")]
+        return [.field("tools", "11"), .field("sites", "1"), .field("plans", "1")]
     }
 }

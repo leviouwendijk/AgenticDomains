@@ -134,6 +134,46 @@ public extension UniFi.Tools {
         }
     }
 
+    /// Deliberately privileged: auto_bounded_mutate otherwise skips human review.
+    /// The trusted host must also inject TelemetryWriter with its own approver.
+    @Tool("unifi_apply_policy_telemetry")
+    struct ApplyPolicyTelemetry {
+        public typealias Input = UniFi.ApplyTelemetryRequest
+        public typealias Output = UniFi.ApplyTelemetryResult
+        public static let purpose =
+            "Apply exactly one approved, previously prepared USER_DEFINED policy telemetry change; perform fresh-state checks and independent verification. Requires trusted host writer."
+        public static let risk: ActionRisk = .privileged
+        public init() {}
+
+        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+            let summary = try await context.require(UniFi.Runtime.self).telemetry_review(plan_id: input.plan_id)
+            return ToolPreflight(
+                tool: Self.definition.identifier,
+                risk: Self.definition.risk,
+                summary: summary,
+                estimates: .init(write: .init(count: 1)),
+                sideEffects: ["PATCH one firewall policy's telemetry fields"],
+                policyChecks: [
+                    "single_prepared_telemetry_change",
+                    "host_review_required",
+                    "trusted_writer_required",
+                    "fresh_policy_equality_before_patch",
+                    "host_injected_sdk_approver",
+                    "independent_get_after_patch",
+                    "single_use_plan"
+                ],
+                warnings: [
+                    "Policy telemetry affects logging/flow reporting, not forwarding rules.",
+                    "Controller writes are not atomic; unknown outcomes must not be retried."
+                ]
+            )
+        }
+
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            try await context.require(UniFi.Runtime.self).apply_telemetry(input)
+        }
+    }
+
     @Tool("unifi_plan_changes")
     struct PlanChanges {
         public typealias Input = UniFi.PlanRequest

@@ -314,6 +314,20 @@ public extension UniFi {
     }
 
     @JSONSchema
+    struct ApplyTelemetryRequest: Sendable, Codable, Hashable {
+        public let plan_id: UUID
+    }
+
+    @JSONSchema
+    struct ApplyTelemetryResult: Sendable, Codable, Hashable {
+        public let plan_id: UUID
+        public let policy_id: UUID
+        public let logging_enabled: Bool
+        public let report_flow_enabled: Bool?
+        public let independently_verified: Bool
+    }
+
+    @JSONSchema
     struct PlanPreview: Sendable, Codable, Hashable {
         public let plan_id: UUID
         public let snapshot_id: UUID
@@ -342,6 +356,13 @@ public extension UniFi {
             case invalid_query
             case unresolved_path
             case invalid_plan
+            case writer_unavailable
+            case invalid_telemetry_plan
+            case plan_already_used
+            case stale_policy
+            case revalidation_failed
+            case mutation_outcome_unknown
+            case verification_failed
 
             public var description: String {
                 switch self {
@@ -363,6 +384,20 @@ public extension UniFi {
                     return "unresolved_path"
                 case .invalid_plan:
                     return "invalid_plan"
+                case .writer_unavailable:
+                    return "writer_unavailable"
+                case .invalid_telemetry_plan:
+                    return "invalid_telemetry_plan"
+                case .plan_already_used:
+                    return "plan_already_used"
+                case .stale_policy:
+                    return "stale_policy"
+                case .revalidation_failed:
+                    return "revalidation_failed"
+                case .mutation_outcome_unknown:
+                    return "mutation_outcome_unknown_do_not_retry"
+                case .verification_failed:
+                    return "verification_failed_do_not_retry"
                 }
             }
 
@@ -371,10 +406,17 @@ public extension UniFi {
 
         private let read: @Sendable (UUID) async throws -> UniFiPlanning.Snapshot
         private let list_sites: @Sendable () async throws -> [UUID]
+        private let write_telemetry: (@Sendable (
+            UUID, UniFiPlanning.Policy, UniFiPlanning.Policy
+        ) async throws -> UniFiPlanning.Policy)?
+        private var used_plans = Set<UUID>()
         private var snapshots: [UUID: UniFiPlanning.Snapshot] = [:]
         private var plans: [UUID: (snapshot_id: UUID, plan: UniFiPlanning.Plan)] = [:]
 
-        public init(reader: UniFiPlanning.Reader) {
+        public init(
+            reader: UniFiPlanning.Reader,
+            telemetry_writer: UniFiPlanning.TelemetryWriter? = nil
+        ) {
             read = { site_id in
                 try await reader.capture(site_id: site_id)
             }
@@ -382,15 +424,26 @@ public extension UniFi {
                 let sites = try await reader.list_sites()
                 return sites.map(\.id)
             }
+            if let telemetry_writer {
+                write_telemetry = { site_id, before, after in
+                    try await telemetry_writer.apply(site_id: site_id, before: before, after: after)
+                }
+            } else {
+                write_telemetry = nil
+            }
         }
 
         /// Supports offline fixtures without a controller or credentials.
         public init(
             read: @escaping @Sendable (UUID) async throws -> UniFiPlanning.Snapshot,
-            list_sites: @escaping @Sendable () async throws -> [UUID] = { [] }
+            list_sites: @escaping @Sendable () async throws -> [UUID] = { [] },
+            write_telemetry: (@Sendable (
+                UUID, UniFiPlanning.Policy, UniFiPlanning.Policy
+            ) async throws -> UniFiPlanning.Policy)? = nil
         ) {
             self.read = read
             self.list_sites = list_sites
+            self.write_telemetry = write_telemetry
         }
 
         public func sites() async throws -> SiteDirectory {
@@ -586,6 +639,73 @@ public extension UniFi {
             let id = UUID()
             plans[id] = (request.snapshot_id, plan)
             return .init(plan_id: id, snapshot_id: request.snapshot_id, plan: plan)
+        }
+
+        private func telemetry_change(_ id: UUID) throws -> (
+            site_id: UUID, before: UniFiPlanning.Policy, after: UniFiPlanning.Policy
+        ) {
+            guard let stored = plans[id] else { throw Failure.unknown_plan }
+            let plan = stored.plan
+            guard plan.changes.count == 1,
+                  case .patch_policy_telemetry(let policy_id, _, _) = plan.changes[0],
+                  let before = plan.before.policies.first(where: { $0.id == policy_id }),
+                  let after = plan.after.policies.first(where: { $0.id == policy_id }),
+                  before.origin == "USER_DEFINED", after.origin == "USER_DEFINED",
+                  before != after else {
+                throw Failure.invalid_telemetry_plan
+            }
+            return (plan.before.site_id, before, after)
+        }
+
+        /// Used by ToolPreflight. The generated summary carries no raw names,
+        /// addresses, credentials, descriptions or provider error payloads.
+        public func telemetry_review(plan_id: UUID) throws -> String {
+            let change = try telemetry_change(plan_id)
+            guard !used_plans.contains(plan_id) else { throw Failure.plan_already_used }
+            return "UniFi single-policy telemetry PATCH. plan=\(plan_id.uuidString) " +
+                "policy=\(change.before.id.uuidString) " +
+                "logging: \(change.before.logging_enabled) -> \(change.after.logging_enabled); " +
+                "reporting: \(change.before.report_flow_enabled.map(String.init) ?? "unspecified")" +
+                " -> \(change.after.report_flow_enabled.map(String.init) ?? "unspecified")"
+        }
+
+        /// Consumes the immutable plan once, including failed and uncertain attempts.
+        /// Never retry after a possible controller write without fresh inspection.
+        public func apply_telemetry(_ request: ApplyTelemetryRequest) async throws -> ApplyTelemetryResult {
+            let plan_id = request.plan_id
+            let change = try telemetry_change(plan_id)
+            guard let write_telemetry else { throw Failure.writer_unavailable }
+            guard used_plans.insert(plan_id).inserted else { throw Failure.plan_already_used }
+
+            let current: UniFiPlanning.Snapshot
+            do {
+                current = try await read(change.site_id)
+            } catch {
+                throw Failure.revalidation_failed
+            }
+            guard let current_policy = current.policies.first(where: { $0.id == change.before.id }),
+                  current_policy == change.before else {
+                throw Failure.stale_policy
+            }
+
+            let verified: UniFiPlanning.Policy
+            do {
+                verified = try await write_telemetry(change.site_id, change.before, change.after)
+            } catch UniFiPlanning.Failure.stale_snapshot {
+                throw Failure.stale_policy
+            } catch UniFiPlanning.Failure.verification_failed {
+                throw Failure.verification_failed
+            } catch {
+                // The write may have happened even when the response was lost.
+                throw Failure.mutation_outcome_unknown
+            }
+            guard verified == change.after else { throw Failure.verification_failed }
+            return .init(
+                plan_id: plan_id, policy_id: verified.id,
+                logging_enabled: verified.logging_enabled,
+                report_flow_enabled: verified.report_flow_enabled,
+                independently_verified: true
+            )
         }
 
         public func inspect(plan_id: UUID) throws -> PlanPreview {

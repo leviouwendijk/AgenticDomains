@@ -27,12 +27,17 @@ public extension UniFi.Instructions {
     @Instruction
     enum Mutation: Instruction {
         public static let content = """
-        A proposed plan is not permission to execute. The current UniFi tool set
-        offers planning only; it contains no controller-writing tool.
-        For future writes: require explicit human approval over a complete, redacted
-        preflight; obtain a fresh complete state immediately before execution; reject
-        stale or partial state; use narrow, authorized operations; verify by an
-        independent read; and stop on ambiguity or any risk to management access.
+        A proposed plan is not permission to execute. The only controller-writing
+        tool is unifi_apply_policy_telemetry, classified privileged and limited to
+        one prepared USER_DEFINED policy's logging/reporting flags. It is disabled
+        unless a trusted host injects a TelemetryWriter and its own approver.
+        Obtain explicit human approval over the exact tool preflight; re-read the
+        full inventory and target policy before mutation. Allow unresolved unrelated
+        network references only for telemetry edits, never for zone membership edits.
+        Consume the plan once, even when an outcome is unknown; inspect and prepare
+        anew instead of retrying. Verify with a separate GET before claiming success.
+        All policy rule creation, access/port changes, ordering, zone mutations and
+        deletion remain unsupported through Agentic tools. Stop on ambiguity.
         Never suggest that offline graph verification proves packet-level behavior.
         """
     }

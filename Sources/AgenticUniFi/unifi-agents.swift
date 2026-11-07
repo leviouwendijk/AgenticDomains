@@ -160,6 +160,7 @@ public extension UniFi.Agents {
                         UniFi.Tools.InspectTrafficPath.self,
                         UniFi.Tools.PlanChanges.self,
                         UniFi.Tools.InspectPlan.self,
+                        UniFi.Tools.ApplyPolicyTelemetry.self,
                     ]
                 )
             )
