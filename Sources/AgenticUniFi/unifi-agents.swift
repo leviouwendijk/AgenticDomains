@@ -45,6 +45,12 @@ public extension UniFi.Agents {
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
                     UniFi.Tools.InspectPlan.definition.identifier,
                 ])
+            ),
+            visible: .init(
+                tools: .init(members: [
+                    UniFi.Tools.CaptureSnapshot.definition.identifier,
+                    UniFi.Tools.InspectPlan.definition.identifier,
+                ])
             )
         )
     }
@@ -94,6 +100,13 @@ public extension UniFi.Agents {
 
         public static let capabilities = AgentCapabilities(
             available: .init(
+                tools: .init(members: [
+                    UniFi.Tools.CaptureSnapshot.definition.identifier,
+                    UniFi.Tools.PlanChanges.definition.identifier,
+                    UniFi.Tools.InspectPlan.definition.identifier,
+                ])
+            ),
+            visible: .init(
                 tools: .init(members: [
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
                     UniFi.Tools.PlanChanges.definition.identifier,
