@@ -8,10 +8,10 @@ public extension UniFi.Agents {
     enum Inspector {
         @JSONSchema
         public struct Input: HashableSource {
-            public let site_id: UUID
+            public let site_id: UUID?
             public let objective: String
 
-            public init(site_id: UUID, objective: String) {
+            public init(site_id: UUID? = nil, objective: String) {
                 self.site_id = site_id
                 self.objective = objective
             }
@@ -42,12 +42,14 @@ public extension UniFi.Agents {
         public static let capabilities = AgentCapabilities(
             available: .init(
                 tools: .init(members: [
+                    UniFi.Tools.ListSites.definition.identifier,
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
                     UniFi.Tools.InspectPlan.definition.identifier,
                 ])
             ),
             visible: .init(
                 tools: .init(members: [
+                    UniFi.Tools.ListSites.definition.identifier,
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
                     UniFi.Tools.InspectPlan.definition.identifier,
                 ])
@@ -59,12 +61,12 @@ public extension UniFi.Agents {
     enum Manager {
         @JSONSchema
         public struct Input: HashableSource {
-            public let site_id: UUID
+            public let site_id: UUID?
             public let objective: String
             public let constraints: [String]
 
             public init(
-                site_id: UUID,
+                site_id: UUID? = nil,
                 objective: String,
                 constraints: [String] = []
             ) {
@@ -101,6 +103,7 @@ public extension UniFi.Agents {
         public static let capabilities = AgentCapabilities(
             available: .init(
                 tools: .init(members: [
+                    UniFi.Tools.ListSites.definition.identifier,
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
                     UniFi.Tools.PlanChanges.definition.identifier,
                     UniFi.Tools.InspectPlan.definition.identifier,
@@ -108,6 +111,7 @@ public extension UniFi.Agents {
             ),
             visible: .init(
                 tools: .init(members: [
+                    UniFi.Tools.ListSites.definition.identifier,
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
                     UniFi.Tools.PlanChanges.definition.identifier,
                     UniFi.Tools.InspectPlan.definition.identifier,

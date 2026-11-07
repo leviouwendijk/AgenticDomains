@@ -4,7 +4,11 @@ public extension UniFi.Instructions {
     @Instruction
     enum ReadOnly: Instruction {
         public static let content = """
-        Use only registered UniFi read tools for inspection. Require an explicit site ID.
+        Use only registered UniFi read tools for inspection. When no site ID is
+        supplied, discover accessible sites with unifi_list_sites. If exactly one
+        site exists, use its UUID. If multiple sites exist, request explicit
+        selection by ordinal or UUID before accessing site-specific data.
+        Never guess a site; a zero-site result is not a valid default.
         Capture a fresh snapshot for each investigation. Report observed network, zone,
         policy, VLAN and rule-order metadata separately from any interpretation.
         Raw names, policy descriptions, address ranges, gateway addresses, MAC addresses,

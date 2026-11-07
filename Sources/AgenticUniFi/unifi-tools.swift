@@ -4,6 +4,26 @@ import Macros
 import Schema
 
 public extension UniFi.Tools {
+    @Tool("unifi_list_sites")
+    struct ListSites {
+        @JSONSchema
+        public struct Input: Sendable, Codable, Hashable {
+            public init() {}
+        }
+
+        public typealias Output = UniFi.SiteDirectory
+        public static let purpose =
+            "Discover all authorized UniFi sites and their UUIDs. Return only numbered identifiers, not site names or controller details."
+        public static let risk: ActionRisk = .observe
+
+        public init() {}
+
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            let runtime = try context.require(UniFi.Runtime.self)
+            return try await runtime.sites()
+        }
+    }
+
     @Tool("unifi_capture_snapshot")
     struct CaptureSnapshot {
         @JSONSchema

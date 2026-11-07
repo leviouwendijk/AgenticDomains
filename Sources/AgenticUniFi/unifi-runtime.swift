@@ -6,6 +6,26 @@ import UniFiPlanning
 
 public extension UniFi {
     @JSONSchema
+    struct SiteReference: Sendable, Codable, Hashable {
+        public let site_id: UUID
+        public let ordinal: Int
+
+        public init(site_id: UUID, ordinal: Int) {
+            self.site_id = site_id
+            self.ordinal = ordinal
+        }
+    }
+
+    @JSONSchema
+    struct SiteDirectory: Sendable, Codable, Hashable {
+        public let sites: [SiteReference]
+
+        public init(sites: [SiteReference]) {
+            self.sites = sites
+        }
+    }
+
+    @JSONSchema
     struct Network: Sendable, Codable, Hashable {
         public let id: UUID
         public let vlan_id: Int
@@ -147,6 +167,7 @@ public extension UniFi {
     /// Session-local state. Raw controller models never enter tool results.
     actor Runtime {
         public enum Failure: Error, Sendable {
+            case site_discovery_failed
             case capture_failed
             case unknown_snapshot
             case unknown_plan
@@ -154,6 +175,7 @@ public extension UniFi {
         }
 
         private let read: @Sendable (UUID) async throws -> UniFiPlanning.Snapshot
+        private let list_sites: @Sendable () async throws -> [UUID]
         private var snapshots: [UUID: UniFiPlanning.Snapshot] = [:]
         private var plans: [UUID: (snapshot_id: UUID, plan: UniFiPlanning.Plan)] = [:]
 
@@ -161,13 +183,35 @@ public extension UniFi {
             read = { site_id in
                 try await reader.capture(site_id: site_id)
             }
+            list_sites = {
+                let sites = try await reader.list_sites()
+                return sites.map(\.id)
+            }
         }
 
         /// Supports offline fixtures without a controller or credentials.
         public init(
-            read: @escaping @Sendable (UUID) async throws -> UniFiPlanning.Snapshot
+            read: @escaping @Sendable (UUID) async throws -> UniFiPlanning.Snapshot,
+            list_sites: @escaping @Sendable () async throws -> [UUID] = { [] }
         ) {
             self.read = read
+            self.list_sites = list_sites
+        }
+
+        public func sites() async throws -> SiteDirectory {
+            let ids: [UUID]
+            do {
+                ids = try await list_sites()
+            } catch {
+                // Controller errors may contain sensitive configuration details.
+                throw Failure.site_discovery_failed
+            }
+            guard Set(ids).count == ids.count else {
+                throw Failure.site_discovery_failed
+            }
+            return .init(sites: ids.enumerated().map { entry in
+                .init(site_id: entry.element, ordinal: entry.offset + 1)
+            })
         }
 
         public func capture(site_id: UUID) async throws -> Inventory {

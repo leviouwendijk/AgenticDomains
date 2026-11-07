@@ -16,7 +16,10 @@ extension AgenticDomainsFlowTesting {
             UniFiPlanning.Snapshot.self,
             from: Data(fixture.utf8)
         )
-        let runtime = UniFi.Runtime(read: { _ in snapshot })
+        let runtime = UniFi.Runtime(
+            read: { _ in snapshot },
+            list_sites: { [site_id] }
+        )
         let installation = UniFiInstallationProbe()
         UniFi.installation.install(into: installation)
         try Expect.equal(installation.registration_errors, 0, "macro installers register without errors")
@@ -24,12 +27,23 @@ extension AgenticDomainsFlowTesting {
         let context = ToolContext(
             services: try ToolServices().inserting(runtime)
         )
-        try Expect.equal(registry.count, 3, "UniFi macro installs all three tools")
+        try Expect.equal(registry.count, 4, "UniFi macro installs all four tools")
         try Expect.equal(
             registry.definitions.map(\.name).sorted(),
-            ["unifi_capture_snapshot", "unifi_inspect_plan", "unifi_plan_changes"],
+            ["unifi_capture_snapshot", "unifi_inspect_plan", "unifi_list_sites", "unifi_plan_changes"],
             "UniFi tool naming"
         )
+        let discovery = try await registry.execute(
+            ToolCall(
+                id: "sites",
+                tool: UniFi.Tools.ListSites.definition.identifier,
+                input: .object([:])
+            ),
+            context: context
+        )
+        let directory = try discovery.result.output.decode(UniFi.SiteDirectory.self)
+        try Expect.equal(directory.sites.map(\.site_id), [site_id], "site discovery yields the fixture site")
+        try Expect.equal(directory.sites.map(\.ordinal), [1], "site selection numbering")
         let capture = try await registry.execute(
             ToolCall(
                 id: "capture",
@@ -72,10 +86,11 @@ extension AgenticDomainsFlowTesting {
         )
         let inspected = try inspection.result.output.decode(UniFi.PlanPreview.self)
         try Expect.equal(plan, inspected, "plan token resolves the same redacted preview")
-        let emitted = String(decoding: try JSONEncoder().encode(inventory), as: UTF8.self)
+        let emitted = String(decoding: try JSONEncoder().encode(directory), as: UTF8.self)
+            + String(decoding: try JSONEncoder().encode(inventory), as: UTF8.self)
             + String(decoding: try JSONEncoder().encode(plan), as: UTF8.self)
         try Expect.equal(emitted.contains("10.42.1.0"), false, "no private subnet in tool results")
         try Expect.equal(emitted.contains("192.168.5.1"), false, "no private address in tool results")
-        return [.field("tools", "3"), .field("plans", "1")]
+        return [.field("tools", "4"), .field("sites", "1"), .field("plans", "1")]
     }
 }
