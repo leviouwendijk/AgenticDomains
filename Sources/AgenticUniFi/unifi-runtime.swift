@@ -61,10 +61,16 @@ public extension UniFi {
         public let networks: [Network]
         public let zones: [Zone]
         public let policies: [Policy]
+        public let reference_complete: Bool
+        public let unresolved_network_reference_count: Int
+        public let unresolved_zone_reference_count: Int
 
         init(snapshot_id: UUID, snapshot: UniFiPlanning.Snapshot) {
             self.snapshot_id = snapshot_id
             site_id = snapshot.site_id
+            reference_complete = snapshot.reference_complete
+            unresolved_network_reference_count = snapshot.unresolved_network_ids.count
+            unresolved_zone_reference_count = snapshot.unresolved_zone_ids.count
             networks = snapshot.networks.map { network in
                 .init(
                     id: network.id,
