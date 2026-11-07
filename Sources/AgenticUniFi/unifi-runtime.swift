@@ -1,4 +1,5 @@
 import Difference
+import Errors
 import Foundation
 import Macros
 import Schema
@@ -46,7 +47,7 @@ public extension UniFi {
         public let index: Int
         public let enabled: Bool
         public let logging_enabled: Bool
-        public let report_flow_enabled: Bool
+        public let report_flow_enabled: Bool?
         public let action: String
         public let source_zone_id: UUID
         public let destination_zone_id: UUID
@@ -166,12 +167,29 @@ public extension UniFi {
 
     /// Session-local state. Raw controller models never enter tool results.
     actor Runtime {
-        public enum Failure: Error, Sendable {
-            case site_discovery_failed
-            case capture_failed
+        public enum Failure: Error, Sendable, LocalizedError, CustomStringConvertible {
+            case site_discovery_failed(UniFiPlanning.ReadFailure)
+            case capture_failed(UniFiPlanning.ReadFailure)
             case unknown_snapshot
             case unknown_plan
             case invalid_plan
+
+            public var description: String {
+                switch self {
+                case .site_discovery_failed(let detail):
+                    return "site_discovery_failed " + detail.description
+                case .capture_failed(let detail):
+                    return "capture_failed " + detail.description
+                case .unknown_snapshot:
+                    return "unknown_snapshot"
+                case .unknown_plan:
+                    return "unknown_plan"
+                case .invalid_plan:
+                    return "invalid_plan"
+                }
+            }
+
+            public var errorDescription: String? { description }
         }
 
         private let read: @Sendable (UUID) async throws -> UniFiPlanning.Snapshot
@@ -202,12 +220,17 @@ public extension UniFi {
             let ids: [UUID]
             do {
                 ids = try await list_sites()
+            } catch let error as UniFiPlanning.ReadFailure {
+                throw Failure.site_discovery_failed(error)
             } catch {
-                // Controller errors may contain sensitive configuration details.
-                throw Failure.site_discovery_failed
+                throw Failure.site_discovery_failed(
+                    .init(stage: .sites, kind: .unexpected)
+                )
             }
             guard Set(ids).count == ids.count else {
-                throw Failure.site_discovery_failed
+                throw Failure.site_discovery_failed(
+                    .init(stage: .sites, kind: .inconsistent_data)
+                )
             }
             return .init(sites: ids.enumerated().map { entry in
                 .init(site_id: entry.element, ordinal: entry.offset + 1)
@@ -218,12 +241,18 @@ public extension UniFi {
             let snapshot: UniFiPlanning.Snapshot
             do {
                 snapshot = try await read(site_id)
+            } catch let error as UniFiPlanning.ReadFailure {
+                throw Failure.capture_failed(error)
             } catch {
-                // Controller response bodies may contain private IP addresses.
-                throw Failure.capture_failed
+                // Never serialize arbitrary provider errors to the model.
+                throw Failure.capture_failed(
+                    .init(stage: .validation, kind: .unexpected)
+                )
             }
             guard snapshot.site_id == site_id else {
-                throw Failure.capture_failed
+                throw Failure.capture_failed(
+                    .init(stage: .validation, kind: .inconsistent_data)
+                )
             }
             let id = UUID()
             snapshots[id] = snapshot

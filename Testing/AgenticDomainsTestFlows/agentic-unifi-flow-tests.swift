@@ -1,5 +1,6 @@
 import Agentic
 import AgenticUniFi
+import Errors
 import Foundation
 import TestFlows
 import UniFiPlanning
@@ -91,6 +92,24 @@ extension AgenticDomainsFlowTesting {
             + String(decoding: try JSONEncoder().encode(plan), as: UTF8.self)
         try Expect.equal(emitted.contains("10.42.1.0"), false, "no private subnet in tool results")
         try Expect.equal(emitted.contains("192.168.5.1"), false, "no private address in tool results")
+        let diagnostics = UniFiPlanning.ReadFailure(
+            stage: .policies, kind: .decoding,
+            coding_path: ["data", "index_0", "192.168.5.1"],
+            field: "ipVersion"
+        )
+        let failing = UniFi.Runtime(read: { _ in throw diagnostics })
+        do {
+            _ = try await failing.capture(site_id: site_id)
+            throw UniFiPlanning.Failure.invalid_change
+        } catch UniFi.Runtime.Failure.capture_failed(let detail) {
+            let report = detail.report.redacted(policy: .publicsafe)
+            let text = String(describing: detail)
+                + String(describing: report)
+            try Expect.equal(detail.stage, .policies, "failure preserves request stage")
+            try Expect.equal(detail.kind, .decoding, "failure preserves sanitized category")
+            try Expect.equal(detail.field, "ipVersion", "failure preserves static schema key")
+            try Expect.equal(text.contains("192.168.5.1"), false, "failure report hides arbitrary coding keys")
+        }
         return [.field("tools", "4"), .field("sites", "1"), .field("plans", "1")]
     }
 }
