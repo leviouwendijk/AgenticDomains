@@ -48,6 +48,92 @@ public extension UniFi.Tools {
         }
     }
 
+    @Tool("unifi_list_networks")
+    struct ListNetworks {
+        @JSONSchema
+        public struct Input: Sendable, Codable, Hashable {
+            public let snapshot_id: UUID
+        }
+        public typealias Output = UniFi.NetworkList
+        public static let purpose = "List VLANs and privacy-screened display labels from a captured snapshot."
+        public static let risk: ActionRisk = .observe
+        public init() {}
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            try await context.require(UniFi.Runtime.self).networks(snapshot_id: input.snapshot_id)
+        }
+    }
+
+    @Tool("unifi_list_zones")
+    struct ListZones {
+        @JSONSchema
+        public struct Input: Sendable, Codable, Hashable {
+            public let snapshot_id: UUID
+        }
+        public typealias Output = UniFi.ZoneList
+        public static let purpose = "List firewall zones, privacy-screened display labels, membership IDs and missing references from a captured snapshot."
+        public static let risk: ActionRisk = .observe
+        public init() {}
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            try await context.require(UniFi.Runtime.self).zones(snapshot_id: input.snapshot_id)
+        }
+    }
+
+    @Tool("unifi_list_policies")
+    struct ListPolicies {
+        public typealias Input = UniFi.PolicyQuery
+        public typealias Output = UniFi.PolicyPage
+        public static let purpose = "Page firewall policy summaries from a snapshot; optional zone, enabled and action filters, sorted by observed index."
+        public static let risk: ActionRisk = .observe
+        public init() {}
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            try await context.require(UniFi.Runtime.self).policies(input)
+        }
+    }
+
+    @Tool("unifi_inspect_network")
+    struct InspectNetwork {
+        @JSONSchema
+        public struct Input: Sendable, Codable, Hashable {
+            public let snapshot_id: UUID
+            public let network_id: UUID
+        }
+        public typealias Output = UniFi.NetworkDetail
+        public static let purpose = "Inspect one captured network's VLAN, safe label and reported firewall-zone membership."
+        public static let risk: ActionRisk = .observe
+        public init() {}
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            try await context.require(UniFi.Runtime.self).network(snapshot_id: input.snapshot_id, network_id: input.network_id)
+        }
+    }
+
+    @Tool("unifi_inspect_policy")
+    struct InspectPolicy {
+        @JSONSchema
+        public struct Input: Sendable, Codable, Hashable {
+            public let snapshot_id: UUID
+            public let policy_id: UUID
+        }
+        public typealias Output = UniFi.PolicyDetail
+        public static let purpose = "Inspect one captured rule's zone labels, protocol, optional TCP/UDP port and network selectors, and stated parsing gaps; never show address filters or descriptions."
+        public static let risk: ActionRisk = .observe
+        public init() {}
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            try await context.require(UniFi.Runtime.self).policy(snapshot_id: input.snapshot_id, policy_id: input.policy_id)
+        }
+    }
+
+    @Tool("unifi_inspect_traffic_path")
+    struct InspectTrafficPath {
+        public typealias Input = UniFi.TrafficPathQuery
+        public typealias Output = UniFi.TrafficPathInspection
+        public static let purpose = "Find candidate zone-pair firewall rules for two captured networks; NOT a packet simulator or proof of allow/deny, and does NOT evaluate the requested port or protocol."
+        public static let risk: ActionRisk = .observe
+        public init() {}
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            try await context.require(UniFi.Runtime.self).inspect_path(input)
+        }
+    }
+
     @Tool("unifi_plan_changes")
     struct PlanChanges {
         public typealias Input = UniFi.PlanRequest

@@ -44,6 +44,12 @@ public extension UniFi.Agents {
                 tools: .init(members: [
                     UniFi.Tools.ListSites.definition.identifier,
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
+                    UniFi.Tools.ListNetworks.definition.identifier,
+                    UniFi.Tools.ListZones.definition.identifier,
+                    UniFi.Tools.ListPolicies.definition.identifier,
+                    UniFi.Tools.InspectNetwork.definition.identifier,
+                    UniFi.Tools.InspectPolicy.definition.identifier,
+                    UniFi.Tools.InspectTrafficPath.definition.identifier,
                     UniFi.Tools.InspectPlan.definition.identifier,
                 ])
             ),
@@ -51,6 +57,12 @@ public extension UniFi.Agents {
                 tools: .init(members: [
                     UniFi.Tools.ListSites.definition.identifier,
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
+                    UniFi.Tools.ListNetworks.definition.identifier,
+                    UniFi.Tools.ListZones.definition.identifier,
+                    UniFi.Tools.ListPolicies.definition.identifier,
+                    UniFi.Tools.InspectNetwork.definition.identifier,
+                    UniFi.Tools.InspectPolicy.definition.identifier,
+                    UniFi.Tools.InspectTrafficPath.definition.identifier,
                     UniFi.Tools.InspectPlan.definition.identifier,
                 ])
             )
@@ -105,6 +117,12 @@ public extension UniFi.Agents {
                 tools: .init(members: [
                     UniFi.Tools.ListSites.definition.identifier,
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
+                    UniFi.Tools.ListNetworks.definition.identifier,
+                    UniFi.Tools.ListZones.definition.identifier,
+                    UniFi.Tools.ListPolicies.definition.identifier,
+                    UniFi.Tools.InspectNetwork.definition.identifier,
+                    UniFi.Tools.InspectPolicy.definition.identifier,
+                    UniFi.Tools.InspectTrafficPath.definition.identifier,
                     UniFi.Tools.PlanChanges.definition.identifier,
                     UniFi.Tools.InspectPlan.definition.identifier,
                 ])
@@ -113,6 +131,12 @@ public extension UniFi.Agents {
                 tools: .init(members: [
                     UniFi.Tools.ListSites.definition.identifier,
                     UniFi.Tools.CaptureSnapshot.definition.identifier,
+                    UniFi.Tools.ListNetworks.definition.identifier,
+                    UniFi.Tools.ListZones.definition.identifier,
+                    UniFi.Tools.ListPolicies.definition.identifier,
+                    UniFi.Tools.InspectNetwork.definition.identifier,
+                    UniFi.Tools.InspectPolicy.definition.identifier,
+                    UniFi.Tools.InspectTrafficPath.definition.identifier,
                     UniFi.Tools.PlanChanges.definition.identifier,
                     UniFi.Tools.InspectPlan.definition.identifier,
                 ])

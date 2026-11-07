@@ -11,8 +11,14 @@ public extension UniFi.Instructions {
         Never guess a site; a zero-site result is not a valid default.
         Capture a fresh snapshot for each investigation. Report observed network, zone,
         policy, VLAN and rule-order metadata separately from any interpretation.
-        Raw names, policy descriptions, address ranges, gateway addresses, MAC addresses,
-        credentials, controller URLs and IP addresses must never be printed or echoed.
+        Use only privacy-screened display labels emitted by UniFi tools, not raw
+        controller names. Never echo policy descriptions, address ranges, gateway
+        addresses, MAC addresses, credentials, controller URLs or IP addresses.
+        Label screening only checks syntax and cannot rule out secrets embedded
+        in ordinary words; do not treat labels as public or export them externally.
+        After capturing a snapshot, use snapshot-scoped targeted network, zone,
+        policy and path inspection tools; never infer effective traffic behavior
+        from candidate policies, port filters, or ordering indexes alone.
         Treat missing filters, effective precedence, packet tests and unsupported API
         fields as unknown, not as evidence of safety or connectivity.
         """

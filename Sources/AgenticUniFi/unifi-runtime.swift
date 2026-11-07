@@ -6,6 +6,32 @@ import Schema
 import UniFiPlanning
 
 public extension UniFi {
+    /// Restrictive display projection: no IP, CIDR, MAC, URL or dotted host text.
+    /// Safe character classes cannot detect semantic secrets in otherwise ordinary names.
+    fileprivate static func display_label(_ name: String, fallback: String) -> String {
+        let bytes = Array(name.utf8)
+        guard !bytes.isEmpty, bytes.count <= 64,
+              bytes.allSatisfy({ value in
+                  (65...90).contains(Int(value)) ||
+                  (97...122).contains(Int(value)) ||
+                  (48...57).contains(Int(value)) ||
+                  value == 32 || value == 45 || value == 95
+              }),
+              name.trimmingCharacters(in: .whitespaces).count > 0
+        else { return fallback }
+        return name
+    }
+
+    fileprivate static func safe_enum(_ raw: String?) -> String? {
+        guard let raw, !raw.isEmpty, raw.utf8.count <= 48,
+              raw.utf8.allSatisfy({ byte in
+                  (65...90).contains(Int(byte)) ||
+                  (97...122).contains(Int(byte)) ||
+                  (48...57).contains(Int(byte)) || byte == 95
+              }) else { return nil }
+        return raw
+    }
+
     @JSONSchema
     struct SiteReference: Sendable, Codable, Hashable {
         public let site_id: UUID
@@ -29,6 +55,7 @@ public extension UniFi {
     @JSONSchema
     struct Network: Sendable, Codable, Hashable {
         public let id: UUID
+        public let label: String
         public let vlan_id: Int
         public let enabled: Bool
         public let zone_id: UUID?
@@ -37,6 +64,7 @@ public extension UniFi {
     @JSONSchema
     struct Zone: Sendable, Codable, Hashable {
         public let id: UUID
+        public let label: String
         public let network_ids: [UUID]
         public let user_defined: Bool
     }
@@ -44,6 +72,9 @@ public extension UniFi {
     @JSONSchema
     struct Policy: Sendable, Codable, Hashable {
         public let id: UUID
+        public let label: String
+        public let source_zone_label: String
+        public let destination_zone_label: String
         public let index: Int
         public let enabled: Bool
         public let logging_enabled: Bool
@@ -74,6 +105,7 @@ public extension UniFi {
             networks = snapshot.networks.map { network in
                 .init(
                     id: network.id,
+                    label: UniFi.display_label(network.name, fallback: "VLAN \(network.vlan_id)"),
                     vlan_id: network.vlan_id,
                     enabled: network.enabled,
                     zone_id: network.zone_id
@@ -82,6 +114,7 @@ public extension UniFi {
             zones = snapshot.zones.map { zone in
                 .init(
                     id: zone.id,
+                    label: UniFi.display_label(zone.name, fallback: "Zone \(zone.id.uuidString.prefix(8))"),
                     network_ids: zone.network_ids,
                     user_defined: zone.origin == "USER_DEFINED"
                 )
@@ -96,6 +129,13 @@ public extension UniFi {
                 }
                 return .init(
                     id: policy.id,
+                    label: UniFi.display_label(policy.name, fallback: "Policy \(policy.index)"),
+                    source_zone_label: snapshot.zones.first(where: { $0.id == policy.source_zone_id }).map {
+                        UniFi.display_label($0.name, fallback: "Zone \($0.id.uuidString.prefix(8))")
+                    } ?? "Unresolved zone",
+                    destination_zone_label: snapshot.zones.first(where: { $0.id == policy.destination_zone_id }).map {
+                        UniFi.display_label($0.name, fallback: "Zone \($0.id.uuidString.prefix(8))")
+                    } ?? "Unresolved zone",
                     index: policy.index,
                     enabled: policy.enabled,
                     logging_enabled: policy.logging_enabled,
@@ -107,6 +147,125 @@ public extension UniFi {
                 )
             }
         }
+    }
+
+    @JSONSchema
+    struct NetworkList: Sendable, Codable, Hashable {
+        public let networks: [Network]
+    }
+
+    @JSONSchema
+    struct ZoneList: Sendable, Codable, Hashable {
+        public let zones: [Zone]
+    }
+
+    @JSONSchema
+    struct NetworkDetail: Sendable, Codable, Hashable {
+        public let network: Network
+        public let zones: [Zone]
+        public let policy_count_for_zones: Int
+    }
+
+    @JSONSchema
+    struct PolicyPage: Sendable, Codable, Hashable {
+        public let total_count: Int
+        public let offset: Int
+        public let policies: [Policy]
+    }
+
+    @JSONSchema
+    struct PolicyQuery: Sendable, Codable, Hashable {
+        public let snapshot_id: UUID
+        public let zone_id: UUID?
+        public let enabled: Bool?
+        public let action: String?
+        public let offset: Int?
+        public let limit: Int?
+
+        public init(
+            snapshot_id: UUID,
+            zone_id: UUID? = nil,
+            enabled: Bool? = nil,
+            action: String? = nil,
+            offset: Int? = nil,
+            limit: Int? = nil
+        ) {
+            self.snapshot_id = snapshot_id
+            self.zone_id = zone_id
+            self.enabled = enabled
+            self.action = action
+            self.offset = offset
+            self.limit = limit
+        }
+    }
+
+    @JSONSchema
+    struct PortMatch: Sendable, Codable, Hashable {
+        public let type: String
+        public let value: Int?
+        public let start: Int?
+        public let stop: Int?
+    }
+
+    @JSONSchema
+    struct PortSelection: Sendable, Codable, Hashable {
+        public let type: String
+        public let match_opposite: Bool?
+        public let items: [PortMatch]?
+        public let traffic_matching_list_id: UUID?
+    }
+
+    @JSONSchema
+    struct TrafficSelection: Sendable, Codable, Hashable {
+        public let type: String
+        public let network_ids: [UUID]?
+        public let network_match_opposite: Bool?
+        public let ports: PortSelection?
+        public let other_filter_details_unavailable: Bool
+    }
+
+    @JSONSchema
+    struct ProtocolSelection: Sendable, Codable, Hashable {
+        public let type: String
+        public let match_opposite: Bool?
+        public let name: String?
+        public let preset: String?
+        public let number: Int?
+    }
+
+    @JSONSchema
+    struct PolicyDetail: Sendable, Codable, Hashable {
+        public let policy: Policy
+        public let source: TrafficSelection?
+        public let destination: TrafficSelection?
+        public let protocol_selection: ProtocolSelection?
+        public let ip_version: String
+        public let return_traffic: Bool?
+        public let connection_states: [String]?
+        public let ipsec_filter: String?
+        public let schedule: String?
+        public let raw_addresses_and_descriptions_omitted: Bool
+    }
+
+    @JSONSchema
+    struct TrafficPathQuery: Sendable, Codable, Hashable {
+        public let snapshot_id: UUID
+        public let source_network_id: UUID
+        public let destination_network_id: UUID
+    }
+
+    @JSONSchema
+    struct TrafficPathInspection: Sendable, Codable, Hashable {
+        public let source_network: Network
+        public let destination_network: Network
+        public let source_zone: Zone
+        public let destination_zone: Zone
+        public let candidate_policies: [Policy]
+        public let candidate_count: Int
+        public let port_evaluated: Bool
+        public let protocol_evaluated: Bool
+        public let effective_behavior_verified: Bool
+        public let limitation: String
     }
 
     @JSONSchema
@@ -177,7 +336,11 @@ public extension UniFi {
             case site_discovery_failed(UniFiPlanning.ReadFailure)
             case capture_failed(UniFiPlanning.ReadFailure)
             case unknown_snapshot
+            case unknown_network
+            case unknown_policy
             case unknown_plan
+            case invalid_query
+            case unresolved_path
             case invalid_plan
 
             public var description: String {
@@ -188,8 +351,16 @@ public extension UniFi {
                     return "capture_failed " + detail.description
                 case .unknown_snapshot:
                     return "unknown_snapshot"
+                case .unknown_network:
+                    return "unknown_network"
+                case .unknown_policy:
+                    return "unknown_policy"
                 case .unknown_plan:
                     return "unknown_plan"
+                case .invalid_query:
+                    return "invalid_query"
+                case .unresolved_path:
+                    return "unresolved_path"
                 case .invalid_plan:
                     return "invalid_plan"
                 }
@@ -263,6 +434,130 @@ public extension UniFi {
             let id = UUID()
             snapshots[id] = snapshot
             return .init(snapshot_id: id, snapshot: snapshot)
+        }
+
+        private func stored(_ id: UUID) throws -> UniFiPlanning.Snapshot {
+            guard let value = snapshots[id] else { throw Failure.unknown_snapshot }
+            return value
+        }
+
+        public func networks(snapshot_id: UUID) throws -> NetworkList {
+            let snapshot = try stored(snapshot_id)
+            return .init(networks: Inventory(snapshot_id: snapshot_id, snapshot: snapshot)
+                .networks.sorted { $0.vlan_id < $1.vlan_id })
+        }
+
+        public func zones(snapshot_id: UUID) throws -> ZoneList {
+            let snapshot = try stored(snapshot_id)
+            return .init(zones: Inventory(snapshot_id: snapshot_id, snapshot: snapshot)
+                .zones.sorted { $0.label < $1.label })
+        }
+
+        public func network(snapshot_id: UUID, network_id: UUID) throws -> NetworkDetail {
+            let snapshot = try stored(snapshot_id)
+            let inventory = Inventory(snapshot_id: snapshot_id, snapshot: snapshot)
+            guard let network = inventory.networks.first(where: { $0.id == network_id }) else {
+                throw Failure.unknown_network
+            }
+            let zones = inventory.zones.filter { $0.network_ids.contains(network_id) || $0.id == network.zone_id }
+            return .init(
+                network: network,
+                zones: zones,
+                policy_count_for_zones: inventory.policies.filter { policy in
+                    zones.contains(where: { $0.id == policy.source_zone_id || $0.id == policy.destination_zone_id })
+                }.count
+            )
+        }
+
+        public func policies(_ query: PolicyQuery) throws -> PolicyPage {
+            let snapshot = try stored(query.snapshot_id)
+            let inventory = Inventory(snapshot_id: query.snapshot_id, snapshot: snapshot)
+            guard (query.offset ?? 0) >= 0, (query.limit ?? 25) > 0 else {
+                throw Failure.invalid_query
+            }
+            let selection = inventory.policies.filter { policy in
+                (query.zone_id == nil || policy.source_zone_id == query.zone_id || policy.destination_zone_id == query.zone_id) &&
+                (query.enabled == nil || policy.enabled == query.enabled) &&
+                (query.action == nil || policy.action == query.action?.uppercased())
+            }.sorted { a, b in
+                a.index == b.index ? a.id.uuidString < b.id.uuidString : a.index < b.index
+            }
+            let offset = min(query.offset ?? 0, selection.count)
+            let limit = min(query.limit ?? 25, 50)
+            return .init(total_count: selection.count, offset: offset,
+                         policies: Array(selection.dropFirst(offset).prefix(limit)))
+        }
+
+        public func policy(snapshot_id: UUID, policy_id: UUID) throws -> PolicyDetail {
+            let snapshot = try stored(snapshot_id)
+            let inventory = Inventory(snapshot_id: snapshot_id, snapshot: snapshot)
+            guard let raw = snapshot.policies.first(where: { $0.id == policy_id }),
+                  let policy = inventory.policies.first(where: { $0.id == policy_id }) else {
+                throw Failure.unknown_policy
+            }
+            func selection(_ value: UniFiPlanning.TrafficSelection?) -> TrafficSelection? {
+                guard let value else { return nil }
+                let ports: PortSelection? = value.ports.map { selection in
+                    .init(
+                        type: UniFi.safe_enum(selection.type) ?? "UNKNOWN",
+                        match_opposite: selection.match_opposite,
+                        items: selection.items?.map { item in
+                            .init(type: UniFi.safe_enum(item.type) ?? "UNKNOWN",
+                                  value: item.value, start: item.start, stop: item.stop)
+                        },
+                        traffic_matching_list_id: selection.traffic_matching_list_id
+                    )
+                }
+                return .init(
+                    type: UniFi.safe_enum(value.type) ?? "UNKNOWN",
+                    network_ids: value.network_ids,
+                    network_match_opposite: value.network_match_opposite,
+                    ports: ports,
+                    other_filter_details_unavailable: true
+                )
+            }
+            let protocol_selection: ProtocolSelection? = raw.protocol_selection.map {
+                .init(type: UniFi.safe_enum($0.type) ?? "UNKNOWN",
+                      match_opposite: $0.match_opposite,
+                      name: UniFi.safe_enum($0.name),
+                      preset: UniFi.safe_enum($0.preset), number: $0.number)
+            }
+            return .init(
+                policy: policy, source: selection(raw.source_selection),
+                destination: selection(raw.destination_selection),
+                protocol_selection: protocol_selection,
+                ip_version: UniFi.safe_enum(raw.ip_version) ?? "UNKNOWN",
+                return_traffic: raw.return_traffic,
+                connection_states: raw.connection_states?.compactMap(UniFi.safe_enum),
+                ipsec_filter: UniFi.safe_enum(raw.ipsec_filter),
+                schedule: UniFi.safe_enum(raw.schedule),
+                raw_addresses_and_descriptions_omitted: true
+            )
+        }
+
+        public func inspect_path(_ query: TrafficPathQuery) throws -> TrafficPathInspection {
+            let snapshot = try stored(query.snapshot_id)
+            let inventory = Inventory(snapshot_id: query.snapshot_id, snapshot: snapshot)
+            guard let source = inventory.networks.first(where: { $0.id == query.source_network_id }),
+                  let destination = inventory.networks.first(where: { $0.id == query.destination_network_id }) else {
+                throw Failure.unknown_network
+            }
+            func zone(for network: Network) -> Zone? {
+                inventory.zones.first(where: { $0.network_ids.contains(network.id) || $0.id == network.zone_id })
+            }
+            guard let from = zone(for: source), let to = zone(for: destination) else {
+                throw Failure.unresolved_path
+            }
+            let candidates = inventory.policies.filter { $0.source_zone_id == from.id && $0.destination_zone_id == to.id }
+                .sorted { a, b in a.index == b.index ? a.id.uuidString < b.id.uuidString : a.index < b.index }
+            return .init(
+                source_network: source, destination_network: destination,
+                source_zone: from, destination_zone: to,
+                candidate_policies: Array(candidates.prefix(50)), candidate_count: candidates.count,
+                port_evaluated: false, protocol_evaluated: false,
+                effective_behavior_verified: false,
+                limitation: "Only direct zone-pair candidate rules, first 50. No filter, port, protocol, precedence, default or packet evaluation; no allow/deny conclusion."
+            )
         }
 
         public func prepare(_ request: PlanRequest) throws -> PlanPreview {

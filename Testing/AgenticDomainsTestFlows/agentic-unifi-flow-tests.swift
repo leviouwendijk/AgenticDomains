@@ -28,10 +28,10 @@ extension AgenticDomainsFlowTesting {
         let context = ToolContext(
             services: try ToolServices().inserting(runtime)
         )
-        try Expect.equal(registry.count, 4, "UniFi macro installs all four tools")
+        try Expect.equal(registry.count, 10, "UniFi macro installs ten read/planning tools")
         try Expect.equal(
             registry.definitions.map(\.name).sorted(),
-            ["unifi_capture_snapshot", "unifi_inspect_plan", "unifi_list_sites", "unifi_plan_changes"],
+            ["unifi_capture_snapshot", "unifi_inspect_network", "unifi_inspect_plan", "unifi_inspect_policy", "unifi_inspect_traffic_path", "unifi_list_networks", "unifi_list_policies", "unifi_list_sites", "unifi_list_zones", "unifi_plan_changes"],
             "UniFi tool naming"
         )
         let discovery = try await registry.execute(
@@ -57,6 +57,36 @@ extension AgenticDomainsFlowTesting {
         )
         let inventory = try capture.result.output.decode(UniFi.Inventory.self)
         try Expect.equal(inventory.networks.count, 1, "one network")
+        try Expect.equal(inventory.networks[0].label, "VLAN 42", "IP-shaped name suppressed")
+        try Expect.equal(inventory.zones[0].label.contains("192.168"), false, "zone IP suppressed")
+        let networkList = try await registry.execute(
+            ToolCall(id: "networks", tool: UniFi.Tools.ListNetworks.definition.identifier,
+                     input: .object(["snapshot_id": .string(inventory.snapshot_id.uuidString)])),
+            context: context
+        )
+        let listed = try networkList.result.output.decode(UniFi.NetworkList.self)
+        try Expect.equal(listed.networks.count, 1, "network listing from snapshot")
+        let zones = try await registry.execute(
+            ToolCall(id: "zones", tool: UniFi.Tools.ListZones.definition.identifier,
+                     input: .object(["snapshot_id": .string(inventory.snapshot_id.uuidString)])),
+            context: context
+        )
+        try Expect.equal(try zones.result.output.decode(UniFi.ZoneList.self).zones.count, 1, "zone listing")
+        let detail = try await registry.execute(
+            ToolCall(id: "network", tool: UniFi.Tools.InspectNetwork.definition.identifier,
+                     input: .object([
+                         "snapshot_id": .string(inventory.snapshot_id.uuidString),
+                         "network_id": .string(network_id.uuidString),
+                     ])), context: context
+        )
+        try Expect.equal(try detail.result.output.decode(UniFi.NetworkDetail.self).network.id, network_id,
+                         "network inspection resolves by UUID")
+        let page = try await registry.execute(
+            ToolCall(id: "policies", tool: UniFi.Tools.ListPolicies.definition.identifier,
+                     input: .object(["snapshot_id": .string(inventory.snapshot_id.uuidString)])),
+            context: context
+        )
+        try Expect.equal(try page.result.output.decode(UniFi.PolicyPage.self).total_count, 0, "empty paginated policy fixture")
         let planned = try await registry.execute(
             ToolCall(
                 id: "plan",
@@ -110,6 +140,6 @@ extension AgenticDomainsFlowTesting {
             try Expect.equal(detail.field, "ipVersion", "failure preserves static schema key")
             try Expect.equal(text.contains("192.168.5.1"), false, "failure report hides arbitrary coding keys")
         }
-        return [.field("tools", "4"), .field("sites", "1"), .field("plans", "1")]
+        return [.field("tools", "10"), .field("sites", "1"), .field("plans", "1")]
     }
 }
