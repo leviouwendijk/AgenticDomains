@@ -52,8 +52,10 @@ public extension SwiftLang.Tools {
             }
         }
 
-        public static let purpose =
-            "Run every authored SwiftSemantics source rule against an explicit bounded set of Swift source files in the selected package and return per-file structured diagnostics."
+        public static let purpose = """
+        Run every authored SwiftSemantics source rule against an explicit bounded set of Swift source files in the selected package and return per-file structured diagnostics.
+        """
+
         public static let risk: ActionRisk = .observe
 
         public static let maximumPathCount = 64

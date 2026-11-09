@@ -1,5 +1,5 @@
 {
-  "originHash" : "bbf6771d9510bb87dad90a48025a61c55863efb132f4aba855185bf7692c3237",
+  "originHash" : "20f78763903195a6da845773daf5076657d2b243650ca9ac56062301f38e2189",
   "pins" : [
     {
       "identity" : "agentic",
@@ -493,7 +493,7 @@
       "location" : "https://github.com/leviouwendijk/UniFi.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e4a04e27d297b6e4d9f474671840edc552a27d6c"
+        "revision" : "526fd6076313cc57df411e5c890564a7bcad50bd"
       }
     },
     {
