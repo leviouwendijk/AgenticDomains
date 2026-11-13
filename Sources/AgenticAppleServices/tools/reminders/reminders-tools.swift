@@ -114,7 +114,7 @@ public extension AppleServices.Tools {
 
         public func classify(
             _ error: any Error,
-            phase: ToolCall.Phase,
+            phase: ToolExecution.Phase,
             input _: Input?
         ) -> Recovery.Incident? {
             guard

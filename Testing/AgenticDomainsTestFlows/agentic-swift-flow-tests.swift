@@ -100,7 +100,7 @@ enum AgenticDomainsFlowTesting {
             ),
             .field(
                 "package-resolve",
-                SwiftResolveTool.identifier.rawValue
+                SwiftLang.Tools.Resolve.identifier.rawValue
             ),
         ]
     }
@@ -188,8 +188,8 @@ enum AgenticDomainsFlowTesting {
             fixture.remove()
         }
 
-        let listTool = SwiftDeployedProductsTool()
-        let listInput = SwiftDeployedProductsTool.Input(
+        let listTool = SwiftLang.Tools.DeployedProducts()
+        let listInput = SwiftLang.Tools.DeployedProducts.Input(
                 includeDetails: false
             )
         let listPreflight = try await listTool.preflight(
@@ -211,9 +211,9 @@ enum AgenticDomainsFlowTesting {
             "deployed-products uses Executable deployment default"
         )
 
-        let removeTool = SwiftRemoveDeployedTool()
+        let removeTool = SwiftLang.Tools.RemoveDeployed()
         let product = "agentic-domains-fixture-do-not-remove"
-        let removeInput = SwiftRemoveDeployedTool.Input(
+        let removeInput = SwiftLang.Tools.RemoveDeployed.Input(
                 product: product
             )
         let removePreflight = try await removeTool.preflight(
@@ -270,9 +270,9 @@ enum AgenticDomainsFlowTesting {
             )
         )
 
-        let resolve = SwiftResolveTool()
+        let resolve = SwiftLang.Tools.Resolve()
         let resolvePreflight = try await resolve.preflight(
-            SwiftResolveTool.Input(),
+            SwiftLang.Tools.Resolve.Input(),
             context: .init(
                 workspace: fixture.workspace
             )
@@ -284,7 +284,7 @@ enum AgenticDomainsFlowTesting {
             "package update identifier"
         )
         try Expect.equal(
-            SwiftResolveTool.identifier.rawValue,
+            SwiftLang.Tools.Resolve.identifier.rawValue,
             "swift_package_resolve",
             "package resolve identifier"
         )
@@ -322,7 +322,7 @@ enum AgenticDomainsFlowTesting {
             ),
             .field(
                 "resolve",
-                SwiftResolveTool.identifier.rawValue
+                SwiftLang.Tools.Resolve.identifier.rawValue
             ),
             .field(
                 "executed",
@@ -382,10 +382,10 @@ enum AgenticDomainsFlowTesting {
         let registry = try ToolRegistry {
             tool
         }
-        let call = AgentToolCall(
+        let call = ToolInvocation(
             id: "swift-build-reported-failure",
-            name: tool.identifier.rawValue,
-            input: try JSONToolBridge.encode(
+            tool: SwiftLang.Tools.Build.identifier,
+            arguments: try JSONValue.encoding(
                 SwiftLang.Tools.Build.Input(
                     configuration: .debug
                 )
@@ -397,21 +397,16 @@ enum AgenticDomainsFlowTesting {
                 workspace: fixture.workspace
             )
         )
-        let output = try JSONToolBridge.decode(
-            SwiftLang.Tools.Build.Output.self,
-            from: result.output
-        )
-        let processing = try Expect.notNil(
-            result.processing,
-            "failed Swift build retains registered result processing"
+        let output = try result.result.output.decode(
+            SwiftLang.Tools.Build.Output.self
         )
         let projection = try Expect.notNil(
-            processing.projection,
+            result.result.projection,
             "failed Swift build retains its semantic projection"
         )
 
         try Expect.true(
-            result.isError,
+            result.result.isError,
             "failed Swift build is a model-visible reported failure"
         )
         try Expect.true(
@@ -424,14 +419,14 @@ enum AgenticDomainsFlowTesting {
             "failed Swift build still runs typed process"
         )
         try Expect.true(
-            !processing.observations.isEmpty,
+            !result.observations.isEmpty,
             "failed Swift build retains captured build observations"
         )
 
         return [
             .field(
                 "is-error",
-                "\(result.isError)"
+                "\(result.result.isError)"
             ),
             .field(
                 "exit",
@@ -443,7 +438,7 @@ enum AgenticDomainsFlowTesting {
             ),
             .field(
                 "observations",
-                "\(processing.observations.count)"
+                "\(result.observations.count)"
             ),
         ]
     }

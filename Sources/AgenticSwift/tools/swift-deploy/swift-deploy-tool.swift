@@ -7,7 +7,7 @@ import Schema
 import Macros
 
 
-private extension SwiftDeployTool.Input {
+private extension SwiftLang.Tools.Deploy.Input {
     enum CodingKeys:
         String,
         CodingKey
@@ -17,7 +17,7 @@ private extension SwiftDeployTool.Input {
     }
 }
 
-public extension SwiftDeployTool.Input {
+public extension SwiftLang.Tools.Deploy.Input {
     init(
         from decoder: Decoder
     ) throws {
@@ -39,92 +39,94 @@ public extension SwiftDeployTool.Input {
 }
 
 
-@DomainMember(SwiftLang.self)
-public struct SwiftDeployTool: Tool {
-    @JSONSchema
-    public struct Input:
-        Sendable,
-        Codable,
-        Hashable
-    {
-        /// Built Swift configuration to deploy. Defaults to debug.
-        @Schema(required: false)
-        public let configuration: SwiftLang.Tools.Build.Input.Configuration
+public extension SwiftLang.Tools {
+    @DomainMember(SwiftLang.self)
+    struct Deploy: Tool {
+        @JSONSchema
+        public struct Input:
+            Sendable,
+            Codable,
+            Hashable
+        {
+            /// Built Swift configuration to deploy. Defaults to debug.
+            @Schema(required: false)
+            public let configuration: SwiftLang.Tools.Build.Input.Configuration
 
-        /// Optional executable product names to deploy. Omit or pass an empty array to deploy every executable product.
-        @Schema(required: false)
-        public let products: [String]
+            /// Optional executable product names to deploy. Omit or pass an empty array to deploy every executable product.
+            @Schema(required: false)
+            public let products: [String]
 
-        public init(
-            configuration: SwiftLang.Tools.Build.Input.Configuration = .debug,
-            products: [String] = []
-        ) {
-            self.configuration = configuration
-            self.products = products
+            public init(
+                configuration: SwiftLang.Tools.Build.Input.Configuration = .debug,
+                products: [String] = []
+            ) {
+                self.configuration = configuration
+                self.products = products
+            }
         }
-    }
 
-    @JSONSchema
-    public struct Output:
-        Sendable,
-        Codable,
-        Hashable
-    {
-        public let configuration: String
-        public let destination: String
-        public let products: [String]
+        @JSONSchema
+        public struct Output:
+            Sendable,
+            Codable,
+            Hashable
+        {
+            public let configuration: String
+            public let destination: String
+            public let products: [String]
 
-        public init(
-            configuration: String,
-            destination: String,
-            products: [String]
-        ) {
-            self.configuration = configuration
-            self.destination = destination
-            self.products = products
+            public init(
+                configuration: String,
+                destination: String,
+                products: [String]
+            ) {
+                self.configuration = configuration
+                self.destination = destination
+                self.products = products
+            }
         }
+
+    public static let identifier: ToolIdentifier =
+            "swift_deploy"
+
+        public static let description =
+            """
+            Deploy already-built Swift executable products to Executable's canonical deployment directory using Executable.Deploy.
+            """
+
+        public static let risk: ActionRisk = .privileged
+
+        public static let definition = ToolDefinition(
+            identifier: identifier,
+            purpose: description,
+            risk: risk
+        )
+
+        public var identifier: ToolIdentifier {
+            Self.identifier
+        }
+
+        public var description: String {
+            Self.description
+        }
+
+        public var risk: ActionRisk {
+            Self.risk
+        }
+
+        public init() {}
+
     }
-
-public static let identifier: ToolIdentifier =
-        "swift_deploy"
-
-    public static let description =
-        """
-        Deploy already-built Swift executable products to Executable's canonical deployment directory using Executable.Deploy.
-        """
-
-    public static let risk: ActionRisk = .privileged
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
-
 }
 
-private extension SwiftDeployTool {
+private extension SwiftLang.Tools.Deploy {
     struct Resolution {
         let destination: URL
         let plan: Build.Plan
     }
 
     func resolution(
-        _ input: SwiftDeployTool.Input,
+        _ input: SwiftLang.Tools.Deploy.Input,
         workspace: WorkspaceContext
     ) async throws -> Resolution {
         let mode: Build.Config.Mode = switch input.configuration {

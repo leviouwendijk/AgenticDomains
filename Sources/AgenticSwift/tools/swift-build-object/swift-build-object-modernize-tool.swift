@@ -5,62 +5,64 @@ import Primitives
 import Schema
 import Macros
 
-@DomainMember(SwiftLang.self)
-public struct SwiftBuildObjectModernizeTool: Tool {
-    @JSONSchema
-    public struct Input:
-        Sendable,
-        Codable,
-        Hashable
-    {
-        /// Write build-object.pkl.bak before modernization. Defaults to true.
-        public let backup: Bool?
+public extension SwiftLang.Tools {
+    @DomainMember(SwiftLang.self)
+    struct BuildObjectModernize: Tool {
+        @JSONSchema
+        public struct Input:
+            Sendable,
+            Codable,
+            Hashable
+        {
+            /// Write build-object.pkl.bak before modernization. Defaults to true.
+            public let backup: Bool?
 
-        public init(
-            backup: Bool? = nil
-        ) {
-            self.backup = backup
+            public init(
+                backup: Bool? = nil
+            ) {
+                self.backup = backup
+            }
         }
-    }
 
-    @JSONSchema
-    public struct Output: Sendable, Codable, Hashable {
-        public let path: String
-        public let name: String
-        public let modernized: Bool
-        public let backup: String?
+        @JSONSchema
+        public struct Output: Sendable, Codable, Hashable {
+            public let path: String
+            public let name: String
+            public let modernized: Bool
+            public let backup: String?
 
-        public init(path: String, name: String, modernized: Bool, backup: String?) {
-            self.path = path
-            self.name = name
-            self.modernized = modernized
-            self.backup = backup
+            public init(path: String, name: String, modernized: Bool, backup: String?) {
+                self.path = path
+                self.name = name
+                self.modernized = modernized
+                self.backup = backup
+            }
         }
+
+    public static let identifier: ToolIdentifier = "swift_build_object_modernize"
+        public static let description =
+            "Modernize a legacy build-object.pkl through Executable.BuildObjectLifecycle."
+        public static let risk: ActionRisk = .boundedmutate
+
+        public static let definition = ToolDefinition(
+            identifier: identifier,
+            purpose: description,
+            risk: risk
+        )
+        public var identifier: ToolIdentifier {
+            Self.identifier
+        }
+
+        public var description: String {
+            Self.description
+        }
+
+        public var risk: ActionRisk {
+            Self.risk
+        }
+
+        public init() {}
+
+
     }
-
-public static let identifier: ToolIdentifier = "swift_build_object_modernize"
-    public static let description =
-        "Modernize a legacy build-object.pkl through Executable.BuildObjectLifecycle."
-    public static let risk: ActionRisk = .boundedmutate
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
-
-
 }

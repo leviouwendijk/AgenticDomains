@@ -119,7 +119,7 @@ private struct ReminderSemanticRecoveryApprovalHandler:
 
 private struct ReminderSemanticRecoveryScenario {
     let provider: ReminderSemanticRecoveryProvider
-    let runner: AgentProgramRunner
+    let executor: AgentProgramExecutor
 
     init(
         mode: ReminderSemanticRecoveryMode
@@ -140,7 +140,7 @@ private struct ReminderSemanticRecoveryScenario {
         }
 
         self.provider = provider
-        self.runner = AgentProgramRunner(
+        self.executor = AgentProgramExecutor(
             services: .init(
                 program: .init(
                     tools: GovernedAgentProgramToolExecutor(
@@ -170,7 +170,7 @@ extension AgenticDomainsFlowTesting {
         let recoveredScenario = try ReminderSemanticRecoveryScenario(
             mode: .authorizationRace
         )
-        let recoveredInitial = try await recoveredScenario.runner.execute(
+        let recoveredInitial = try await recoveredScenario.executor.execute(
             CreateReminderProgram(),
             input: input,
             sessionID: "domain-reminder-semantic-recovery"
@@ -221,10 +221,10 @@ extension AgenticDomainsFlowTesting {
             "failed not-applied creation and suspended user input produce no reminder"
         )
 
-        let recovered = try await recoveredScenario.runner.resume(
+        let recovered = try await recoveredScenario.executor.resume(
             CreateReminderProgram(),
             from: recoveredCheckpoint,
-            interaction: AgentInteraction.Response(
+            interaction: Run.Interaction.Response(
                 request: recoveredRequest,
                 resolution: .user_input(
                     .confirmation(true)
@@ -313,7 +313,7 @@ extension AgenticDomainsFlowTesting {
         let unrelatedScenario = try ReminderSemanticRecoveryScenario(
             mode: .unrelatedFailure
         )
-        let unrelated = try await unrelatedScenario.runner.execute(
+        let unrelated = try await unrelatedScenario.executor.execute(
             CreateReminderProgram(),
             input: input,
             sessionID: "domain-reminder-unrelated-failure"

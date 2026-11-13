@@ -29,9 +29,9 @@ private actor SwiftChangeInferenceFixture:
         receivedSites.append(site.rawValue)
 
         if inference.definition.identifier
-            == UnderstandSwiftChange.definition.identifier
+            == SwiftLang.Inferences.UnderstandChange.definition.identifier
         {
-            guard site == PlanSwiftChangeProgram.understandingSite else {
+            guard site == SwiftLang.Programs.PlanChange.understandingSite else {
                 throw SwiftChangeProgramFixtureError.unexpectedInferenceSite(
                     site.rawValue
                 )
@@ -67,9 +67,9 @@ private actor SwiftChangeInferenceFixture:
         }
 
         if inference.definition.identifier
-            == PlanSwiftChange.definition.identifier
+            == SwiftLang.Inferences.PlanChange.definition.identifier
         {
-            guard site == PlanSwiftChangeProgram.planningSite else {
+            guard site == SwiftLang.Programs.PlanChange.planningSite else {
                 throw SwiftChangeProgramFixtureError.unexpectedInferenceSite(
                     site.rawValue
                 )
@@ -125,7 +125,7 @@ extension AgenticDomainsFlowTesting {
         let inference = SwiftChangeInferenceFixture()
         var registry = ProgramRegistry()
 
-        try registry.register(PlanSwiftChangeProgram())
+        try registry.register(SwiftLang.Programs.PlanChange())
 
         try Expect.equal(
             registry.count,
@@ -149,7 +149,7 @@ extension AgenticDomainsFlowTesting {
                 "Keep Host composition outside this pass.",
             ]
         )
-        let output = try await PlanSwiftChangeProgram().run(
+        let output = try await SwiftLang.Programs.PlanChange().run(
             input,
             in: AgentProgramContext(
                 inference: inference
@@ -160,32 +160,32 @@ extension AgenticDomainsFlowTesting {
         try Expect.equal(
             snapshot.sites.count,
             2,
-            "PlanSwiftChangeProgram performs exactly two semantic inference operations"
+            "SwiftLang.Programs.PlanChange performs exactly two semantic inference operations"
         )
         try Expect.equal(
             snapshot.sites.first ?? "",
-            PlanSwiftChangeProgram.understandingSite.rawValue,
-            "PlanSwiftChangeProgram invokes understanding first"
+            SwiftLang.Programs.PlanChange.understandingSite.rawValue,
+            "SwiftLang.Programs.PlanChange invokes understanding first"
         )
         try Expect.equal(
             snapshot.sites.last ?? "",
-            PlanSwiftChangeProgram.planningSite.rawValue,
-            "PlanSwiftChangeProgram invokes planning second"
+            SwiftLang.Programs.PlanChange.planningSite.rawValue,
+            "SwiftLang.Programs.PlanChange invokes planning second"
         )
         try Expect.equal(
             snapshot.understandingInputs.first?.objective ?? "",
             input.objective,
-            "UnderstandSwiftChange receives the original typed objective"
+            "SwiftLang.Inferences.UnderstandChange receives the original typed objective"
         )
         try Expect.equal(
             snapshot.planningInputs.first?.understanding.summary ?? "",
             "The supplied evidence describes a change to typed Program composition.",
-            "PlanSwiftChange receives the typed output produced by UnderstandSwiftChange"
+            "SwiftLang.Inferences.PlanChange receives the typed output produced by SwiftLang.Inferences.UnderstandChange"
         )
         try Expect.equal(
             snapshot.planningInputs.first?.constraints.first ?? "",
             input.constraints.first ?? "",
-            "PlanSwiftChange retains the original Program constraints"
+            "SwiftLang.Inferences.PlanChange retains the original Program constraints"
         )
         try Expect.equal(
             output.understanding.affectedAreas.first ?? "",
@@ -211,7 +211,7 @@ extension AgenticDomainsFlowTesting {
         return [
             .field(
                 "program",
-                PlanSwiftChangeProgram.descriptor.identifier.rawValue
+                SwiftLang.Programs.PlanChange.descriptor.identifier.rawValue
             ),
             .field(
                 "inference_calls",

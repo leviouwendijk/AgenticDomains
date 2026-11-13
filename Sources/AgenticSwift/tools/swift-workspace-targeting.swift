@@ -80,7 +80,7 @@ private struct SwiftWorkspaceExecution {
     }
 }
 
-extension SwiftExecutableProductsTool {
+extension SwiftLang.Tools.ExecutableProducts {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -241,7 +241,7 @@ extension SwiftLang.Tools.PackageUpdate {
     }
 }
 
-extension SwiftResolveTool {
+extension SwiftLang.Tools.Resolve {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -335,7 +335,7 @@ extension SwiftResolveTool {
     }
 }
 
-extension SwiftCleanTool {
+extension SwiftLang.Tools.Clean {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -396,7 +396,7 @@ extension SwiftCleanTool {
     }
 }
 
-extension SwiftVersionTool {
+extension SwiftLang.Tools.Version {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -454,7 +454,7 @@ extension SwiftVersionTool {
     }
 }
 
-extension SwiftIncrementVersionTool {
+extension SwiftLang.Tools.IncrementVersion {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -518,7 +518,7 @@ extension SwiftIncrementVersionTool {
     }
 }
 
-extension SwiftKillSwiftPMTool {
+extension SwiftLang.Tools.KillSwiftPM {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -585,7 +585,7 @@ extension SwiftKillSwiftPMTool {
     }
 }
 
-extension SwiftBuildLibraryTool {
+extension SwiftLang.Tools.BuildLibrary {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -664,7 +664,7 @@ extension SwiftBuildLibraryTool {
     }
 }
 
-extension SwiftBuildObjectInitTool {
+extension SwiftLang.Tools.BuildObjectInit {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -737,7 +737,7 @@ extension SwiftBuildObjectInitTool {
     }
 }
 
-extension SwiftBuildObjectModernizeTool {
+extension SwiftLang.Tools.BuildObjectModernize {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -799,7 +799,7 @@ extension SwiftBuildObjectModernizeTool {
     }
 }
 
-extension SwiftAppBundleTool {
+extension SwiftLang.Tools.AppBundle {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -883,7 +883,7 @@ extension SwiftAppBundleTool {
     }
 }
 
-extension SwiftDeployTool {
+extension SwiftLang.Tools.Deploy {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -1153,25 +1153,25 @@ extension SwiftLang.Tools.PackageUpdate {
     public func process(
         _ output: Output,
         input _: Input
-    ) -> ToolCall.ResultProjection? {
+    ) -> ToolExecution.Projection? {
         output.projection
     }
 }
 
-extension SwiftResolveTool {
+extension SwiftLang.Tools.Resolve {
     public func process(
         _ output: Output,
         input _: Input
-    ) -> ToolCall.ResultProjection? {
+    ) -> ToolExecution.Projection? {
         output.projection
     }
 }
 
-extension SwiftDeployTool {
+extension SwiftLang.Tools.Deploy {
     public func process(
         _ output: Output,
         input _: Input
-    ) -> ToolCall.ResultProjection? {
+    ) -> ToolExecution.Projection? {
         .init(
             status: "passed",
             summary: "Swift deployment completed successfully.",
@@ -1188,8 +1188,8 @@ extension SwiftLang.Tools.RunProduct {
     public func process(
         _ output: Output,
         input _: Input
-    ) -> ToolCall.ResultProjection? {
-        var facts: [ToolCall.ResultProjection.Fact] = [
+    ) -> ToolExecution.Projection? {
+        var facts: [ToolExecution.Projection.Fact] = [
             .init(label: "product", value: output.product)
         ]
 

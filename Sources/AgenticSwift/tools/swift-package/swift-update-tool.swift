@@ -42,7 +42,7 @@ public extension SwiftLang.Tools {
                 self.stderr = stderr
             }
 
-            public var projection: ToolCall.ResultProjection {
+            public var projection: ToolExecution.Projection {
                 .init(
                     status: isSuccess ? "passed" : "failed",
                     summary: isSuccess

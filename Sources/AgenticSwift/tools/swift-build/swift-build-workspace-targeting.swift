@@ -173,7 +173,7 @@ extension SwiftLang.Tools.Build {
     public func process(
         _ output: Output,
         input _: Input
-    ) -> ToolCall.ResultProjection? {
+    ) -> ToolExecution.Projection? {
         .init(
             status: output.isSuccess ? "passed" : "failed",
             summary: output.isSuccess

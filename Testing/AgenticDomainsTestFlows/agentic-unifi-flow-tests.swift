@@ -37,10 +37,10 @@ extension AgenticDomainsFlowTesting {
             "UniFi tool naming"
         )
         let discovery = try await registry.execute(
-            ToolCall(
+            ToolInvocation(
                 id: "sites",
                 tool: UniFi.Tools.ListSites.definition.identifier,
-                input: .object([:])
+                arguments: .object([:])
             ),
             context: context
         )
@@ -48,10 +48,10 @@ extension AgenticDomainsFlowTesting {
         try Expect.equal(directory.sites.map(\.site_id), [site_id], "site discovery yields the fixture site")
         try Expect.equal(directory.sites.map(\.ordinal), [1], "site selection numbering")
         let capture = try await registry.execute(
-            ToolCall(
+            ToolInvocation(
                 id: "capture",
                 tool: UniFi.Tools.CaptureSnapshot.definition.identifier,
-                input: .object([
+                arguments: .object([
                     "site_id": .string(site_id.uuidString),
                 ])
             ),
@@ -62,21 +62,21 @@ extension AgenticDomainsFlowTesting {
         try Expect.equal(inventory.networks[0].label, "VLAN 42", "IP-shaped name suppressed")
         try Expect.equal(inventory.zones[0].label.contains("192.168"), false, "zone IP suppressed")
         let networkList = try await registry.execute(
-            ToolCall(id: "networks", tool: UniFi.Tools.ListNetworks.definition.identifier,
-                     input: .object(["snapshot_id": .string(inventory.snapshot_id.uuidString)])),
+            ToolInvocation(id: "networks", tool: UniFi.Tools.ListNetworks.definition.identifier,
+                     arguments: .object(["snapshot_id": .string(inventory.snapshot_id.uuidString)])),
             context: context
         )
         let listed = try networkList.result.output.decode(UniFi.NetworkList.self)
         try Expect.equal(listed.networks.count, 1, "network listing from snapshot")
         let zones = try await registry.execute(
-            ToolCall(id: "zones", tool: UniFi.Tools.ListZones.definition.identifier,
-                     input: .object(["snapshot_id": .string(inventory.snapshot_id.uuidString)])),
+            ToolInvocation(id: "zones", tool: UniFi.Tools.ListZones.definition.identifier,
+                     arguments: .object(["snapshot_id": .string(inventory.snapshot_id.uuidString)])),
             context: context
         )
         try Expect.equal(try zones.result.output.decode(UniFi.ZoneList.self).zones.count, 1, "zone listing")
         let detail = try await registry.execute(
-            ToolCall(id: "network", tool: UniFi.Tools.InspectNetwork.definition.identifier,
-                     input: .object([
+            ToolInvocation(id: "network", tool: UniFi.Tools.InspectNetwork.definition.identifier,
+                     arguments: .object([
                          "snapshot_id": .string(inventory.snapshot_id.uuidString),
                          "network_id": .string(network_id.uuidString),
                      ])), context: context
@@ -84,16 +84,16 @@ extension AgenticDomainsFlowTesting {
         try Expect.equal(try detail.result.output.decode(UniFi.NetworkDetail.self).network.id, network_id,
                          "network inspection resolves by UUID")
         let page = try await registry.execute(
-            ToolCall(id: "policies", tool: UniFi.Tools.ListPolicies.definition.identifier,
-                     input: .object(["snapshot_id": .string(inventory.snapshot_id.uuidString)])),
+            ToolInvocation(id: "policies", tool: UniFi.Tools.ListPolicies.definition.identifier,
+                     arguments: .object(["snapshot_id": .string(inventory.snapshot_id.uuidString)])),
             context: context
         )
         try Expect.equal(try page.result.output.decode(UniFi.PolicyPage.self).total_count, 0, "empty paginated policy fixture")
         let planned = try await registry.execute(
-            ToolCall(
+            ToolInvocation(
                 id: "plan",
                 tool: UniFi.Tools.PlanChanges.definition.identifier,
-                input: .object([
+                arguments: .object([
                     "snapshot_id": .string(inventory.snapshot_id.uuidString),
                     "zone_memberships": .array([
                         .object([
@@ -108,10 +108,10 @@ extension AgenticDomainsFlowTesting {
         )
         let plan = try planned.result.output.decode(UniFi.PlanPreview.self)
         let inspection = try await registry.execute(
-            ToolCall(
+            ToolInvocation(
                 id: "inspect",
                 tool: UniFi.Tools.InspectPlan.definition.identifier,
-                input: .object([
+                arguments: .object([
                     "plan_id": .string(plan.plan_id.uuidString),
                 ])
             ),

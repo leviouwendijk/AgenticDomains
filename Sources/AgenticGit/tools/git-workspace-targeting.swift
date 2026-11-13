@@ -683,7 +683,7 @@ extension Git.Tools.CommitPrepared {
     public func process(
         _ output: Output,
         input _: Input
-    ) -> ToolCall.ResultProjection? {
+    ) -> ToolExecution.Projection? {
         .init(
             status: "passed",
             summary: "Created local Git commit: \(output.message)",
@@ -700,8 +700,8 @@ extension Git.Tools.Pull {
     public func process(
         _ output: Output,
         input _: Input
-    ) -> ToolCall.ResultProjection? {
-        var facts: [ToolCall.ResultProjection.Fact] = [
+    ) -> ToolExecution.Projection? {
+        var facts: [ToolExecution.Projection.Fact] = [
             .init(label: "branch", value: output.currentBranch),
             .init(label: "upstream", value: "\(output.remote)/\(output.upstreamBranch)"),
         ]

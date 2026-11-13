@@ -6,82 +6,84 @@ import Schema
 import Macros
 
 
-@DomainMember(SwiftLang.self)
-public struct SwiftExecutableProductsTool:
-    Tool
-{
-    @JSONSchema
-    public struct Input:
-        Codable,
-        Sendable
-    {
-        public init() {}
-    }
-
-    @JSONSchema
-    public struct Output:
-        Sendable,
-        Codable,
-        Hashable
+public extension SwiftLang.Tools {
+    @DomainMember(SwiftLang.self)
+    struct ExecutableProducts:
+        Tool
     {
         @JSONSchema
-        public struct Product:
+        public struct Input:
+            Codable,
+            Sendable
+        {
+            public init() {}
+        }
+
+        @JSONSchema
+        public struct Output:
             Sendable,
             Codable,
             Hashable
         {
-            public let name: String
-            public let targets: [String]
+            @JSONSchema
+            public struct Product:
+                Sendable,
+                Codable,
+                Hashable
+            {
+                public let name: String
+                public let targets: [String]
+
+                public init(
+                    name: String,
+                    targets: [String]
+                ) {
+                    self.name = name
+                    self.targets = targets
+                }
+            }
+
+            public let products: [Product]
 
             public init(
-                name: String,
-                targets: [String]
+                products: [Product]
             ) {
-                self.name = name
-                self.targets = targets
+                self.products = products
             }
         }
 
-        public let products: [Product]
+    public static let identifier:
+            ToolIdentifier =
+                "swift_executable_products"
 
-        public init(
-            products: [Product]
-        ) {
-            self.products = products
+        public static let description =
+            """
+            Discover executable SwiftPM products declared by the current Agentic workspace package.
+            """
+
+        public static let risk:
+            ActionRisk = .observe
+
+        public static let definition = ToolDefinition(
+            identifier: identifier,
+            purpose: description,
+            risk: risk
+        )
+
+        public var identifier: ToolIdentifier {
+            Self.identifier
         }
+
+        public var description: String {
+            Self.description
+        }
+
+        public var risk: ActionRisk {
+            Self.risk
+        }
+
+        public init() {}
+
+
     }
-
-public static let identifier:
-        ToolIdentifier =
-            "swift_executable_products"
-
-    public static let description =
-        """
-        Discover executable SwiftPM products declared by the current Agentic workspace package.
-        """
-
-    public static let risk:
-        ActionRisk = .observe
-
-    public static let definition = ToolDefinition(
-        identifier: identifier,
-        purpose: description,
-        risk: risk
-    )
-
-    public var identifier: ToolIdentifier {
-        Self.identifier
-    }
-
-    public var description: String {
-        Self.description
-    }
-
-    public var risk: ActionRisk {
-        Self.risk
-    }
-
-    public init() {}
-
-
 }

@@ -74,7 +74,7 @@ private actor CreateReminderProviderFixture:
 
 private struct CreateReminderScenario {
     let provider: CreateReminderProviderFixture
-    let runner: AgentProgramRunner
+    let executor: AgentProgramExecutor
 
     init(
         authorization: RemindersAuthorizationStatus = .full_access,
@@ -98,7 +98,7 @@ private struct CreateReminderScenario {
         }
 
         self.provider = provider
-        self.runner = AgentProgramRunner(
+        self.executor = AgentProgramExecutor(
             services: .init(
                 program: .init(
                     tools: GovernedAgentProgramToolExecutor(
@@ -135,7 +135,7 @@ extension AgenticDomainsFlowTesting {
         )
 
         let approvedScenario = try CreateReminderScenario()
-        let approvedInitial = try await approvedScenario.runner.execute(
+        let approvedInitial = try await approvedScenario.executor.execute(
             program,
             input: input,
             sessionID: "domain-create-reminder-approved"
@@ -178,7 +178,7 @@ extension AgenticDomainsFlowTesting {
             "reminder mutation uses the shared approval interaction"
         )
         try Expect.equal(
-            approvedPending.toolCall.name,
+            approvedPending.functionCall.name,
             RemindersCreateTool.toolIdentifier.rawValue,
             "Program suspension identifies the governed reminder creation tool"
         )
@@ -193,7 +193,7 @@ extension AgenticDomainsFlowTesting {
             "preflight states the exact semantic reminder mutation under review"
         )
 
-        let approved = try await approvedScenario.runner.resume(
+        let approved = try await approvedScenario.executor.resume(
             program,
             from: approvedCheckpoint,
             interaction: .init(
@@ -237,7 +237,7 @@ extension AgenticDomainsFlowTesting {
         )
 
         let deniedScenario = try CreateReminderScenario()
-        let deniedInitial = try await deniedScenario.runner.execute(
+        let deniedInitial = try await deniedScenario.executor.execute(
             program,
             input: input,
             sessionID: "domain-create-reminder-denied"
@@ -252,7 +252,7 @@ extension AgenticDomainsFlowTesting {
                 .missing_interaction_request
         }
 
-        let denied = try await deniedScenario.runner.resume(
+        let denied = try await deniedScenario.executor.resume(
             program,
             from: deniedCheckpoint,
             interaction: .init(
@@ -273,7 +273,7 @@ extension AgenticDomainsFlowTesting {
         )
 
         let skippedScenario = try CreateReminderScenario()
-        let skippedInitial = try await skippedScenario.runner.execute(
+        let skippedInitial = try await skippedScenario.executor.execute(
             program,
             input: input,
             sessionID: "domain-create-reminder-skipped"
@@ -288,7 +288,7 @@ extension AgenticDomainsFlowTesting {
                 .missing_interaction_request
         }
 
-        let skipped = try await skippedScenario.runner.resume(
+        let skipped = try await skippedScenario.executor.resume(
             program,
             from: skippedCheckpoint,
             interaction: .init(
@@ -311,7 +311,7 @@ extension AgenticDomainsFlowTesting {
         let authorizationScenario = try CreateReminderScenario(
             authorization: .not_determined
         )
-        let authorizationInitial = try await authorizationScenario.runner.execute(
+        let authorizationInitial = try await authorizationScenario.executor.execute(
             program,
             input: input,
             sessionID: "domain-create-reminder-authorization"
@@ -365,7 +365,7 @@ extension AgenticDomainsFlowTesting {
             "reminder creation cannot occur before authorization"
         )
 
-        let authorizationConfirmed = try await authorizationScenario.runner.resume(
+        let authorizationConfirmed = try await authorizationScenario.executor.resume(
             program,
             from: authorizationCheckpoint,
             interaction: .init(
@@ -395,7 +395,7 @@ extension AgenticDomainsFlowTesting {
             "native confirmation continues to governed permission approval"
         )
         try Expect.equal(
-            permissionPending.toolCall.name,
+            permissionPending.functionCall.name,
             RemindersRequestFullAccessTool.toolIdentifier.rawValue,
             "second boundary is the governed Reminders permission tool"
         )
@@ -405,7 +405,7 @@ extension AgenticDomainsFlowTesting {
             "confirming user intent does not itself trigger the macOS permission request"
         )
 
-        let authorizationApproved = try await authorizationScenario.runner.resume(
+        let authorizationApproved = try await authorizationScenario.executor.resume(
             program,
             from: permissionCheckpoint,
             interaction: .init(
@@ -449,12 +449,12 @@ extension AgenticDomainsFlowTesting {
             "granting access does not itself create the reminder"
         )
         try Expect.equal(
-            creationPending.toolCall.name,
+            creationPending.functionCall.name,
             RemindersCreateTool.toolIdentifier.rawValue,
             "second suspension is the actual reminder creation mutation"
         )
 
-        let authorizationCreated = try await authorizationScenario.runner.resume(
+        let authorizationCreated = try await authorizationScenario.executor.resume(
             program,
             from: creationCheckpoint,
             interaction: .init(
@@ -482,7 +482,7 @@ extension AgenticDomainsFlowTesting {
         let accessDeniedScenario = try CreateReminderScenario(
             authorization: .not_determined
         )
-        let accessDeniedInitial = try await accessDeniedScenario.runner.execute(
+        let accessDeniedInitial = try await accessDeniedScenario.executor.execute(
             program,
             input: input,
             sessionID: "domain-create-reminder-access-denied"
@@ -501,7 +501,7 @@ extension AgenticDomainsFlowTesting {
                 .missing_interaction_request
         }
 
-        let accessDenied = try await accessDeniedScenario.runner.resume(
+        let accessDenied = try await accessDeniedScenario.executor.resume(
             program,
             from: accessDeniedCheckpoint,
             interaction: .init(
@@ -532,7 +532,7 @@ extension AgenticDomainsFlowTesting {
             authorization: .not_determined,
             requestedAuthorization: .denied
         )
-        let osDeniedInitial = try await osDeniedScenario.runner.execute(
+        let osDeniedInitial = try await osDeniedScenario.executor.execute(
             program,
             input: input,
             sessionID: "domain-create-reminder-os-denied"
@@ -551,7 +551,7 @@ extension AgenticDomainsFlowTesting {
                 .missing_interaction_request
         }
 
-        let osDeniedConfirmed = try await osDeniedScenario.runner.resume(
+        let osDeniedConfirmed = try await osDeniedScenario.executor.resume(
             program,
             from: osDeniedCheckpoint,
             interaction: .init(
@@ -576,12 +576,12 @@ extension AgenticDomainsFlowTesting {
         )
 
         try Expect.equal(
-            osDeniedPermission.toolCall.name,
+            osDeniedPermission.functionCall.name,
             RemindersRequestFullAccessTool.toolIdentifier.rawValue,
             "OS-denied path reaches the governed permission tool after user confirmation"
         )
 
-        let osDenied = try await osDeniedScenario.runner.resume(
+        let osDenied = try await osDeniedScenario.executor.resume(
             program,
             from: osDeniedPermissionCheckpoint,
             interaction: .init(
