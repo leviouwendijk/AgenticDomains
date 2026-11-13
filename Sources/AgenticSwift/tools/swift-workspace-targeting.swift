@@ -386,7 +386,7 @@ extension SwiftLang.Tools.Clean {
             toolName: Self.definition.identifier.rawValue
         )
 
-        try await Build.clean(
+        try await Executable.Build.clean(
             at: execution.projectRoot
         )
 
@@ -642,7 +642,7 @@ extension SwiftLang.Tools.BuildLibrary {
         let configuration =
             input.configuration
                 ?? .release
-        let config = Build.Config(
+        let config = Executable.Build.Config(
             mode:
                 configuration == .debug
                     ? .debug
@@ -972,9 +972,9 @@ extension SwiftLang.Tools.Deploy {
         project: URL
     ) async throws -> (
         destination: URL,
-        plan: Build.Plan
+        plan: Executable.Build.Plan
     ) {
-        let mode: Build.Config.Mode =
+        let mode: Executable.Build.Config.Mode =
             switch input.configuration {
             case .debug:
                 .debug
@@ -983,8 +983,8 @@ extension SwiftLang.Tools.Deploy {
                 .release
             }
         let destination =
-            Build.defaultDeploymentDirectory
-        let request = Build.Request(
+            Executable.Build.defaultDeploymentDirectory
+        let request = Executable.Build.Request(
             project: project,
             config: .init(
                 mode: mode,
@@ -1002,7 +1002,7 @@ extension SwiftLang.Tools.Deploy {
 
         return (
             destination,
-            try await Build.resolve(
+            try await Executable.Build.resolve(
                 request
             )
         )

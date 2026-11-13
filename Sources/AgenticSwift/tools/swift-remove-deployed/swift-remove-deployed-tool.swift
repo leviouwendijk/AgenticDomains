@@ -69,7 +69,7 @@ public extension SwiftLang.Tools {
                 context.workspace,
                 toolName: Self.definition.identifier.rawValue
             )
-            let destination = Build.defaultDeploymentDirectory
+            let destination = Executable.Build.defaultDeploymentDirectory
 
             return ToolPreflight(
                 tool: Self.definition.identifier,
@@ -109,7 +109,7 @@ public extension SwiftLang.Tools {
                 context.workspace,
                 toolName: Self.definition.identifier.rawValue
             )
-            let destination = Build.defaultDeploymentDirectory
+            let destination = Executable.Build.defaultDeploymentDirectory
 
             try Remove.deployedBinary(
                 named: input.product,

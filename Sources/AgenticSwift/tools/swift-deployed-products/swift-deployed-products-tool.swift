@@ -104,7 +104,7 @@ public extension SwiftLang.Tools {
                 summary: "List deployed Swift products.",
                 access: .init(
                     targets: [
-                        Build.defaultDeploymentDirectory.path
+                        Executable.Build.defaultDeploymentDirectory.path
                     ]
                 ),
                 sideEffects: [],
@@ -124,12 +124,12 @@ public extension SwiftLang.Tools {
                 toolName: Self.definition.identifier.rawValue
             )
             let products = try DeployedList.listBinaries(
-                at: Build.defaultDeploymentDirectory,
+                at: Executable.Build.defaultDeploymentDirectory,
                 includeDetails: input.includeDetails ?? true
             )
 
             return Output(
-                    destination: Build.defaultDeploymentDirectory.path,
+                    destination: Executable.Build.defaultDeploymentDirectory.path,
                     products: products.map {
                         .init(
                             name: $0.name,

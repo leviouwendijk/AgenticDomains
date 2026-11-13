@@ -122,14 +122,14 @@ public extension SwiftLang.Tools {
 private extension SwiftLang.Tools.Deploy {
     struct Resolution {
         let destination: URL
-        let plan: Build.Plan
+        let plan: Executable.Build.Plan
     }
 
     func resolution(
         _ input: SwiftLang.Tools.Deploy.Input,
         workspace: WorkspaceContext
     ) async throws -> Resolution {
-        let mode: Build.Config.Mode = switch input.configuration {
+        let mode: Executable.Build.Config.Mode = switch input.configuration {
         case .debug:
             .debug
 
@@ -137,9 +137,9 @@ private extension SwiftLang.Tools.Deploy {
             .release
         }
 
-        let destination = Build.defaultDeploymentDirectory
+        let destination = Executable.Build.defaultDeploymentDirectory
 
-        let request = Build.Request(
+        let request = Executable.Build.Request(
             project: workspace.absoluteURL,
             config: .init(
                 mode: mode,
@@ -157,7 +157,7 @@ private extension SwiftLang.Tools.Deploy {
 
         return Resolution(
             destination: destination,
-            plan: try await Build.resolve(
+            plan: try await Executable.Build.resolve(
                 request
             )
         )
