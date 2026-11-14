@@ -1,6 +1,7 @@
 import Agentic
 import AgenticIO
 import AgenticStandard
+import AgenticTasks
 import Macros
 import Schema
 
@@ -29,15 +30,19 @@ public extension SwiftLang.Agents {
             public let plan: [String]
             public let verification: [String]
             public let caveats: [String]
+            /// Tasks recorded for the plan, when it warranted them.
+            public let tasks: [AgentTaskIdentifier]
 
             public init(
                 plan: [String],
                 verification: [String],
-                caveats: [String] = []
+                caveats: [String] = [],
+                tasks: [AgentTaskIdentifier] = []
             ) {
                 self.plan = plan
                 self.verification = verification
                 self.caveats = caveats
+                self.tasks = tasks
             }
         }
 
@@ -45,11 +50,28 @@ public extension SwiftLang.Agents {
         Plan bounded Swift engineering work from an explicit objective, constraints, and available repository evidence.
         """
 
-        public static let instructions = """
-        Inspect relevant Swift structure and semantics before proposing work.
-        Prefer the smallest coherent implementation sequence that preserves the existing architecture.
-        Make verification explicit and surface unresolved uncertainty instead of inventing facts.
-        """
+        public static let instructions: AgentInstructions = [
+            .text(
+                """
+                Inspect relevant Swift structure and semantics before proposing \
+                work. Prefer the smallest coherent implementation sequence that \
+                preserves the existing architecture. Make verification explicit \
+                and surface unresolved uncertainty instead of inventing facts.
+                Delegate broad discovery to \(Explorer.definition.identifier.rawValue).
+                """
+            ),
+            .instruction(SwiftLang.Instructions.StructuralReading.definition),
+            .instruction(Tasks.Instructions.Contract.definition),
+            .text(
+                """
+                When the plan has several steps with dependencies between them, \
+                record each step as a task with \
+                \(Tasks.Tools.CreateTask.identifier.rawValue): a contract per step \
+                and blockedBy for its prerequisites. Return their identifiers in \
+                tasks. A single coherent change needs no tasks.
+                """
+            ),
+        ]
 
         public static let capabilities = AgentCapabilities(
             available: .init(
@@ -57,22 +79,7 @@ public extension SwiftLang.Agents {
                     domains: [
                         SwiftLang.definition.namespace,
                     ],
-                    members: [
-                        SystemIO.Tools.ReadFile.identifier,
-                        SystemIO.Tools.ReadSelection.identifier,
-
-                        SystemIO.Tools.ScanFilepaths.identifier,
-                        SystemIO.Tools.SearchFilepaths.identifier,
-
-                        SystemIO.Tools.SearchSources.identifier,
-                        SystemIO.Tools.LoadSearchContext.identifier,
-                        SystemIO.Tools.ProveSearchResults.identifier,
-
-                        Standard.Tools.FindGuidelines.identifier,
-                        Standard.Tools.GuidelineIndex.identifier,
-                        Standard.Tools.ReadGuideline.identifier,
-                        Standard.Tools.ReadGuidelineChapter.identifier
-                    ]
+                    members: tools + SwiftAgentTools.guidelines
                 ),
                 programs: .init(
                     domains: [
@@ -84,28 +91,53 @@ public extension SwiftLang.Agents {
                         SwiftLang.definition.namespace,
                     ]
                 ),
-                agents: .init(
+                agents: delegates
+            ) + .init(
+                namespaces: SwiftAgentTools.discoverableDomains
+            ),
+            visible: .init(
+                tools: .init(
+                    members: tools
+                ),
+                programs: .init(
                     members: [
-                        Explorer.definition.identifier,
-                        Verifier.definition.identifier,
+                        SwiftLang.Programs.MapChangeImpact.definition.identifier,
                     ]
-                )
+                ),
+                agents: delegates
             )
         )
 
         public static let delegation = AgentDelegationPolicy.bounded(
-            allowedAgents: .init(
-                members: [
-                    Explorer.definition.identifier,
-                    Verifier.definition.identifier,
-                ]
-            ),
+            allowedAgents: delegates,
             limits: .init(
                 depth: 1,
                 children: 2,
                 descendants: 2,
                 concurrentChildren: 2
             )
+        )
+
+        private static let tools: [ToolIdentifier] =
+            SwiftAgentTools.standard
+            + SwiftAgentTools.read
+            + SwiftAgentTools.swiftRead
+            + [
+                Tasks.Tools.CreateTask.identifier,
+                Tasks.Tools.ListTasks.identifier,
+                Tasks.Tools.GetTask.identifier,
+            ]
+
+        private static let delegates = AgentCapabilitySelection<AgentIdentifier>(
+            members: [
+                Explorer.definition.identifier,
+                Verifier.definition.identifier,
+            ]
+        )
+
+        // The model serving `.planner` is bound by the application.
+        public static let modelSelection = AgentModelSelection(
+            purpose: .planner
         )
     }
 }

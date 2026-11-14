@@ -1,5 +1,5 @@
 {
-  "originHash" : "a59660f135089dea7739472daa3a40abe10c374c87f63bfe60dd70ac655f6b46",
+  "originHash" : "b9af00b27badd7493dc0a9f2033bf77911a3e9dd8feaaaaba05eeb89dfa7f830",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "67faa07a175e32680d9b978d2ed945d39f2277f2"
+        "revision" : "c73701ba38bab974c38e7d03abcdc5753ce8c3e5"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "9202a60249db05eed4a6361b04600c933c41fc48"
+        "revision" : "f0419831bb092d398a953eab198b347779db19f3"
       }
     },
     {
@@ -79,7 +79,7 @@
       "location" : "https://github.com/leviouwendijk/Documentation.git",
       "state" : {
         "branch" : "master",
-        "revision" : "164da305aac4a37fbf917f9cb1cca310dcedf121"
+        "revision" : "75d733d447c5db203fcdf0f60b193a372047dc0a"
       }
     },
     {
@@ -88,7 +88,7 @@
       "location" : "https://github.com/leviouwendijk/DSL.git",
       "state" : {
         "branch" : "master",
-        "revision" : "30ec6798f883b91f697d060bb001e0e4f7a09225"
+        "revision" : "b85a4fcf315dfa6c100b38adc7a9cdec15ad817f"
       }
     },
     {
@@ -160,7 +160,7 @@
       "location" : "https://github.com/leviouwendijk/GuidelinesSearch.git",
       "state" : {
         "branch" : "master",
-        "revision" : "791d4382cfb7434b265398843167b5d9c10060c5"
+        "revision" : "19b2f95ea4b37aa4d655286117161df5ff6e7651"
       }
     },
     {
@@ -196,7 +196,7 @@
       "location" : "https://github.com/leviouwendijk/IO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "5e88720439dc8f782034b6f9f8374c61ef1707f0"
+        "revision" : "8c462fa29ff9abfd5068cec656d4a84526f24644"
       }
     },
     {
@@ -259,7 +259,7 @@
       "location" : "https://github.com/leviouwendijk/Parsers.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3ae551fb4a5e7d533902e47f9d8e203251dc0460"
+        "revision" : "5154e2bbd5bc8ac7d362d70988f578a019e18a76"
       }
     },
     {
@@ -286,7 +286,7 @@
       "location" : "https://github.com/leviouwendijk/Path.git",
       "state" : {
         "branch" : "master",
-        "revision" : "dc0a6c12fb51692b1f3f4eb29c138d06de7e8eef"
+        "revision" : "17e26d9b121cdd7d9a8058fce990bc1a49460656"
       }
     },
     {
@@ -349,7 +349,7 @@
       "location" : "https://github.com/leviouwendijk/Readers.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e9b967413538320ef2cae3bcecfc2edc6f11933b"
+        "revision" : "9fad46ff279471563215cc1202cc4854d361a199"
       }
     },
     {
@@ -457,7 +457,7 @@
       "location" : "https://github.com/leviouwendijk/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "21b94a7079bcf145bc3d0ce8b1a8ffea577c92c3"
+        "revision" : "9ae1b8d04f73080cf5d78d542761bef4a4d58337"
       }
     },
     {
@@ -484,7 +484,7 @@
       "location" : "https://github.com/leviouwendijk/Tokens.git",
       "state" : {
         "branch" : "master",
-        "revision" : "6c36483226bfaecd544b8faba1f86215b3e9dce5"
+        "revision" : "f14620970eb1b4d77ea4811c053a65cbd1b6f972"
       }
     },
     {
@@ -520,7 +520,7 @@
       "location" : "https://github.com/leviouwendijk/Workspace.git",
       "state" : {
         "branch" : "master",
-        "revision" : "2bfc5c4b032592d316d9349222a7dde92edccc7a"
+        "revision" : "138e69f06cbbbbd1fe1e5deacb3790b5cf9cfaca"
       }
     },
     {
@@ -529,7 +529,7 @@
       "location" : "https://github.com/leviouwendijk/Writers.git",
       "state" : {
         "branch" : "master",
-        "revision" : "1ac48a7a0a8257f5e08e44927a0410a4eea15147"
+        "revision" : "5cf5d7c27bcfe34957b31d48c12b3a9cdedd714b"
       }
     }
   ],

@@ -1,5 +1,7 @@
 import Agentic
 import AgenticIO
+import AgenticStandard
+import AgenticTasks
 import Macros
 import Schema
 
@@ -72,6 +74,10 @@ public extension SwiftLang.Agents {
             available: .init(
                 tools: .init(
                     members: [
+                        Standard.Tools.ClarifyWithUser.identifier,
+                        Standard.Tools.InspectCapability.identifier,
+                        Tasks.Tools.GetTask.identifier,
+
                         SystemIO.Tools.ReadFile.identifier,
                         SystemIO.Tools.ReadSelection.identifier,
                         SystemIO.Tools.ScanFilepaths.identifier,
@@ -98,6 +104,10 @@ public extension SwiftLang.Agents {
             visible: .init(
                 tools: .init(
                     members: [
+                        Standard.Tools.ClarifyWithUser.identifier,
+                        Standard.Tools.InspectCapability.identifier,
+                        Tasks.Tools.GetTask.identifier,
+
                         SystemIO.Tools.ReadFile.identifier,
                         SystemIO.Tools.ReadSelection.identifier,
                         SystemIO.Tools.ScanFilepaths.identifier,
@@ -121,6 +131,11 @@ public extension SwiftLang.Agents {
                     ]
                 )
             )
+        )
+
+        // The model serving `.coder` is bound by the application.
+        public static let modelSelection = AgentModelSelection(
+            purpose: .coder
         )
     }
 }

@@ -1,6 +1,7 @@
 import Agentic
 import AgenticIO
 import AgenticStandard
+import AgenticTasks
 import Macros
 import Schema
 
@@ -12,15 +13,19 @@ public extension SwiftLang.Agents {
             public let objective: String
             public let changedPaths: [String]
             public let context: String?
+            /// The task under review, when one exists; its contract applies.
+            public let task: AgentTaskIdentifier?
 
             public init(
                 objective: String,
                 changedPaths: [String] = [],
-                context: String? = nil
+                context: String? = nil,
+                task: AgentTaskIdentifier? = nil
             ) {
                 self.objective = objective
                 self.changedPaths = changedPaths
                 self.context = context
+                self.task = task
             }
         }
 
@@ -45,68 +50,79 @@ public extension SwiftLang.Agents {
         Review Swift changes for correctness, architectural fit, regressions, and evidence gaps.
         """
 
-        public static let instructions = """
-        Review the actual changed code and its surrounding contracts.
-        Prioritize concrete correctness, architectural, API, concurrency, and verification findings.
-        Do not mutate the workspace.
-        Use delegated exploration or verification only when additional evidence is necessary.
-        """
+        public static let instructions: AgentInstructions = [
+            .text(
+                """
+                Review the actual changed code and its surrounding contracts. \
+                Prioritize concrete correctness, architectural, API, concurrency, \
+                and verification findings, each citing path:line. Do not mutate \
+                the workspace. Use delegated exploration or verification only \
+                when additional evidence is necessary.
+
+                When a task is named, read it with \
+                \(Tasks.Tools.GetTask.identifier.rawValue) and also check the \
+                change against its contract. Inspect the actual changes with \
+                git_diff when it is installed.
+                """
+            ),
+            .instruction(Tasks.Instructions.Contract.definition),
+            .instruction(SwiftLang.Instructions.StructuralReading.definition),
+        ]
 
         public static let capabilities = AgentCapabilities(
             available: .init(
                 tools: .init(
-                domains: [
-                    SwiftLang.definition.namespace,
-                ],
-                members: [
-                    SystemIO.Tools.ReadFile.identifier,
-                    SystemIO.Tools.ReadSelection.identifier,
-
-                    SystemIO.Tools.ScanFilepaths.identifier,
-                    SystemIO.Tools.SearchFilepaths.identifier,
-
-                    SystemIO.Tools.SearchSources.identifier,
-                    SystemIO.Tools.LoadSearchContext.identifier,
-                    SystemIO.Tools.ProveSearchResults.identifier,
-
-                    Standard.Tools.FindGuidelines.identifier,
-                    Standard.Tools.GuidelineIndex.identifier,
-                    Standard.Tools.ReadGuideline.identifier,
-                    Standard.Tools.ReadGuidelineChapter.identifier
-                ]
+                    members: tools + SwiftAgentTools.guidelines + [
+                        SwiftLang.Tools.LintFiles.identifier,
+                        SwiftLang.Tools.LintSource.identifier,
+                    ]
+                ),
+                programs: .init(
+                    members: [
+                        SwiftLang.Programs.MapChangeImpact.definition.identifier,
+                    ]
+                ),
+                agents: delegates
+            ) + .init(
+                namespaces: SwiftAgentTools.discoverableDomains
             ),
-            programs: .init(
-                domains: [
-                    SwiftLang.definition.namespace,
-                ]
-            ),
-            inferences: .init(
-                domains: [
-                    SwiftLang.definition.namespace,
-                ]
-            ),
-            agents: .init(
-                members: [
-                    Explorer.definition.identifier,
-                    Verifier.definition.identifier,
-                ]
+            visible: .init(
+                tools: .init(
+                    members: tools
+                ),
+                agents: delegates
             )
-        )
         )
 
         public static let delegation = AgentDelegationPolicy.bounded(
-            allowedAgents: .init(
-                members: [
-                    Explorer.definition.identifier,
-                    Verifier.definition.identifier,
-                ]
-            ),
+            allowedAgents: delegates,
             limits: .init(
                 depth: 1,
                 children: 2,
                 descendants: 2,
                 concurrentChildren: 2
             )
+        )
+
+        private static let tools: [ToolIdentifier] =
+            SwiftAgentTools.standard
+            + SwiftAgentTools.read
+            + SwiftAgentTools.swiftRead
+            + SwiftAgentTools.repositoryRead
+            + [
+                Tasks.Tools.GetTask.identifier,
+            ]
+
+        private static let delegates = AgentCapabilitySelection<AgentIdentifier>(
+            members: [
+                Explorer.definition.identifier,
+                Verifier.definition.identifier,
+            ]
+        )
+
+        // The model serving `.reviewer` is bound by the application.
+        public static let modelSelection = AgentModelSelection(
+            purpose: .reviewer
         )
     }
 }

@@ -49,6 +49,12 @@ let package = Package(
             targets: ["AgenticProcesses"]
         ),
 
+        // language-agnostic development agents (orchestration, scouting, review)
+        .library(
+            name: "AgenticDevelopment",
+            targets: ["AgenticDevelopment"]
+        ),
+
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
@@ -97,7 +103,23 @@ let package = Package(
                 "AgenticBusiness",
                 "AgenticUniFi",
                 "AgenticProcesses",
+                "AgenticDevelopment",
             ]
+        ),
+
+        .target(
+            name: "AgenticDevelopment",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticStandard", package: "Agentic"),
+                .product(name: "AgenticTasks", package: "Agentic"),
+                .product(name: "AgenticIO", package: "AgenticIO"),
+                "AgenticSwift",
+                "AgenticGit",
+
+                .product(name: "Schema", package: "Schema"),
+                .product(name: "Macros", package: "Macros"),
+            ],
         ),
 
         .target(
@@ -105,6 +127,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticStandard", package: "Agentic"),
+                .product(name: "AgenticTasks", package: "Agentic"),
                 .product(name: "AgenticIO", package: "AgenticIO"),
                 .product(name: "Workspace", package: "Workspace"),
 

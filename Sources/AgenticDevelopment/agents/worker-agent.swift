@@ -1,0 +1,112 @@
+import Agentic
+import AgenticIO
+import AgenticStandard
+import AgenticSwift
+import AgenticTasks
+import Macros
+import Schema
+
+public extension Development.Agents {
+    @Agent
+    enum Worker {
+        public typealias Input = Tasks.Assignment
+        public typealias Output = AgentTaskAttemptReport
+
+        public static let purpose = """
+        Implements one bounded, contracted assignment delegated by the \
+        Development orchestrator and reports the attempt.
+        """
+
+        public static let instructions: AgentInstructions = [
+            .text(
+                """
+                You are an implementation worker operating under the \
+                Development orchestrator. Complete your assignment's contract. \
+                Its retryNote, when present, says why a previous attempt was \
+                rejected; address it.
+                """
+            ),
+            .instruction(Tasks.Instructions.Contract.definition),
+            .instruction(Development.Instructions.NarrowScope.definition),
+            .instruction(Development.Instructions.SourceInspection.definition),
+            .text(
+                """
+                IMPLEMENTATION
+
+                1. Identify the change and its acceptance conditions.
+                2. Search narrowly for the relevant implementation.
+                3. Read only the source needed to change it correctly.
+                4. Identify directly affected call sites and dependencies.
+                5. Make one coherent \(SystemIO.Tools.MutateFiles.identifier.rawValue) \
+                pass covering the required changes, inside writeScope only.
+                6. Report and stop.
+
+                Prefer complete, coherent edits over partial fixes. Account for \
+                directly affected usages when changing APIs or shared contracts. \
+                Preserve naming conventions and architectural boundaries. No \
+                unrelated refactoring, no speculative improvements, no further \
+                implementation passes, no delegation.
+                """
+            ),
+            .instruction(Development.Instructions.EvidenceDiscipline.definition),
+            .text(
+                """
+                REPORT
+
+                Your output is the attempt report:
+                    - summary: what was implemented, concisely.
+                    - changedFiles: files actually mutated.
+                    - mutationState: applied, pending_review, failed, or none.
+                    - unresolved: remaining dependencies or blockers.
+                    - contractConflicts: contract assumptions that proved wrong.
+
+                When the assignment names a task, record the same report with \
+                \(Tasks.Tools.RecordAttempt.identifier.rawValue) before returning. \
+                Recording submits the attempt; it does not complete the task.
+                """
+            ),
+        ]
+
+        public static let capabilities = AgentCapabilities(
+            available: .init(
+                domains: [
+                    Standard.self,
+                    SystemIO.self,
+                    SwiftLang.self,
+                    Tasks.self,
+                ]
+            ) + .init(
+                namespaces: [
+                    "harness",
+                    "math",
+                    "assertions",
+                    "sessions",
+                ]
+            ),
+            visible: .init(
+                tools: .init(
+                    members: [
+                        Standard.Tools.InspectCapability.identifier,
+
+                        SystemIO.Tools.SearchSources.identifier,
+                        SystemIO.Tools.SearchFilepaths.identifier,
+                        SystemIO.Tools.ScanFilepaths.identifier,
+                        SystemIO.Tools.ReadSelection.identifier,
+                        SystemIO.Tools.ReadFile.identifier,
+                        SystemIO.Tools.MutateFiles.identifier,
+
+                        SwiftLang.Tools.Parse.identifier,
+
+                        Tasks.Tools.GetTask.identifier,
+                        Tasks.Tools.RecordAttempt.identifier,
+                    ]
+                )
+            )
+        )
+
+        // The model serving `.coder` is bound by the application.
+        public static let modelSelection = AgentModelSelection(
+            purpose: .coder
+        )
+    }
+}

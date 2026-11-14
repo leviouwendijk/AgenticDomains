@@ -1,6 +1,7 @@
 import Agentic
 import AgenticIO
 import AgenticStandard
+import AgenticTasks
 import Macros
 import Schema
 
@@ -26,18 +27,23 @@ public extension SwiftLang.Agents {
 
         @JSONSchema
         public struct Output: HashableResult {
+            /// Each finding cites `path:line` evidence.
             public let findings: [String]
             public let relevantPaths: [String]
             public let uncertainties: [String]
+            /// What was searched and what was deliberately not.
+            public let coverage: [String]
 
             public init(
                 findings: [String],
                 relevantPaths: [String] = [],
-                uncertainties: [String] = []
+                uncertainties: [String] = [],
+                coverage: [String] = []
             ) {
                 self.findings = findings
                 self.relevantPaths = relevantPaths
                 self.uncertainties = uncertainties
+                self.coverage = coverage
             }
         }
 
@@ -45,42 +51,66 @@ public extension SwiftLang.Agents {
         Explore Swift code, package structure, semantics, and surrounding evidence without performing implementation work.
         """
 
-        public static let instructions = """
-        Inspect before concluding.
-        Trace relevant symbols, package relationships, semantic structure, and existing conventions.
-        Return concrete findings and explicitly distinguish verified facts from unresolved uncertainty.
-        Do not mutate the workspace.
-        """
+        public static let instructions: AgentInstructions = [
+            .text(
+                """
+                Inspect before concluding. Trace relevant symbols, package \
+                relationships, semantic structure, and existing conventions. \
+                Never mutate the workspace; you have no tools that could.
+                """
+            ),
+            .instruction(SwiftLang.Instructions.StructuralReading.definition),
+            .text(
+                """
+                For what depends on a symbol, run \
+                \(SwiftLang.Programs.MapChangeImpact.definition.identifier.rawValue) \
+                first, then text-search the names its coverage lists to catch \
+                string, reflective, and cross-package references.
 
+                Cite every finding as path:line. Distinguish verified facts from \
+                inference, list what remains uncertain, and state your coverage: \
+                what you searched and what you did not.
+                """
+            ),
+        ]
+
+        // Read-only by construction: nothing that mutates is available.
         public static let capabilities = AgentCapabilities(
             available: .init(
                 tools: .init(
-                domains: [
-                    SwiftLang.definition.namespace,
-                ],
-                members: [
-                    SystemIO.Tools.ReadFile.identifier,
-                    SystemIO.Tools.ReadSelection.identifier,
-
-                    SystemIO.Tools.ScanFilepaths.identifier,
-                    SystemIO.Tools.SearchFilepaths.identifier,
-
-                    SystemIO.Tools.SearchSources.identifier,
-                    SystemIO.Tools.LoadSearchContext.identifier,
-                    SystemIO.Tools.ProveSearchResults.identifier,
-
-                    Standard.Tools.FindGuidelines.identifier,
-                    Standard.Tools.GuidelineIndex.identifier,
-                    Standard.Tools.ReadGuideline.identifier,
-                    Standard.Tools.ReadGuidelineChapter.identifier
-                ]
+                    members: tools + SwiftAgentTools.guidelines
+                ),
+                programs: .init(
+                    members: [
+                        SwiftLang.Programs.MapChangeImpact.definition.identifier,
+                    ]
+                )
+            ) + .init(
+                namespaces: SwiftAgentTools.discoverableDomains
             ),
-            inferences: .init(
-                domains: [
-                    SwiftLang.definition.namespace,
-                ]
+            visible: .init(
+                tools: .init(
+                    members: tools
+                ),
+                programs: .init(
+                    members: [
+                        SwiftLang.Programs.MapChangeImpact.definition.identifier,
+                    ]
+                )
             )
         )
+
+        private static let tools: [ToolIdentifier] =
+            SwiftAgentTools.standard
+            + SwiftAgentTools.read
+            + SwiftAgentTools.swiftRead
+            + [
+                Tasks.Tools.GetTask.identifier,
+            ]
+
+        // The model serving `.researcher` is bound by the application.
+        public static let modelSelection = AgentModelSelection(
+            purpose: .researcher
         )
     }
 }

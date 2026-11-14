@@ -1,59 +1,49 @@
 import Agentic
 import AgenticIO
 import AgenticStandard
+import AgenticTasks
 import Macros
 import Schema
 
 public extension SwiftLang.Agents {
     @Agent
     enum Implementer {
-        @JSONSchema
-        public struct Input: HashableSource {
-            public let objective: String
-            public let plan: [String]
-            public let constraints: [String]
-
-            public init(
-                objective: String,
-                plan: [String] = [],
-                constraints: [String] = []
-            ) {
-                self.objective = objective
-                self.plan = plan
-                self.constraints = constraints
-            }
-        }
-
-        @JSONSchema
-        public struct Output: HashableResult {
-            public let summary: String
-            public let changedPaths: [String]
-            public let verification: [String]
-            public let unresolved: [String]
-
-            public init(
-                summary: String,
-                changedPaths: [String] = [],
-                verification: [String] = [],
-                unresolved: [String] = []
-            ) {
-                self.summary = summary
-                self.changedPaths = changedPaths
-                self.verification = verification
-                self.unresolved = unresolved
-            }
-        }
+        public typealias Input = Tasks.Assignment
+        public typealias Output = AgentTaskAttemptReport
 
         public static let purpose = """
         Implement bounded Swift changes while preserving architectural intent and verifying the resulting workspace.
         """
 
-        public static let instructions = """
-        Understand the relevant code and constraints before mutating.
-        Prefer coherent architectural changes over additive compatibility layers.
-        Verify changes with the strongest available compiler, lint, test, and semantic evidence.
-        Surface unresolved failures instead of concealing them.
-        """
+        public static let instructions: AgentInstructions = [
+            .text(
+                """
+                Implement the assignment's contract. Its retryNote, when \
+                present, says why a previous attempt was rejected; address it.
+                Understand the relevant code and constraints before mutating. \
+                Prefer coherent architectural changes over additive \
+                compatibility layers.
+                """
+            ),
+            .instruction(Tasks.Instructions.Contract.definition),
+            .instruction(SwiftLang.Instructions.StructuralReading.definition),
+            .instruction(SwiftLang.Instructions.TargetedEditing.definition),
+            .text(
+                """
+                Verify with the strongest available compiler, lint, test, and \
+                semantic evidence, and surface unresolved failures instead of \
+                concealing them. Delegate symbol renames to \
+                \(Renamer.definition.identifier.rawValue).
+
+                Your output is the attempt report: summary, changedFiles, \
+                mutationState (applied, pending_review, failed, or none, by \
+                execution evidence), unresolved, and contractConflicts. When the \
+                assignment names a task, record the same report with \
+                \(Tasks.Tools.RecordAttempt.identifier.rawValue) before returning; \
+                recording does not complete the task.
+                """
+            ),
+        ]
 
         public static let capabilities = AgentCapabilities(
             available: .init(
@@ -61,26 +51,7 @@ public extension SwiftLang.Agents {
                     domains: [
                         SwiftLang.definition.namespace,
                     ],
-                    members: [
-                        SystemIO.Tools.ReadFile.identifier,
-                        SystemIO.Tools.ReadSelection.identifier,
-
-                        SystemIO.Tools.ScanFilepaths.identifier,
-                        SystemIO.Tools.SearchFilepaths.identifier,
-
-                        SystemIO.Tools.SearchSources.identifier,
-                        SystemIO.Tools.LoadSearchContext.identifier,
-                        SystemIO.Tools.ProveSearchResults.identifier,
-
-                        SystemIO.Tools.MutateFiles.identifier,
-
-                        // maybe clutters the context window redundantly?
-
-                        // Standard.Tools.FindGuidelines.identifier,
-                        // Standard.Tools.GuidelineIndex.identifier,
-                        // Standard.Tools.ReadGuideline.identifier,
-                        // Standard.Tools.ReadGuidelineChapter.identifier
-                    ]
+                    members: tools
                 ),
                 programs: .init(
                     domains: [
@@ -101,25 +72,15 @@ public extension SwiftLang.Agents {
                         Renamer.definition.identifier,
                     ]
                 )
+            ) + .init(
+                namespaces: SwiftAgentTools.discoverableDomains
             ),
             visible: .init(
                 tools: .init(
                     domains: [
                         SwiftLang.definition.namespace,
                     ],
-                    members: [
-                        SystemIO.Tools.ReadFile.identifier,
-                        SystemIO.Tools.ReadSelection.identifier,
-
-                        SystemIO.Tools.ScanFilepaths.identifier,
-                        SystemIO.Tools.SearchFilepaths.identifier,
-
-                        SystemIO.Tools.SearchSources.identifier,
-                        SystemIO.Tools.LoadSearchContext.identifier,
-                        SystemIO.Tools.ProveSearchResults.identifier,
-
-                        SystemIO.Tools.MutateFiles.identifier,
-                    ]
+                    members: tools
                 ),
                 agents: .init(
                     members: [
@@ -145,6 +106,21 @@ public extension SwiftLang.Agents {
                 descendants: 6,
                 concurrentChildren: 2
             )
+        )
+
+        private static let tools: [ToolIdentifier] =
+            SwiftAgentTools.standard
+            + SwiftAgentTools.read
+            + [
+                SystemIO.Tools.MutateFiles.identifier,
+
+                Tasks.Tools.GetTask.identifier,
+                Tasks.Tools.RecordAttempt.identifier,
+            ]
+
+        // The model serving `.coder` is bound by the application.
+        public static let modelSelection = AgentModelSelection(
+            purpose: .coder
         )
     }
 }

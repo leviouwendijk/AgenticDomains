@@ -1,0 +1,67 @@
+import Agentic
+import AgenticIO
+import AgenticStandard
+
+/// Shared guidance for Development agents. Each agent composes the blocks
+/// it needs, and runs record which revision they used. The task contract
+/// vocabulary itself lives in `Tasks.Instructions.Contract`.
+public extension Development.Instructions {
+    @Instruction
+    enum EvidenceDiscipline: Instruction {
+        public static let content = """
+        EVIDENCE
+
+        Report what execution evidence shows, not what was intended.
+        Distinguish prepared, staged, approved, applied, and failed
+        operations. Another agent's report says where to look; it proves
+        nothing on its own. Never claim validation that was not performed.
+        """
+    }
+
+    @Instruction
+    enum NarrowScope: Instruction {
+        public static let content = """
+        SCOPE
+
+        Work narrowly on the stated objective. Do not expand into unrelated
+        architecture, cleanup, investigation, or speculative improvements.
+
+        Builds, test runs, product execution, commits, pushes, and other
+        repository operations happen only when explicitly requested.
+
+        Do not assume shell tools such as rg, grep, find, sed, or bash are
+        available; use the provided tools.
+
+        Respect all preflight and approval requirements. When a needed
+        capability is not visible, find it with
+        \(Standard.Tools.FindCapabilities.identifier.rawValue); never bypass
+        a restriction.
+        """
+    }
+
+    @Instruction
+    enum SourceInspection: Instruction {
+        public static let content = """
+        INSPECTION
+
+        Search before reading:
+            \(SystemIO.Tools.SearchSources.identifier.rawValue)
+            \(SystemIO.Tools.SearchFilepaths.identifier.rawValue)
+            \(SystemIO.Tools.ScanFilepaths.identifier.rawValue)
+        Read the narrowest range that answers the question with
+        \(SystemIO.Tools.ReadSelection.identifier.rawValue). Use
+        \(SystemIO.Tools.ReadFile.identifier.rawValue) only when nothing
+        narrower works. Do not reread material just to confirm it.
+        """
+    }
+
+    @Instruction
+    enum ReadOnly: Instruction {
+        public static let content = """
+        READ-ONLY
+
+        You never mutate the workspace and have no tools that could. When
+        the answer requires a change, describe it; do not attempt it.
+        """
+    }
+}
