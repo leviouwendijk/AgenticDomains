@@ -18,11 +18,11 @@ public extension SwiftLang.Agents {
         public static let instructions: AgentInstructions = [
             .text(
                 """
-                Implement the assignment's contract. Its retryNote, when \
-                present, says why a previous attempt was rejected; address it.
-                Understand the relevant code and constraints before mutating. \
-                Prefer coherent architectural changes over additive \
-                compatibility layers.
+                Implement the assignment's contract. Understand the relevant \
+                code and constraints before mutating. Prefer coherent \
+                architectural changes over additive compatibility layers. \
+                Your assignment's fields:
+                \(SchemaInstructionText.fields(of: Tasks.Assignment.self))
                 """
             ),
             .instruction(Tasks.Instructions.Contract.definition),
@@ -35,9 +35,7 @@ public extension SwiftLang.Agents {
                 concealing them. Delegate symbol renames to \
                 \(Renamer.definition.identifier.rawValue).
 
-                Your output is the attempt report: summary, changedFiles, \
-                mutationState (applied, pending_review, failed, or none, by \
-                execution evidence), unresolved, and contractConflicts. When the \
+                Your output is the attempt report described above. When the \
                 assignment names a task, record the same report with \
                 \(Tasks.Tools.RecordAttempt.identifier.rawValue) before returning; \
                 recording does not complete the task.

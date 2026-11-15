@@ -45,14 +45,17 @@ public extension Development.Agents {
                 When answering a question would take more than a few searches or \
                 reads (what depends on a symbol, every affected site, an \
                 unfamiliar area), delegate it to \(Scout.definition.identifier.rawValue). \
-                Ask specific questions, give a scope, and pass facts you already \
-                hold as knownFacts. Independent questions may go to concurrent \
-                scouts. Read a scout's coverage before treating its sites as \
-                complete.
+                Ask specific questions, give a scope, and pass the facts you \
+                already hold. Independent questions may go to concurrent scouts. \
+                Read a scout's coverage before treating its sites as complete.
 
-                Scout findings feed contracts directly: verified findings become \
-                observed constraints, likely or unverified ones become hypothesis \
-                constraints, and candidateSites carry over.
+                Scout findings feed contracts directly: \
+                \(Scout.Confidence.verified.rawValue) findings become \
+                \(AgentTaskConstraintProvenance.observed.rawValue) constraints, \
+                \(Scout.Confidence.likely.rawValue) or \
+                \(Scout.Confidence.unverified.rawValue) ones become \
+                \(AgentTaskConstraintProvenance.hypothesis.rawValue) constraints, \
+                and the scout's candidate sites carry into the contract.
                 """
             ),
             .instruction(Tasks.Instructions.Contract.definition),
@@ -61,10 +64,14 @@ public extension Development.Agents {
                 DELEGATION
 
                 Each worker assignment carries a contract. Record user statements \
-                as user_instruction, interfaces you settled as accepted_decision, \
-                inspected facts as observed, and unverified assumptions as \
-                hypothesis. Settle a shared interface or invariant before \
-                assigning dependent implementations, and include it in each.
+                as \(AgentTaskConstraintProvenance.user_instruction.rawValue), \
+                interfaces you settled as \
+                \(AgentTaskConstraintProvenance.accepted_decision.rawValue), \
+                inspected facts as \(AgentTaskConstraintProvenance.observed.rawValue), \
+                and unverified assumptions as \
+                \(AgentTaskConstraintProvenance.hypothesis.rawValue). Settle a \
+                shared interface or invariant before assigning dependent \
+                implementations, and include it in each.
 
                 A single coherent change goes to one worker. Prefer independent \
                 tasks that can run concurrently; avoid overlapping write scopes \
@@ -75,9 +82,10 @@ public extension Development.Agents {
                 For work with several assignments, or dependencies between them:
                     - Create one task per assignment with \
                 \(Tasks.Tools.CreateTask.identifier.rawValue), carrying its \
-                contract and blockedBy for prerequisites. Pass the task id in \
+                contract and the tasks it is blocked by. Pass the task id in \
                 the worker's assignment.
-                    - Delegate only ready tasks: pending and unblocked.
+                    - Delegate only ready tasks: \
+                \(AgentTaskStatus.pending.rawValue) and unblocked.
                     - The worker records its report on the task. Judge it against \
                 the acceptance conditions and the actual mutation evidence. For \
                 changes spanning several files or carrying invariant constraints, \
@@ -85,9 +93,9 @@ public extension Development.Agents {
                 and follow its recommendation unless you hold contrary evidence.
                     - Decide with \(Tasks.Tools.AcceptTask.identifier.rawValue), \
                 \(Tasks.Tools.RejectTask.identifier.rawValue) (reassigning with the \
-                reason as retryNote), or \(Tasks.Tools.FailTask.identifier.rawValue). \
+                reason as the retry note), or \(Tasks.Tools.FailTask.identifier.rawValue). \
                 Accepting a task unblocks its dependents.
-                    - When a report lists contractConflicts, revise the contract, \
+                    - When a report lists contract conflicts, revise the contract, \
                 or the decision behind it, before reassigning. Never reassign an \
                 unchanged contract.
 

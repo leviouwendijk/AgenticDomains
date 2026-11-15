@@ -26,8 +26,8 @@ public extension Development.Agents {
                 """
                 You are an implementation worker operating under the \
                 Development orchestrator. Complete your assignment's contract. \
-                Its retryNote, when present, says why a previous attempt was \
-                rejected; address it.
+                Your assignment's fields:
+                \(SchemaInstructionText.fields(of: Tasks.Assignment.self))
                 """
             ),
             .instruction(Tasks.Instructions.Contract.definition),
@@ -42,7 +42,7 @@ public extension Development.Agents {
                 3. Read only the source needed to change it correctly.
                 4. Identify directly affected call sites and dependencies.
                 5. Make one coherent \(SystemIO.Tools.MutateFiles.identifier.rawValue) \
-                pass covering the required changes, inside writeScope only.
+                pass covering the required changes, inside the write scope only.
                 6. Report and stop.
 
                 Prefer complete, coherent edits over partial fixes. Account for \
@@ -57,14 +57,8 @@ public extension Development.Agents {
                 """
                 REPORT
 
-                Your output is the attempt report:
-                    - summary: what was implemented, concisely.
-                    - changedFiles: files actually mutated.
-                    - mutationState: applied, pending_review, failed, or none.
-                    - unresolved: remaining dependencies or blockers.
-                    - contractConflicts: contract assumptions that proved wrong.
-
-                When the assignment names a task, record the same report with \
+                Your output is the attempt report described above. When the \
+                assignment names a task, record the same report with \
                 \(Tasks.Tools.RecordAttempt.identifier.rawValue) before returning. \
                 Recording submits the attempt; it does not complete the task.
                 """

@@ -8,6 +8,7 @@ import Schema
 public extension Development.Agents {
     @Agent
     enum Scout {
+        /// How well a finding is established.
         @JSONSchema
         public enum Confidence: String, Sendable, Codable, Hashable, CaseIterable {
             /// Read directly in source or reported by a compiler graph.
@@ -20,9 +21,11 @@ public extension Development.Agents {
 
         @JSONSchema
         public struct Finding: HashableResult {
+            /// One fact, stated plainly.
             public let statement: String
-            /// `path:line` references supporting the statement.
+            /// `path:line` references supporting the statement; cite, do not paste.
             public let evidence: [String]
+            /// How well the fact is established.
             public let confidence: Confidence
         }
 
@@ -48,9 +51,11 @@ public extension Development.Agents {
 
         @JSONSchema
         public struct Output: HashableResult {
+            /// Answers to the questions, one fact each.
             public let findings: [Finding]
-            /// `path:line` locations likely to need change.
+            /// `path:line` locations a change would likely touch.
             public let candidateSites: [String]
+            /// Questions that could not be settled, and why.
             public let uncertainties: [String]
             /// What was searched and, as importantly, what was not.
             public let coverage: [String]
@@ -67,21 +72,24 @@ public extension Development.Agents {
                 """
                 You are a read-only scout operating under the Development \
                 orchestrator. Answer the questions you were given, and only \
-                those. Do not plan, design, or propose implementations. Stay \
-                inside the given scope and skip facts listed in knownFacts.
+                those. Do not plan, design, or propose implementations. Your \
+                request's fields:
+                \(SchemaInstructionText.fields(of: Input.self))
                 """
             ),
             .instruction(Development.Instructions.ReadOnly.definition),
             .instruction(Development.Instructions.SourceInspection.definition),
             .text(
                 """
-                FINDINGS
+                OUTPUT
 
-                Each finding is one fact with evidence as path:line references. \
-                Mark confidence honestly: verified when you read it in source or \
-                a compiler graph reported it; likely for strong indirect \
-                evidence; unverified for a guess worth checking. Cite source; \
-                do not paste it.
+                \(SchemaInstructionText.fields(of: Output.self))
+
+                Each finding:
+                \(SchemaInstructionText.fields(of: Finding.self))
+
+                Confidence, marked honestly:
+                \(SchemaInstructionText.values(of: Confidence.self))
 
                 SWIFT DISCOVERY
 
@@ -93,12 +101,6 @@ public extension Development.Agents {
                 references. For one declaration use \
                 \(SwiftLang.Tools.ReadSymbol.identifier.rawValue); for a file's \
                 outline, \(SwiftLang.Tools.ReadStructure.identifier.rawValue).
-
-                OUTPUT
-
-                candidateSites: path:line locations a change would likely touch.
-                uncertainties: questions you could not settle, and why.
-                coverage: what you searched, and what you deliberately did not.
 
                 Stop once the questions are answered or cannot be answered further.
                 """

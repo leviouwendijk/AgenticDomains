@@ -11,24 +11,33 @@ import Schema
 public extension Development.Agents {
     @Agent
     enum Reviewer {
+        /// Whether evidence shows an acceptance condition holds.
         @JSONSchema
         public enum Verdict: String, Sendable, Codable, Hashable, CaseIterable {
+            /// Evidence shows the condition holds.
             case met
+            /// Evidence shows the condition does not hold.
             case unmet
             /// No evidence either way; never treated as met.
             case unverified
         }
 
+        /// What the coordinator should decide about the attempt.
         @JSONSchema
         public enum Recommendation: String, Sendable, Codable, Hashable, CaseIterable {
+            /// Every condition met, no violated constraints, nothing out of scope.
             case accept
+            /// Fixable within the contract; the note says what the next attempt must change.
             case reject
+            /// Not achievable within the contract, e.g. a confirmed contract conflict; the note says why.
             case fail
         }
 
         @JSONSchema
         public struct ConditionReview: HashableResult {
+            /// The acceptance condition, as the contract states it.
             public let condition: String
+            /// Whether evidence shows it holds.
             public let verdict: Verdict
             /// What was checked: `path:line`, a diff hunk, or a tool result.
             public let evidence: String
@@ -36,8 +45,11 @@ public extension Development.Agents {
 
         @JSONSchema
         public struct Input: HashableSource {
+            /// The task under review, when one exists.
             public let task: AgentTaskIdentifier?
+            /// The contract the attempt is judged against.
             public let contract: AgentTaskContract
+            /// The worker's account of the attempt; where to look, not proof.
             public let report: AgentTaskAttemptReport
 
             public init(
@@ -57,10 +69,11 @@ public extension Development.Agents {
             public let conditions: [ConditionReview]
             /// Invariant constraints the change violates.
             public let violatedConstraints: [String]
-            /// Changed paths outside the contract's writeScope.
+            /// Changed paths outside the contract's write scope.
             public let outOfScopeChanges: [String]
+            /// What the coordinator should decide.
             public let recommendation: Recommendation
-            /// For reject: what the next attempt must fix, used as its retryNote.
+            /// For reject, what the next attempt must change; for fail, why.
             public let note: String
         }
 
@@ -86,13 +99,12 @@ public extension Development.Agents {
                 REVIEW
 
                 1. Inspect the actual changes with \(Git.Tools.Diff.identifier.rawValue), \
-                limited to the reported changedFiles and the contract's writeScope.
-                2. List every changed path outside writeScope in outOfScopeChanges.
-                3. Give each acceptance condition one verdict, with evidence: \
-                met when you saw it hold, unmet when you saw it fail, unverified \
-                when you could not establish either.
-                4. Check user_instruction and accepted_decision constraints \
-                against the diff; list any violated.
+                limited to the reported changed files and the contract's write scope.
+                2. List every changed path outside the write scope.
+                3. Give each acceptance condition one verdict, with evidence:
+                \(SchemaInstructionText.values(of: Verdict.self))
+                4. Check the invariant constraints against the diff; list any \
+                violated.
                 5. Check conditions that reduce to file or text facts (a file \
                 exists, contains, or no longer contains something) \
                 deterministically with \(Assertions.Tools.Evaluate.identifier.rawValue) \
@@ -103,16 +115,14 @@ public extension Development.Agents {
 
                 Do not build, test, or run products.
 
-                RECOMMENDATION
+                OUTPUT
 
-                accept: every condition met, no violated constraints, nothing \
-                out of scope.
-                reject: fixable within the contract; note says exactly what \
-                the next attempt must change.
-                fail: not achievable within the contract, for example a \
-                confirmed contract conflict; note says why.
+                \(SchemaInstructionText.fields(of: Output.self))
 
-                An unverified condition is not met. When a condition can only be \
+                Recommendations:
+                \(SchemaInstructionText.values(of: Recommendation.self))
+
+                An \(Verdict.unverified.rawValue) condition is not \(Verdict.met.rawValue). When a condition can only be \
                 verified by building or testing, say so in its evidence; the \
                 orchestrator decides whether to run it.
                 """
