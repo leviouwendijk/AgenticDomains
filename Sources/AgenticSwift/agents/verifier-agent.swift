@@ -80,7 +80,7 @@ public extension SwiftLang.Agents {
                     ]
                 )
             ) + .init(
-                namespaces: SwiftAgentTools.discoverableDomains
+                domains: SwiftAgentTools.discoverableDomains
             ),
             visible: .init(
                 tools: .init(
@@ -98,6 +98,7 @@ public extension SwiftLang.Agents {
             + SwiftAgentTools.read
             + SwiftAgentTools.swiftRead
             + SwiftAgentTools.repositoryRead
+            + SwiftAgentTools.assertionChecks
             + [
                 Tasks.Tools.GetTask.identifier,
             ]

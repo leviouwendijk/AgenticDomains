@@ -93,7 +93,7 @@ public extension SwiftLang.Agents {
                 ),
                 agents: delegates
             ) + .init(
-                namespaces: SwiftAgentTools.discoverableDomains
+                domains: SwiftAgentTools.discoverableDomains
             ),
             visible: .init(
                 tools: .init(

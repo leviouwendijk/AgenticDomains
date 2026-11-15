@@ -1,5 +1,8 @@
 import Agentic
+import AgenticAssertions
+import AgenticGit
 import AgenticIO
+import AgenticMath
 import AgenticStandard
 import AgenticTasks
 
@@ -35,11 +38,17 @@ enum SwiftAgentTools {
         SwiftLang.Tools.InspectArchitectureRelationships.identifier,
     ]
 
-    /// Read-only Git tools, named by identifier because AgenticSwift does
-    /// not depend on AgenticGit. Absent when Git is not installed.
+    /// Read-only Git tools; nothing that commits, pushes, or pulls.
     static let repositoryRead: [ToolIdentifier] = [
-        "git_diff",
-        "git_repository_state",
+        Git.Tools.Diff.identifier,
+        Git.Tools.RepositoryState.identifier,
+    ]
+
+    /// Deterministic checks over text and workspace files, for verification.
+    static let assertionChecks: [ToolIdentifier] = [
+        Assertions.Tools.Evaluate.identifier,
+        Assertions.Tools.EvaluateSet.identifier,
+        Assertions.Tools.InspectSet.identifier,
     ]
 
     static let guidelines: [ToolIdentifier] = [
@@ -50,8 +59,8 @@ enum SwiftAgentTools {
     ]
 
     /// Domains available but hidden; reachable through find_capabilities.
-    static let discoverableDomains: [Namespace] = [
-        "math",
-        "assertions",
+    static let discoverableDomains: [any Domain.Type] = [
+        Math.self,
+        Assertions.self,
     ]
 }

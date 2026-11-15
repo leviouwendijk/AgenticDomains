@@ -1,5 +1,9 @@
 import Agentic
+import AgenticAssertions
+import AgenticHarness
 import AgenticIO
+import AgenticMath
+import AgenticRuntime
 import AgenticStandard
 import AgenticSwift
 import AgenticTasks
@@ -71,16 +75,13 @@ public extension Development.Agents {
             available: .init(
                 domains: [
                     Standard.self,
+                    Harness.self,
+                    Math.self,
+                    Assertions.self,
                     SystemIO.self,
                     SwiftLang.self,
                     Tasks.self,
-                ]
-            ) + .init(
-                namespaces: [
-                    "harness",
-                    "math",
-                    "assertions",
-                    "sessions",
+                    Sessions.self,
                 ]
             ),
             visible: .init(

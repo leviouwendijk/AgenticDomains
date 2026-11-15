@@ -1,4 +1,5 @@
 import Agentic
+import AgenticAssertions
 import AgenticGit
 import AgenticIO
 import AgenticStandard
@@ -92,7 +93,11 @@ public extension Development.Agents {
                 when you could not establish either.
                 4. Check user_instruction and accepted_decision constraints \
                 against the diff; list any violated.
-                5. Where useful, check syntax and style with the language's \
+                5. Check conditions that reduce to file or text facts (a file \
+                exists, contains, or no longer contains something) \
+                deterministically with \(Assertions.Tools.Evaluate.identifier.rawValue) \
+                and cite its result as the evidence.
+                6. Where useful, check syntax and style with the language's \
                 parse and lint tools, e.g. \(SwiftLang.Tools.Parse.identifier.rawValue) \
                 and \(SwiftLang.Tools.LintFiles.identifier.rawValue).
 
@@ -138,6 +143,10 @@ public extension Development.Agents {
 
             Git.Tools.Diff.identifier,
             Git.Tools.RepositoryState.identifier,
+
+            Assertions.Tools.Evaluate.identifier,
+            Assertions.Tools.EvaluateSet.identifier,
+            Assertions.Tools.InspectSet.identifier,
 
             SwiftLang.Tools.Parse.identifier,
             SwiftLang.Tools.LintFiles.identifier,

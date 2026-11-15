@@ -86,7 +86,7 @@ public extension SwiftLang.Agents {
                     ]
                 )
             ) + .init(
-                namespaces: SwiftAgentTools.discoverableDomains
+                domains: SwiftAgentTools.discoverableDomains
             ),
             visible: .init(
                 tools: .init(

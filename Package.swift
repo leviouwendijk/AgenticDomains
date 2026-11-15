@@ -59,6 +59,8 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AgenticIO.git", branch: "master"),
+        // Sessions domain, for AgenticDevelopment.
+        .package(url: "https://github.com/leviouwendijk/AgenticRuntime.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Workspace.git", branch: "master"),
 
         .package(url: "https://github.com/leviouwendijk/SwiftSemantics.git", branch: "master"),
@@ -112,8 +114,12 @@ let package = Package(
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticStandard", package: "Agentic"),
+                .product(name: "AgenticHarness", package: "Agentic"),
+                .product(name: "AgenticMath", package: "Agentic"),
+                .product(name: "AgenticAssertions", package: "Agentic"),
                 .product(name: "AgenticTasks", package: "Agentic"),
                 .product(name: "AgenticIO", package: "AgenticIO"),
+                .product(name: "AgenticRuntime", package: "AgenticRuntime"),
                 "AgenticSwift",
                 "AgenticGit",
 
@@ -127,8 +133,11 @@ let package = Package(
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticStandard", package: "Agentic"),
+                .product(name: "AgenticMath", package: "Agentic"),
+                .product(name: "AgenticAssertions", package: "Agentic"),
                 .product(name: "AgenticTasks", package: "Agentic"),
                 .product(name: "AgenticIO", package: "AgenticIO"),
+                "AgenticGit",
                 .product(name: "Workspace", package: "Workspace"),
 
                 .product(name: "Primitives", package: "Primitives"),

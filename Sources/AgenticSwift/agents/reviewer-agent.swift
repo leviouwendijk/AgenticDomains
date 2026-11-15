@@ -1,4 +1,6 @@
 import Agentic
+import AgenticAssertions
+import AgenticGit
 import AgenticIO
 import AgenticStandard
 import AgenticTasks
@@ -62,7 +64,9 @@ public extension SwiftLang.Agents {
                 When a task is named, read it with \
                 \(Tasks.Tools.GetTask.identifier.rawValue) and also check the \
                 change against its contract. Inspect the actual changes with \
-                git_diff when it is installed.
+                \(Git.Tools.Diff.identifier.rawValue), and check verifiable \
+                conditions deterministically with \
+                \(Assertions.Tools.Evaluate.identifier.rawValue).
                 """
             ),
             .instruction(Tasks.Instructions.Contract.definition),
@@ -84,7 +88,7 @@ public extension SwiftLang.Agents {
                 ),
                 agents: delegates
             ) + .init(
-                namespaces: SwiftAgentTools.discoverableDomains
+                domains: SwiftAgentTools.discoverableDomains
             ),
             visible: .init(
                 tools: .init(
@@ -109,6 +113,7 @@ public extension SwiftLang.Agents {
             + SwiftAgentTools.read
             + SwiftAgentTools.swiftRead
             + SwiftAgentTools.repositoryRead
+            + SwiftAgentTools.assertionChecks
             + [
                 Tasks.Tools.GetTask.identifier,
             ]

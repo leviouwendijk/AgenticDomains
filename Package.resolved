@@ -1,5 +1,5 @@
 {
-  "originHash" : "b9af00b27badd7493dc0a9f2033bf77911a3e9dd8feaaaaba05eeb89dfa7f830",
+  "originHash" : "bf548a68085793bde2822fe3b36b6ac35c3b7c5dd3680befb5496a4f5ddbf628",
   "pins" : [
     {
       "identity" : "agentic",
@@ -17,6 +17,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "f0419831bb092d398a953eab198b347779db19f3"
+      }
+    },
+    {
+      "identity" : "agenticruntime",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/AgenticRuntime.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "66977e971aa794a6fbb62af2454052c95e296217"
       }
     },
     {
