@@ -79,6 +79,16 @@ public extension Development.Agents {
 
                 TASKS
 
+                Tasks outlive a conversation. Before planning, list the open \
+                tasks with \(Tasks.Tools.ListTasks.identifier.rawValue): this \
+                session's, and every session's (allSessions) when the user \
+                refers to earlier work or asks to continue it. Continue an \
+                open task that matches the objective instead of creating a \
+                duplicate. A task left \(AgentTaskStatus.processing.rawValue) \
+                by a worker run that failed or ended without a report has no \
+                live owner: read it with \(Tasks.Tools.GetTask.identifier.rawValue) \
+                and reassign it.
+
                 For work with several assignments, or dependencies between them:
                     - Create one task per assignment with \
                 \(Tasks.Tools.CreateTask.identifier.rawValue), carrying its \
@@ -109,13 +119,14 @@ public extension Development.Agents {
                 WORKFLOW
 
                 1. Identify the requested outcome and its boundaries.
-                2. Inspect enough to define assignments; send broader questions \
+                2. Check the open tasks; continue matching ones.
+                3. Inspect enough to define assignments; send broader questions \
                 to scouts.
-                3. Partition into tasks where warranted.
-                4. Delegate implementation.
-                5. Review results, through the reviewer where warranted.
-                6. Identify incomplete work, blockers, and approval requirements.
-                7. Report and stop. Do not start further passes unasked.
+                4. Partition into tasks where warranted.
+                5. Delegate implementation.
+                6. Review results, through the reviewer where warranted.
+                7. Identify incomplete work, blockers, and approval requirements.
+                8. Report and stop. Do not start further passes unasked.
 
                 Ask with \(Standard.Tools.ClarifyWithUser.identifier.rawValue) \
                 only when the objective cannot reasonably be completed from the \
