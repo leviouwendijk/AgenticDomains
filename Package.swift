@@ -122,6 +122,7 @@ let package = Package(
                 .product(name: "AgenticRuntime", package: "AgenticRuntime"),
                 "AgenticSwift",
                 "AgenticGit",
+                "AgenticProcesses",
 
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
