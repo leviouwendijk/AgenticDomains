@@ -59,8 +59,6 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/AgenticIO.git", branch: "master"),
-        // Sessions domain, for AgenticDevelopment.
-        .package(url: "https://github.com/leviouwendijk/AgenticRuntime.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Workspace.git", branch: "master"),
 
         .package(url: "https://github.com/leviouwendijk/SwiftSemantics.git", branch: "master"),
@@ -119,7 +117,7 @@ let package = Package(
                 .product(name: "AgenticAssertions", package: "Agentic"),
                 .product(name: "AgenticTasks", package: "Agentic"),
                 .product(name: "AgenticIO", package: "AgenticIO"),
-                .product(name: "AgenticRuntime", package: "AgenticRuntime"),
+                .product(name: "AgenticSessions", package: "Agentic"),
                 "AgenticSwift",
                 "AgenticGit",
                 "AgenticProcesses",
@@ -195,8 +193,16 @@ let package = Package(
         ),
 
         .target(
+            name: "AppleMusicBridge",
+            path: "Sources/AppleMusicBridge",
+            publicHeadersPath: "include",
+            linkerSettings: [.linkedFramework("ScriptingBridge")]
+        ),
+
+        .target(
             name: "AgenticAppleServices",
             dependencies: [
+                "AppleMusicBridge",
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
@@ -205,6 +211,7 @@ let package = Package(
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "Interfaces", package: "Interfaces"),
             ],
+            linkerSettings: [.linkedFramework("iTunesLibrary")]
         ),
 
         .target(

@@ -14,7 +14,7 @@ extension AgenticDomainsFlowTesting {
 
         try Expect.equal(
             registry.count,
-            12,
+            21,
             "AgenticAppleServices registered tool count across Calendar, Reminders, Weather, and Location"
         )
 
@@ -32,6 +32,15 @@ extension AgenticDomainsFlowTesting {
                 "location_authorization_status",
                 "location_current",
                 "location_request_when_in_use",
+                "music_catalog_authorization_status",
+                "music_catalog_authorize",
+                "music_catalog_play",
+                "music_catalog_search",
+                "music_control",
+                "music_now_playing",
+                "music_play",
+                "music_search",
+                "music_set_volume",
                 "reminders",
                 "reminders_authorization_status",
                 "reminders_create",
