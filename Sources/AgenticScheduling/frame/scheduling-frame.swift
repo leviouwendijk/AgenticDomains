@@ -64,6 +64,7 @@ public enum SchedulingFrame {
         public let timeZone: String?
         public let workingHours: WorkingWeek?
         public let calendars: [Calendar]?
+        public let home: String?
     }
 
     public struct Place: Sendable, Hashable, Decodable {
@@ -79,6 +80,9 @@ public enum SchedulingFrame {
         public let stepMinutes: Int?
         public let travelMode: TravelMode?
         public let placement: SlotPlacement?
+        public let defaultDurationMinutes: Int?
+        public let defaultOverrunMinutes: Int?
+        public let preferredHours: String?
         /// Calendars configured without belonging to a participant.
         public let calendars: [Calendar]?
     }
@@ -118,6 +122,7 @@ extension SchedulingFrame.Participant: FrameDescribable {
             .init("timeZone", .string, summary: "IANA zone; the settings' zone when absent."),
             .init("workingHours", .of(SchedulingFrame.WorkingWeek.self), summary: "Monday to Friday 09:00-17:00 when absent."),
             .init("calendars", .array(.of(SchedulingFrame.Calendar.self)), summary: "Calendars that represent this person's time, shared ones included. Empty or absent means every calendar."),
+            .init("home", .string, summary: "Where the day usually starts and ends: an address, or a Place's name or alias. Travel from and to it counts towards added travel, never as a hard limit."),
         ], summary: "Someone whose time scheduling reasons about, identified by the binding name. The first declared is the default.")
     }
 }
@@ -145,6 +150,9 @@ extension SchedulingFrame.Settings: FrameDescribable {
                 .prefer_offered: "Offered slots score higher; open time is still feasible. The default.",
                 .any: "Offered slots play no part.",
             ]), summary: "How offered slots constrain placement."),
+            .init("defaultDurationMinutes", .integer, summary: "Appointment length when a request does not say. Default 60."),
+            .init("defaultOverrunMinutes", .integer, summary: "How far a new appointment may run over when a request does not say; kept free as a soft margin. Default 0."),
+            .init("preferredHours", .string, summary: "Hours appointments preferably fall in, such as \"10:00-17:00\"; scored, never enforced, unless a request sets its own time of day."),
             .init("calendars", .array(.of(SchedulingFrame.Calendar.self)), summary: "Calendars configured without belonging to a participant."),
         ], summary: "Scheduling defaults. Every field is optional.")
     }

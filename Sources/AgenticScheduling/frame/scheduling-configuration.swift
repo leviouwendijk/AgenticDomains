@@ -76,7 +76,11 @@ public struct SchedulingConfiguration: Sendable {
                     try Self.field("\(binding.name).timeZone") { try ScheduleTimeZone(zone) }
                 } ?? defaults.timeZone,
                 workingHours: try spec.workingHours.map { try Self.workingHours($0, at: "\(binding.name).workingHours") } ?? .weekdays,
-                calendars: calendars
+                calendars: calendars,
+                home: spec.home.flatMap { text in
+                    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    return trimmed.isEmpty ? nil : trimmed
+                }
             ))
         }
         self.participants = participants
@@ -129,7 +133,17 @@ public struct SchedulingConfiguration: Sendable {
                 }
                 return try field("\(at).stepMinutes") { try ScheduleMinutes(step) }
             },
-            placement: settings?.placement ?? .prefer_offered
+            placement: settings?.placement ?? .prefer_offered,
+            duration: try settings?.defaultDurationMinutes.map { minutes in
+                guard minutes > 0 else {
+                    throw Failure.invalid(field: "\(at).defaultDurationMinutes", reason: "must be greater than zero")
+                }
+                return try field("\(at).defaultDurationMinutes") { try ScheduleMinutes(minutes) }
+            },
+            overrun: try field("\(at).defaultOverrunMinutes") {
+                try ScheduleMinutes.parse(settings?.defaultOverrunMinutes, default: .zero)
+            },
+            preferredHours: try settings?.preferredHours.map { try range($0, at: "\(at).preferredHours") }
         )
     }
 
@@ -150,20 +164,24 @@ public struct SchedulingConfiguration: Sendable {
         var ranges: [ScheduleWeekday: [ClockRange]] = [:]
         for day in ScheduleWeekday.allCases {
             ranges[day] = try week.ranges(on: day).enumerated().map { index, text in
-                let at = "\(path).\(day.rawValue)[\(index)]"
-                let bounds = text.split(separator: "-", omittingEmptySubsequences: false)
-                guard bounds.count == 2 else {
-                    throw Failure.invalid(field: at, reason: "'\(text)' is not a range such as 09:00-17:00")
-                }
-                return try field(at) {
-                    try ClockRange(
-                        from: bounds[0].trimmingCharacters(in: .whitespaces),
-                        to: bounds[1].trimmingCharacters(in: .whitespaces)
-                    )
-                }
+                try range(text, at: "\(path).\(day.rawValue)[\(index)]")
             }
         }
         return .init(ranges)
+    }
+
+    /// `HH:mm-HH:mm`.
+    private static func range(_ text: String, at path: String) throws -> ClockRange {
+        let bounds = text.split(separator: "-", omittingEmptySubsequences: false)
+        guard bounds.count == 2 else {
+            throw Failure.invalid(field: path, reason: "'\(text)' is not a range such as 09:00-17:00")
+        }
+        return try field(path) {
+            try ClockRange(
+                from: bounds[0].trimmingCharacters(in: .whitespaces),
+                to: bounds[1].trimmingCharacters(in: .whitespaces)
+            )
+        }
     }
 
     private static func field<Value>(_ path: String, _ body: () throws -> Value) throws -> Value {

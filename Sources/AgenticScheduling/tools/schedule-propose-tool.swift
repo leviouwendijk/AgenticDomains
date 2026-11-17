@@ -117,7 +117,7 @@ public extension Scheduling.Tools {
             var proposed: [ProposedOption] = []
             for (index, (option, slot)) in zip(options, slots).enumerated() {
                 let assessment = await evaluator.assess(slot)
-                let candidate = evaluator.candidate(slot, assessment: assessment, scored: evaluator.score(slot))
+                let candidate = evaluator.candidate(slot, assessment: assessment, scored: await evaluator.score(slot))
                 proposed.append(.init(
                     label: String(UnicodeScalar(UInt8(65 + index))),
                     note: option.note,

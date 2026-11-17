@@ -54,7 +54,9 @@ struct ResolvedRequirements: Sendable {
     let preferences: [Preference]
 
     init(_ input: SlotRequirements, runtime: Scheduling.Runtime) throws {
-        let duration = try parsed("duration_minutes") { try ScheduleMinutes(input.duration_minutes) }
+        let duration = try parsed("duration_minutes") {
+            try ScheduleMinutes.parse(input.duration_minutes, default: runtime.defaults.duration)
+        }
         guard duration.raw > 0 else {
             throw Scheduling.InputFailure.invalid(field: "duration_minutes", reason: "must be greater than zero")
         }
@@ -94,13 +96,14 @@ struct ResolvedRequirements: Sendable {
         self.travelMode = input.travel_mode ?? runtime.defaults.travelMode
         self.placement = input.placement ?? runtime.defaults.placement
         self.allowReserved = input.allow_reserved ?? false
-        self.overrun = try parsed("overrun_minutes") { try ScheduleMinutes.parse(input.overrun_minutes, default: .zero) }
+        self.overrun = try parsed("overrun_minutes") { try ScheduleMinutes.parse(input.overrun_minutes, default: runtime.defaults.overrun) }
 
         let preferences = input.preferences ?? []
+        var resolved: [Preference]
         if preferences.isEmpty {
-            self.preferences = [.earlier(1)]
+            resolved = [.earlier(1)]
         } else {
-            self.preferences = try preferences.enumerated().map { index, preference in
+            resolved = try preferences.enumerated().map { index, preference in
                 let weight = preference.weight ?? 1
                 guard weight > 0, weight.isFinite else {
                     throw Scheduling.InputFailure.invalid(field: "preferences[\(index)].weight", reason: "must be greater than zero")
@@ -121,6 +124,14 @@ struct ResolvedRequirements: Sendable {
                 }
             }
         }
+        let ownTimeOfDay = resolved.contains {
+            if case .timeOfDay = $0 { return true }
+            return false
+        }
+        if !ownTimeOfDay, let hours = runtime.defaults.preferredHours {
+            resolved.append(.timeOfDay(hours, 1))
+        }
+        self.preferences = resolved
     }
 
     var everyone: [SchedulingParticipant] {

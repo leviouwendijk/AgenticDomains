@@ -143,7 +143,7 @@ public extension Scheduling.Tools {
 
             let evaluator = try await SlotEvaluator.prepare(requirements, window: slot, runtime: runtime)
             let assessment = await evaluator.assess(slot)
-            let candidate = evaluator.candidate(slot, assessment: assessment, scored: evaluator.score(slot))
+            let candidate = evaluator.candidate(slot, assessment: assessment, scored: await evaluator.score(slot))
 
             return .init(
                 start: candidate.start,

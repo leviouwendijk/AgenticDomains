@@ -72,6 +72,14 @@ public extension Scheduling.Agents {
                 Turn the request into requirements:
                 \(SchemaInstructionText.fields(of: SlotRequirements.self))
 
+                Pass the appointment's location, such as the client's \
+                address, whenever it is known: travel between appointments \
+                and the \(SlotScoreTermKind.added_travel.rawValue) score \
+                depend on it, and nearby placements are preferred. When \
+                existing events lack a location, say that travel around \
+                them was not checked. Leave the duration out unless the \
+                request states one; the configured length applies.
+
                 Resolve relative dates ("next week", "Thursday afternoon") \
                 into explicit ISO 8601 times with offset in the user's zone, \
                 and state the resolution in your answer. Name the required \

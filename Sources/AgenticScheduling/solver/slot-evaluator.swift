@@ -92,8 +92,11 @@ struct SlotEvaluator: Sendable {
             }
         }
 
-        let ranked = feasible
-            .map { entry in (entry, score(entry.slot)) }
+        var scored: [((slot: ScheduleInterval, assessment: Assessment), (score: Double, terms: [SlotScoreTerm]))] = []
+        for entry in feasible {
+            scored.append((entry, await score(entry.slot)))
+        }
+        let ranked = scored
             .sorted { lhs, rhs in
                 lhs.1.score != rhs.1.score
                     ? lhs.1.score > rhs.1.score
@@ -327,7 +330,7 @@ struct SlotEvaluator: Sendable {
 
     // MARK: soft preferences
 
-    func score(_ slot: ScheduleInterval) -> (score: Double, terms: [SlotScoreTerm]) {
+    func score(_ slot: ScheduleInterval) async -> (score: Double, terms: [SlotScoreTerm]) {
         var terms: [SlotScoreTerm] = requirements.preferences.map { preference in
             switch preference {
             case .earlier(let weight):
@@ -343,6 +346,9 @@ struct SlotEvaluator: Sendable {
         if requirements.placement == .prefer_offered, !offering.isEmpty {
             let covered = offering.filter { $0.isOffered(slot) }.count
             terms.append(term(.offered_slot, nil, 2, Double(covered) / Double(offering.count)))
+        }
+        if let travel = await addedTravel(slot) {
+            terms.append(term(.added_travel, travel.detail, 1, travel.satisfaction))
         }
         // Scored for every candidate once overruns apply at all, so the
         // term never favours the candidates it happens to touch.
@@ -394,6 +400,76 @@ struct SlotEvaluator: Sendable {
             return 1
         }
         return nearest / Self.breathingRoom
+    }
+
+    /// Added travel at which the term reaches zero.
+    static let addedTravelScale: Double = 60
+
+    /// Travel this placement adds to each required participant's day,
+    /// against going straight from the stop before to the stop after; the
+    /// participant with the most counts. A stop is the adjacent located
+    /// commitment that day, or home when there is none. `nil` without a
+    /// resolved meeting place, so the term then applies to no candidate.
+    private func addedTravel(_ slot: ScheduleInterval) async -> (satisfaction: Double, detail: String)? {
+        guard let meeting else {
+            return nil
+        }
+        var worst: (minutes: Int, participant: String)?
+        for timeline in required {
+            let before = await stop(before: slot, in: timeline)
+            let after = await stop(after: slot, in: timeline)
+            var added = 0
+            if let before {
+                added += await minutes(from: before.place, to: meeting, departing: before.departing)
+            }
+            if let after {
+                added += await minutes(from: meeting, to: after, departing: slot.end)
+            }
+            if let before, let after {
+                added -= await minutes(from: before.place, to: after, departing: before.departing)
+            }
+            added = max(added, 0)
+            if let current = worst, current.minutes >= added {
+                continue
+            }
+            worst = (added, timeline.participant.identifier)
+        }
+        guard let worst else {
+            return nil
+        }
+        return (
+            1 - Double(worst.minutes) / Self.addedTravelScale,
+            "+\(worst.minutes) min travel for \(worst.participant)"
+        )
+    }
+
+    /// Where the participant comes from: the previous located commitment
+    /// that day, or home. `nil` when that commitment's place is unknown.
+    private func stop(before slot: ScheduleInterval, in timeline: ParticipantTimeline) async -> (place: SchedulingPlace, departing: Date)? {
+        if let previous = Self.previous(before: slot, in: timeline) {
+            return await oracle.place(of: previous).map { ($0, previous.interval.end) }
+        }
+        return await home(of: timeline.participant).map { ($0, slot.start) }
+    }
+
+    /// Where the participant goes next: the next located commitment that
+    /// day, or home.
+    private func stop(after slot: ScheduleInterval, in timeline: ParticipantTimeline) async -> SchedulingPlace? {
+        if let next = Self.next(after: slot, in: timeline) {
+            return await oracle.place(of: next)
+        }
+        return await home(of: timeline.participant)
+    }
+
+    private func home(of participant: SchedulingParticipant) async -> SchedulingPlace? {
+        guard let home = participant.home, case .resolved(let place) = await oracle.place(home) else {
+            return nil
+        }
+        return place
+    }
+
+    private func minutes(from origin: SchedulingPlace, to destination: SchedulingPlace, departing: Date) async -> Int {
+        await oracle.estimate(from: origin, to: destination, departing: departing)?.minutes ?? 0
     }
 
     /// How much of the usual overrun fits: of the previous commitment into

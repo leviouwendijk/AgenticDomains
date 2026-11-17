@@ -5,8 +5,9 @@ import Schema
 /// What a new appointment needs. Shared by slot search and evaluation.
 @JSONSchema
 public struct SlotRequirements: HashableSource {
-    /// Length of the appointment in minutes.
-    public let duration_minutes: Int
+    /// Length of the appointment in minutes. Defaults to the configured
+    /// length.
+    public let duration_minutes: Int?
     /// Participants who must attend (identifier or name). Defaults to the
     /// primary participant.
     public let participants: [String]?
@@ -29,8 +30,9 @@ public struct SlotRequirements: HashableSource {
     /// Free minutes required after the appointment. Defaults to the
     /// configured buffer.
     public let buffer_after_minutes: Int?
-    /// Where the appointment takes place. When it resolves, travel from
-    /// and to adjacent located events on the same day must fit.
+    /// Where the appointment takes place, such as the client's address.
+    /// When it resolves, travel from and to adjacent located events on the
+    /// same day must fit, and added travel is scored.
     public let location: String?
     /// Travel mode for feasibility checks. Defaults to the configured mode.
     public let travel_mode: TravelMode?
@@ -40,13 +42,14 @@ public struct SlotRequirements: HashableSource {
     /// Escalation: allow placement in reserved time. Default false.
     public let allow_reserved: Bool?
     /// How far the new appointment may run past its nominal end; a soft
-    /// margin kept before the next commitment.
+    /// margin kept before the next commitment. Defaults to the configured
+    /// margin.
     public let overrun_minutes: Int?
     /// Weighted soft preferences. Absent means "earlier is better".
     public let preferences: [SlotPreference]?
 
     public init(
-        duration_minutes: Int,
+        duration_minutes: Int? = nil,
         participants: [String]? = nil,
         optional_participants: [String]? = nil,
         time_zone: String? = nil,

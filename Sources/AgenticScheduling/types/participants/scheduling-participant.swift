@@ -11,19 +11,25 @@ public struct SchedulingParticipant: Sendable, Hashable {
     /// Calendars that represent this person's time. Empty means every
     /// calendar of every source, which only makes sense for a single person.
     public let calendars: [CalendarPolicy]
+    /// Where the participant's day usually starts and ends, as location
+    /// text (an address or a known place). Travel from and to it counts
+    /// towards a placement's added travel, never as a hard limit.
+    public let home: String?
 
     public init(
         identifier: String,
         name: String,
         timeZone: ScheduleTimeZone,
         workingHours: WorkingHours = .weekdays,
-        calendars: [CalendarPolicy] = []
+        calendars: [CalendarPolicy] = [],
+        home: String? = nil
     ) {
         self.identifier = identifier
         self.name = name
         self.timeZone = timeZone
         self.workingHours = workingHours
         self.calendars = calendars
+        self.home = home
     }
 
     public func owns(_ event: ScheduledEvent) -> Bool {

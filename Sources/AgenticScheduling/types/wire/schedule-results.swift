@@ -178,6 +178,9 @@ public enum SlotScoreTermKind:
     case offered_slot
     /// Room for the previous appointment's and this one's usual overrun.
     case overrun_margin
+    /// Travel the placement adds to a participant's day; nearby scores
+    /// higher.
+    case added_travel
 }
 
 @JSONSchema

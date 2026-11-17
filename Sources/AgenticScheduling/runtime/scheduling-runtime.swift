@@ -15,19 +15,33 @@ public extension Scheduling {
             public let step: ScheduleMinutes
             /// How offered slots constrain placement when a request does not say.
             public let placement: SlotPlacement
+            /// Appointment length when a request does not say.
+            public let duration: ScheduleMinutes
+            /// How far a new appointment may run over when a request does
+            /// not say; kept free as a soft margin.
+            public let overrun: ScheduleMinutes
+            /// Hours appointments preferably fall in, scored for every
+            /// request that sets no time-of-day preference of its own.
+            public let preferredHours: ClockRange?
 
             public init(
                 timeZone: ScheduleTimeZone = .current(),
                 buffer: ScheduleMinutes = .zero,
                 travelMode: TravelMode = .driving,
                 step: ScheduleMinutes? = nil,
-                placement: SlotPlacement = .prefer_offered
+                placement: SlotPlacement = .prefer_offered,
+                duration: ScheduleMinutes? = nil,
+                overrun: ScheduleMinutes = .zero,
+                preferredHours: ClockRange? = nil
             ) {
                 self.timeZone = timeZone
                 self.buffer = buffer
                 self.travelMode = travelMode
                 self.step = step ?? (try? ScheduleMinutes(15)) ?? .zero
                 self.placement = placement
+                self.duration = duration ?? (try? ScheduleMinutes(60)) ?? .zero
+                self.overrun = overrun
+                self.preferredHours = preferredHours
             }
         }
 

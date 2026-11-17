@@ -183,3 +183,75 @@ enum SchedulingAllDayRoleTests {
         return calendar
     }
 }
+
+enum SchedulingTravelPreferenceTests {
+    static let source = """
+    import Scheduling;
+
+    let sessions: Calendar = .{ .title = "Sessions", .overrunMinutes = 30 };
+
+    let trainer: Participant = .{
+        .workingHours = .{
+            .monday = ["10:00-21:00"],
+            .tuesday = ["10:00-21:00"],
+        },
+        .calendars = [sessions],
+        .home = "home",
+    };
+
+    let home: Place = .{ .latitude = 52.6317, .longitude = 4.7485 };
+    let schoorl: Place = .{ .latitude = 52.7016, .longitude = 4.6895 };
+    let bergen: Place = .{ .latitude = 52.6696, .longitude = 4.7056 };
+
+    let scheduling: SchedulingSettings = .{
+        .timeZone = "Europe/Amsterdam",
+        .defaultDurationMinutes = 90,
+        .defaultOverrunMinutes = 30,
+        .preferredHours = "10:00-17:00",
+    };
+    """
+
+    static let events: [ScheduledEvent] = [
+        SchedulingFixture.event("Session", "2026-12-07T10:00:00+01:00", "2026-12-07T11:30:00+01:00", calendar: "Sessions", location: "schoorl"),
+    ]
+
+    static func run() async throws {
+        let runtime = try SchedulingConfiguration(source: source)
+            .runtime(sources: [FixtureCalendarSource(entries: events)])
+        let context = try SchedulingFixture.context(runtime)
+
+        func evaluate(_ start: String) async throws -> Scheduling.Tools.Evaluate.Output {
+            try await Scheduling.Tools.Evaluate().call(
+                .init(start: start, requirements: .init(location: "bergen")),
+                in: context
+            )
+        }
+
+        let nearby = try await evaluate("2026-12-07T12:00:00+01:00")
+        let alone = try await evaluate("2026-12-08T12:00:00+01:00")
+        try Expect.equal(nearby.end, "2026-12-07T13:30:00+01:00", "Configured 90-minute default")
+
+        let nearbyTravel = nearby.terms.first { $0.kind == .added_travel }
+        let aloneTravel = alone.terms.first { $0.kind == .added_travel }
+        try Expect.true(
+            (nearbyTravel?.satisfaction ?? 0) > (aloneTravel?.satisfaction ?? 1),
+            "Next to a session in Schoorl adds less travel than a separate trip from home"
+        )
+        try Expect.true(aloneTravel?.detail?.contains("trainer") ?? false, "Detail names the participant")
+        try Expect.equal(
+            nearby.terms.first { $0.kind == .time_of_day }?.detail,
+            "10:00-17:00",
+            "Preferred hours scored without a request preference"
+        )
+
+        let margin = nearby.terms.first { $0.kind == .overrun_margin }
+        try Expect.equal(margin?.satisfaction, 1, "Thirty free minutes after the Schoorl session")
+
+        let evening = try await evaluate("2026-12-07T19:00:00+01:00")
+        try Expect.true(evening.feasible, "Evenings are possible")
+        try Expect.true(
+            (evening.terms.first { $0.kind == .time_of_day }?.satisfaction ?? 1) < 1,
+            "Evenings score lower"
+        )
+    }
+}

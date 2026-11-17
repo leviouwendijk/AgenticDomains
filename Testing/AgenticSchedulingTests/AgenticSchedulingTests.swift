@@ -99,6 +99,9 @@ enum AgenticSchedulingTestSuite {
         Test("all-day-role-reads-office-days-apart-from-meetings") {
             try await SchedulingAllDayRoleTests.run()
         }
+        Test("added-travel-prefers-nearby-placements") {
+            try await SchedulingTravelPreferenceTests.run()
+        }
         Test("propose-reevaluates-every-option") {
             try await SchedulingPresentationTests.reevaluates()
         }
