@@ -87,7 +87,6 @@ public extension Development.Agents {
                         SystemIO.Tools.SearchFilepaths.identifier,
                         SystemIO.Tools.ScanFilepaths.identifier,
                         SystemIO.Tools.ReadSelection.identifier,
-                        SystemIO.Tools.ReadFile.identifier,
                         SystemIO.Tools.ReadFiles.identifier,
                         SystemIO.Tools.MutateFiles.identifier,
 

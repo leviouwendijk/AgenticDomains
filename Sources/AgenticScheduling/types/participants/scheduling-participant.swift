@@ -1,0 +1,83 @@
+import Foundation
+import Macros
+import Schema
+
+/// Someone whose time the scheduler reasons about.
+public struct SchedulingParticipant: Sendable, Hashable {
+    public let identifier: String
+    public let name: String
+    public let timeZone: ScheduleTimeZone
+    public let workingHours: WorkingHours
+    /// Calendars (identifier or title) that represent this person's time.
+    /// Empty means every calendar of every source, which only makes sense
+    /// for a single person.
+    public let calendars: [String]
+
+    public init(
+        identifier: String,
+        name: String,
+        timeZone: ScheduleTimeZone,
+        workingHours: WorkingHours = .weekdays,
+        calendars: [String] = []
+    ) {
+        self.identifier = identifier
+        self.name = name
+        self.timeZone = timeZone
+        self.workingHours = workingHours
+        self.calendars = calendars
+    }
+
+    public func owns(_ event: ScheduledEvent) -> Bool {
+        calendars.isEmpty || calendars.contains { event.calendar.matches($0) }
+    }
+}
+
+/// Cases follow `Calendar`'s Sunday-first `weekday` component (1...7).
+@JSONSchema
+public enum ScheduleWeekday: String, Sendable, Hashable, Codable, CaseIterable {
+    case sunday
+    case monday
+    case tuesday
+    case wednesday
+    case thursday
+    case friday
+    case saturday
+
+    public init?(component: Int) {
+        guard (1...7).contains(component) else {
+            return nil
+        }
+        self = Self.allCases[component - 1]
+    }
+
+    public static func of(_ date: Date, in zone: ScheduleTimeZone) -> ScheduleWeekday {
+        ScheduleWeekday(component: zone.calendar.component(.weekday, from: date)) ?? .monday
+    }
+}
+
+/// Working time per weekday, in the participant's own zone.
+public struct WorkingHours: Sendable, Hashable {
+    public let ranges: [ScheduleWeekday: [ClockRange]]
+
+    public init(_ ranges: [ScheduleWeekday: [ClockRange]]) {
+        self.ranges = ranges
+    }
+
+    public func ranges(on day: ScheduleWeekday) -> [ClockRange] {
+        ranges[day] ?? []
+    }
+
+    /// Monday to Friday, 09:00 to 17:00.
+    public static var weekdays: WorkingHours {
+        let day: [ClockRange] = (try? ClockRange(from: "09:00", to: "17:00")).map { [$0] } ?? []
+        return .init([
+            .monday: day, .tuesday: day, .wednesday: day, .thursday: day, .friday: day,
+        ])
+    }
+
+    /// No restriction.
+    public static var always: WorkingHours {
+        let day: [ClockRange] = (try? ClockRange(from: "00:00", to: "24:00")).map { [$0] } ?? []
+        return .init(Dictionary(uniqueKeysWithValues: ScheduleWeekday.allCases.map { ($0, day) }))
+    }
+}

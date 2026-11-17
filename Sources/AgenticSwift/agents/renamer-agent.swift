@@ -78,9 +78,8 @@ public extension SwiftLang.Agents {
                         Standard.Tools.InspectCapability.identifier,
                         Tasks.Tools.GetTask.identifier,
 
-                        SystemIO.Tools.ReadFile.identifier,
-
                         SystemIO.Tools.ReadFiles.identifier,
+
                         SystemIO.Tools.ReadSelection.identifier,
                         SystemIO.Tools.ScanFilepaths.identifier,
                         SystemIO.Tools.SearchFilepaths.identifier,
@@ -110,9 +109,8 @@ public extension SwiftLang.Agents {
                         Standard.Tools.InspectCapability.identifier,
                         Tasks.Tools.GetTask.identifier,
 
-                        SystemIO.Tools.ReadFile.identifier,
-
                         SystemIO.Tools.ReadFiles.identifier,
+
                         SystemIO.Tools.ReadSelection.identifier,
                         SystemIO.Tools.ScanFilepaths.identifier,
                         SystemIO.Tools.SearchFilepaths.identifier,

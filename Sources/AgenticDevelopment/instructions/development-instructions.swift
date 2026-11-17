@@ -50,11 +50,10 @@ public extension Development.Instructions {
             \(SystemIO.Tools.ScanFilepaths.identifier.rawValue)
         Often the hit's lines answer the question. Otherwise read the
         narrowest range that does with
-        \(SystemIO.Tools.ReadSelection.identifier.rawValue), and several
-        files or windows at once with
-        \(SystemIO.Tools.ReadFiles.identifier.rawValue). Use
-        \(SystemIO.Tools.ReadFile.identifier.rawValue) only when nothing
-        narrower works. Do not reread material just to confirm it.
+        \(SystemIO.Tools.ReadSelection.identifier.rawValue); read several
+        files or windows in one call with
+        \(SystemIO.Tools.ReadFiles.identifier.rawValue) and its reads.
+        Do not reread material just to confirm it.
         """
     }
 

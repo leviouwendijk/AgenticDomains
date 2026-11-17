@@ -49,6 +49,17 @@ let package = Package(
             targets: ["AgenticProcesses"]
         ),
 
+        // provider-neutral scheduling: busy time, conflicts, slots, travel
+        .library(
+            name: "AgenticScheduling",
+            targets: ["AgenticScheduling"]
+        ),
+
+        .executable(
+            name: "t_agentic_scheduling",
+            targets: ["AgenticSchedulingTests"]
+        ),
+
         // language-agnostic development agents (orchestration, scouting, review)
         .library(
             name: "AgenticDevelopment",
@@ -90,6 +101,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/UniFi.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Difference.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Processes.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Testing.git", branch: "master"),
     ],
     targets: [
         .target(
@@ -104,7 +116,30 @@ let package = Package(
                 "AgenticUniFi",
                 "AgenticProcesses",
                 "AgenticDevelopment",
+                "AgenticScheduling",
             ]
+        ),
+
+        .target(
+            name: "AgenticScheduling",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticStandard", package: "Agentic"),
+                .product(name: "AgenticMath", package: "Agentic"),
+                .product(name: "Primitives", package: "Primitives"),
+                .product(name: "Schema", package: "Schema"),
+                .product(name: "Macros", package: "Macros"),
+            ]
+        ),
+
+        .executableTarget(
+            name: "AgenticSchedulingTests",
+            dependencies: [
+                "AgenticScheduling",
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Testing", package: "Testing"),
+            ],
+            path: "Testing/AgenticSchedulingTests"
         ),
 
         .target(
@@ -203,6 +238,7 @@ let package = Package(
             name: "AgenticAppleServices",
             dependencies: [
                 "AppleMusicBridge",
+                "AgenticScheduling",
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
