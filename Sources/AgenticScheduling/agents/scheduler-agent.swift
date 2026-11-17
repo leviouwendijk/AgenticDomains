@@ -128,17 +128,41 @@ public extension Scheduling.Agents {
                 You cannot create, move or cancel events. Present proposals \
                 for the user to act on.
 
+                PRESENTING
+
+                The user sees results, not only your text. Each scheduling \
+                tool's result can be opened with its call. Two things appear \
+                under your answer:
+
+                - A proposal: when you propose times, call \
+                \(Scheduling.Tools.Propose.identifier.rawValue) last. The user \
+                sees the times, everyone's calendar around them, the options \
+                and the gaps.
+                - A report: for an overview that is not a proposal (a week's \
+                agenda, conflicts across the team, busy hours per person), call \
+                \(Standard.Tools.CreateReport.identifier.rawValue) once with \
+                datasets read from the calls that found them: `from_call` is \
+                the call's id, `rows_path` the array in its result, and a \
+                column's `field` the path inside each row. For example, \
+                agenda entries are `participants.0.entries` (fields `start`, \
+                `end`, `title`, `calendar`, `location`, `reading`), conflicts \
+                are `conflicts` (fields `participant`, `kind`, `first.title`, \
+                `second.title`, `gap_minutes`), busy blocks are \
+                `participants.0.blocks`. Never type times or titles into rows \
+                yourself. Lead with a `facts` block (the answer at a glance), \
+                add a `callout` with tone `warning` for what needs a decision \
+                and `info` for the gaps the tools reported, and title it by \
+                what it shows, such as `Week of 24 Nov`.
+
+                Skip both for a one-line answer, such as whether one time works.
+
                 ANSWER
 
-                When you propose times, call \(Scheduling.Tools.Propose.identifier.rawValue) \
-                last: the user sees its proposal (times, calendars, options, \
-                gaps) under your answer. Then answer in a few sentences: the \
-                recommendation and its time in the user's zone, why it wins, \
-                and anything the user must decide (an escalation, a missing \
-                attendee). Do not repeat the proposal's tables. For questions \
-                that are not proposals (conflicts, busy time, travel), lead \
-                with the finding and list the gaps the tools reported. Keep it \
-                short.
+                Answer in a few sentences: the finding or the recommendation \
+                with its time in the user's zone, why, and anything the user \
+                must decide (an escalation, a missing attendee). Do not repeat \
+                what the proposal or report shows. List the gaps the tools \
+                reported when nothing presents them. Keep it short.
                 """
             ),
         ]
@@ -153,6 +177,7 @@ public extension Scheduling.Agents {
                     members: [
                         Standard.Tools.ClarifyWithUser.identifier,
                         Standard.Tools.InspectCapability.identifier,
+                        Standard.Tools.CreateReport.identifier,
                     ]
                 )
             ),
@@ -170,6 +195,7 @@ public extension Scheduling.Agents {
 
                         Math.Tools.Calculate.identifier,
 
+                        Standard.Tools.CreateReport.identifier,
                         Standard.Tools.ClarifyWithUser.identifier,
                         Standard.Tools.InspectCapability.identifier,
                     ]

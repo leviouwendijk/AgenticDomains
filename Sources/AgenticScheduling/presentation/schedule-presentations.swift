@@ -135,6 +135,46 @@ public extension Scheduling.Tools.Busy {
     }
 }
 
+public extension Scheduling.Tools.Agenda {
+    func present(_ output: Output, input _: Input) -> ToolPresentation? {
+        guard let start = SchedulePresentation.date(output.window_start),
+              let end = SchedulePresentation.date(output.window_end),
+              start < end else { return nil }
+        let zone = SchedulePresentation.zone(output.participants.first?.time_zone)
+        // All-day and marked-free entries would only cover the lane; they
+        // stay in the list below.
+        let lanes = output.participants.map { agenda in
+            ReportBlock.Timeline.Lane(
+                label: agenda.participant,
+                spans: agenda.entries.compactMap { entry -> ReportBlock.Timeline.Span? in
+                    guard !entry.all_day,
+                          let mark = SchedulePresentation.mark(entry.reading),
+                          let from = SchedulePresentation.date(entry.start),
+                          let to = SchedulePresentation.date(entry.end) else { return nil }
+                    return .init(start: from, end: to, mark: mark, label: entry.title)
+                }
+            )
+        }
+        var blocks: [ReportBlock] = [.timeline(.init(start: start, end: end, timeZone: zone.identifier, lanes: lanes))]
+        let unplaced = output.participants.flatMap { agenda in
+            agenda.entries.filter { $0.all_day || SchedulePresentation.mark($0.reading) == nil }.map {
+                "\(agenda.participant): \($0.title) (\($0.all_day ? "all day" : $0.reading.rawValue.replacingOccurrences(of: "_", with: " ")))"
+            }
+        }
+        if !unplaced.isEmpty {
+            blocks.append(.callout(.init(tone: .info, title: "Not on the timeline", content: SchedulePresentation.list(unplaced))))
+        }
+        let notes = output.information_gaps
+            + output.participants.filter { $0.omitted > 0 }.map { "\($0.participant): \($0.omitted) entries left out" }
+        if !notes.isEmpty {
+            blocks.append(.callout(.init(tone: .info, title: "Gaps", content: SchedulePresentation.list(notes))))
+        }
+        return (try? ReportDocument(title: "Agenda", datasets: [], blocks: blocks)).map {
+            ToolPresentation($0, placement: .inspector)
+        }
+    }
+}
+
 public extension Scheduling.Tools.FindSlots {
     func present(_ output: Output, input _: Input) -> ToolPresentation? {
         let zone = SchedulePresentation.zone(output.time_zone)
@@ -278,6 +318,15 @@ enum SchedulePresentation {
     /// Two decimals, exact: scores are ratios, not money.
     static func decimal(_ value: Double) -> Decimal {
         Decimal(string: String(format: "%.2f", value)) ?? .zero
+    }
+
+    static func mark(_ reading: AgendaReading) -> ReportBlock.Timeline.Mark? {
+        switch reading {
+        case .blocking: .occupied
+        case .reserved: .reserved
+        case .offer: .available
+        case .marked_free, .record: nil
+        }
     }
 
     static func list(_ items: [String]) -> StructuredContent {

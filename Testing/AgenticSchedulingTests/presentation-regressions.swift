@@ -1,5 +1,6 @@
 import Agentic
 import AgenticScheduling
+import AgenticStandard
 import Foundation
 import Reporting
 import Testing
@@ -95,10 +96,32 @@ enum SchedulingPresentationTests {
         try Expect.equal(slotsView.placement, .inspector, "Slot search in the inspector")
         try Expect.equal(slotsView.document.datasets.first?.rows.count, slots.candidates.count, "Every candidate listed")
 
+        let agendaInput = Scheduling.Tools.Agenda.Input(window_start: F.monday.start, window_end: F.monday.end)
+        let agenda = try await Scheduling.Tools.Agenda().call(agendaInput, in: context)
+        let agendaView = try requireSome(Scheduling.Tools.Agenda().present(agenda, input: agendaInput))
+        try Expect.equal(agendaView.placement, .inspector, "Agenda in the inspector")
+        guard case .timeline(let agendaTimeline)? = agendaView.document.blocks.first else {
+            throw PresentationFailure("agenda timeline")
+        }
+        try Expect.true(agendaTimeline.lanes.flatMap(\.spans).contains { $0.label == "Standup" && $0.mark == .occupied }, "Blocking entries drawn")
+        try Expect.false(agendaTimeline.lanes.flatMap(\.spans).contains { $0.label == "Holiday" }, "All-day entries not drawn")
+
         let conflictsInput = Scheduling.Tools.Conflicts.Input(window_start: F.tuesday.start, window_end: F.tuesday.end)
         let conflicts = try await Scheduling.Tools.Conflicts().call(conflictsInput, in: context)
         let conflictsView = try requireSome(Scheduling.Tools.Conflicts().present(conflicts, input: conflictsInput))
         try Expect.equal(conflictsView.document.datasets.first?.rows.count, conflicts.conflicts.count, "Every conflict listed")
+    }
+
+    /// The Scheduler can present overviews as reports.
+    static func schedulerPresents() throws {
+        let tools = Scheduling.Agents.Scheduler.capabilities.visible.tools.members
+        try Expect.contains(tools, Scheduling.Tools.Propose.identifier, "Proposal visible")
+        try Expect.contains(tools, Standard.Tools.CreateReport.identifier, "Reports visible")
+        try Expect.contains(
+            Scheduling.Agents.Scheduler.capabilities.available.tools.members,
+            Standard.Tools.CreateReport.identifier,
+            "Reports available"
+        )
     }
 
     private static func requireSome<T>(_ value: T?) throws -> T {

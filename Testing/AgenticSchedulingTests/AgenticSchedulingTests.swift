@@ -114,6 +114,9 @@ enum AgenticSchedulingTestSuite {
         Test("propose-presents-timeline-and-options") {
             try await SchedulingPresentationTests.presentsProposal()
         }
+        Test("scheduler-presents-proposals-and-reports") {
+            try SchedulingPresentationTests.schedulerPresents()
+        }
         Test("intermediate-results-are-inspector-only") {
             try await SchedulingPresentationTests.intermediateResultsAreInspectorOnly()
         }
