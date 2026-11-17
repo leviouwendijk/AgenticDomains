@@ -44,12 +44,15 @@ public extension Development.Instructions {
         public static let content = """
         INSPECTION
 
-        Search before reading:
-            \(SystemIO.Tools.SearchSources.identifier.rawValue)
+        Search before reading, with these tools rather than the shell:
+            \(SystemIO.Tools.SearchSources.identifier.rawValue): query (literal) or pattern (regex); hits show their lines
             \(SystemIO.Tools.SearchFilepaths.identifier.rawValue)
             \(SystemIO.Tools.ScanFilepaths.identifier.rawValue)
-        Read the narrowest range that answers the question with
-        \(SystemIO.Tools.ReadSelection.identifier.rawValue). Use
+        Often the hit's lines answer the question. Otherwise read the
+        narrowest range that does with
+        \(SystemIO.Tools.ReadSelection.identifier.rawValue), and several
+        files or windows at once with
+        \(SystemIO.Tools.ReadFiles.identifier.rawValue). Use
         \(SystemIO.Tools.ReadFile.identifier.rawValue) only when nothing
         narrower works. Do not reread material just to confirm it.
         """

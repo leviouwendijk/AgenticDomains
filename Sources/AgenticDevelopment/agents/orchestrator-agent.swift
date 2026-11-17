@@ -172,6 +172,7 @@ public extension Development.Agents {
                         SystemIO.Tools.ScanFilepaths.identifier,
                         SystemIO.Tools.ReadSelection.identifier,
                         SystemIO.Tools.ReadFile.identifier,
+                        SystemIO.Tools.ReadFiles.identifier,
 
                         Git.Tools.RepositoryState.identifier,
                         Git.Tools.Diff.identifier,
