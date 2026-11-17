@@ -60,12 +60,24 @@ public extension Scheduling.Tools {
             var sources: [SourceSummary] = []
             var seen: [CalendarReference] = []
 
+            var everySourceRead = true
             for source in runtime.sources {
-                let authorization = await source.authorization()
+                // Reading is what asks for access on first use, so try it
+                // unless access was already refused.
                 var calendars: [CalendarReference] = []
-                if authorization == .authorized {
-                    calendars = try await source.calendars()
-                } else {
+                var failed = false
+                if await source.authorization() != .denied {
+                    do {
+                        calendars = try await source.calendars()
+                    } catch {
+                        failed = true
+                        everySourceRead = false
+                        gaps.append(error.localizedDescription)
+                    }
+                }
+                let authorization = await source.authorization()
+                if authorization != .authorized, !failed {
+                    everySourceRead = false
                     gaps.append("Source \(source.identifier) is not authorized (\(authorization.rawValue)); its events are invisible.")
                 }
                 seen += calendars
@@ -87,7 +99,8 @@ public extension Scheduling.Tools {
                 ))
             }
 
-            for policy in runtime.calendars where !seen.contains(where: policy.matches) {
+            // A missing calendar only means something once every source was read.
+            for policy in runtime.calendars where everySourceRead && !seen.contains(where: policy.matches) {
                 let owners = runtime.participants
                     .filter { $0.calendars.contains { $0.describesSameCalendar(as: policy) } }
                     .map(\.identifier)
