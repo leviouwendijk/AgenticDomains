@@ -199,7 +199,9 @@ public extension Scheduling.Agents {
                 Answer in a few sentences: the finding or the recommendation \
                 with its time in the user's zone, why, and anything the user \
                 must decide (an escalation, a missing attendee). Do not repeat \
-                what the proposal or report shows. List the gaps the tools \
+                what the proposal, grid or report shows: no lists of its days, \
+                rows or reasons; name the one or two best picks and what \
+                needs a decision. List the gaps the tools \
                 reported when nothing presents them. Keep it short.
                 """
             ),

@@ -94,6 +94,15 @@ public extension Scheduling.Tools {
 
         public init() {}
 
+        public func preflight(_ input: Input, in _: ToolContext) async throws -> ToolPreflight {
+            .init(
+                tool: Self.definition.identifier,
+                risk: Self.definition.risk,
+                summary: "Proposal '\(input.title ?? "Scheduling proposal")': \(1 + (input.alternatives ?? []).prefix(3).count) options from \(input.recommendation.start)",
+                sideEffects: []
+            )
+        }
+
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
             let requirements = try ResolvedRequirements(input.requirements, runtime: runtime)

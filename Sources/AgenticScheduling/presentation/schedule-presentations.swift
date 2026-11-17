@@ -138,14 +138,15 @@ public extension Scheduling.Tools.Availability {
             let why: [String]
             switch row.status {
             case .clean: why = row.offered_starts.isEmpty ? ["open time"] : ["offered: " + row.offered_starts.joined(separator: ", ")]
-            case .escalation: why = row.escalations
+            // The cells already show the reserved hours; the why names them.
+            case .escalation: why = row.escalations.map(SchedulePresentation.short)
             case .blocked: why = row.reasons
             }
             let cells = output.participants.map { name -> StructuredValue? in
                 let entries = row.cells.first { $0.participant == name }?.entries ?? []
                 return .text(entries.isEmpty ? "free" : entries.joined(separator: "\n"))
             }
-            return .init(values: [.text(row.status.symbol), .text(SchedulePresentation.when(row, days: output.rows_kind == .days, zone: zone))] + cells + [.text(why.joined(separator: "\n"))])
+            return .init(values: [.text(row.status.symbol), .text(SchedulePresentation.whenLines(row, days: output.rows_kind == .days, zone: zone).joined(separator: "\n"))] + cells + [.text(why.joined(separator: "\n"))])
         }
         let dataset = try? ReportDataset(
             id: "grid",
@@ -349,13 +350,32 @@ enum SchedulePresentation {
     /// A grid row's time: `Thu 19 Nov 14:30–19:00 · starts 14:30–17:30`;
     /// a day row is the day and its starts, `Tue 24 Nov · starts 09:30–11:15, 14:00`.
     static func when(_ row: Scheduling.Tools.Availability.Row, days: Bool, zone: TimeZone) -> String {
-        guard let from = date(row.start) else { return row.start }
+        whenLines(row, days: days, zone: zone).joined(separator: " · ")
+    }
+
+    /// The day, then the times: `Tue 17 Nov` / `starts 14:30–19:30`, or
+    /// `14:30–16:00` for a single start. A table shows them as two lines.
+    static func whenLines(_ row: Scheduling.Tools.Availability.Row, days: Bool, zone: TimeZone) -> [String] {
+        guard let from = date(row.start), let to = date(row.end) else { return [row.start] }
         let day = formatter("EEE d MMM", zone: zone).string(from: from)
-        if row.starts.isEmpty { return day }
-        if days { return day + " · starts " + row.starts.joined(separator: ", ") }
-        let span = span(row.start, row.end, zone: zone)
-        let single = row.starts.count == 1 && !row.starts[0].contains("–")
-        return single ? span : span + " · starts " + row.starts.joined(separator: ", ")
+        if row.starts.isEmpty { return [day] }
+        let single = !days && row.starts.count == 1 && !row.starts[0].contains("–")
+        if single {
+            let time = formatter("HH:mm", zone: zone)
+            return [day, time.string(from: from) + "–" + time.string(from: to)]
+        }
+        return [day, "starts " + row.starts.joined(separator: ", ")]
+    }
+
+    /// An escalation without its details in parentheses.
+    static func short(_ escalation: String) -> String {
+        // `second car: splits a shared trip before '…': …`: they would
+        // arrive (before) or leave (after) separately.
+        if escalation.hasPrefix("second car") {
+            return escalation.contains("shared trip before") ? "second car: arriving separately" : "second car: leaving separately"
+        }
+        guard let open = escalation.firstIndex(of: "(") else { return escalation }
+        return escalation[..<open].trimmingCharacters(in: .whitespaces)
     }
 
     /// A window of whole days as days, `Mon 23 Nov – Sun 6 Dec`; otherwise

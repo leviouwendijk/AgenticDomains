@@ -137,11 +137,11 @@ enum SchedulingPresentationTests {
         let escalated = try requireFirst(output.rows.filter { $0.status == .escalation })
         try Expect.true(escalated.escalations.contains { $0.contains("Anna's reserved hours (monday 14:00-17:00)") }, "Escalation named")
         let anna = try requireFirst(escalated.cells.filter { $0.participant == "Anna" })
-        try Expect.true(anna.entries.contains("14:00–17:00 reserved hours"), "Reserved hours in the cell")
+        try Expect.true(anna.entries.contains("14:00–17:00 reserved"), "Reserved hours in the cell")
         try Expect.false(output.rows.contains { $0.status == .blocked }, "Candidate rows only fit")
 
         let text = Scheduling.Tools.Availability().render(output, input: input) ?? ""
-        try Expect.true(text.contains("✓ Mon 23 Nov 11:00–13:00 · starts 11:00–12:00"), "Model reads each row")
+        try Expect.true(text.contains("✓ Mon 23 Nov · starts 11:00–12:00"), "Model reads each row")
         try Expect.true(text.contains("⚠") && text.contains("opens Anna's"), "Model reads the escalation")
 
         // Named starts get their own row; one that fails says why.

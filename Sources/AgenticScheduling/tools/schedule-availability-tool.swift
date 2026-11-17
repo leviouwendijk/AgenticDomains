@@ -95,7 +95,8 @@ public extension Scheduling.Tools {
         public struct Cell: HashableResult {
             public let participant: String
             /// What the participant has around the row, in time order, such
-            /// as `11:00–12:30 Client | Dog [A]`, `10:00–21:00 reserved hours`
+            /// as `11:00–12:30 Client | Dog [A]`, `10:00–21:00 reserved` (weekly
+            /// reserved hours), `reserved: Office day`
             /// or `13:00–14:30 offered: Slot 2`.
             public let entries: [String]
         }
@@ -142,6 +143,17 @@ public extension Scheduling.Tools {
         public static let risk: ActionRisk = .observe
 
         public init() {}
+
+        public func preflight(_ input: Input, in _: ToolContext) async throws -> ToolPreflight {
+            let who = input.requirements.participants?.joined(separator: ", ") ?? "the primary participant"
+            let rows = input.starts.map { "\($0.count) given starts" } ?? (input.rows == .days ? "days" : "fitting stretches")
+            return .init(
+                tool: Self.definition.identifier,
+                risk: Self.definition.risk,
+                summary: "Availability grid for \(who), \(input.window_start.prefix(10)) to \(input.window_end.prefix(10)), by \(rows)",
+                sideEffects: []
+            )
+        }
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
@@ -387,7 +399,7 @@ struct Grid: Sendable {
         timeline.offers.filter { !timeline.isBusy(during: $0.interval) }.forEach { add($0, "offered: ") }
         let dayWindow = (try? ScheduleInterval(start: midnight, end: next)) ?? bounds
         for interval in timeline.participant.reservedIntervals(in: dayWindow) where interval.overlaps(bounds) {
-            items.append((interval.start, "\(Self.clock(interval.start, zone: zone))–\(Self.clock(interval.end, zone: zone)) reserved hours"))
+            items.append((interval.start, "\(Self.clock(interval.start, zone: zone))–\(Self.clock(interval.end, zone: zone)) reserved"))
         }
         let entries = items.sorted { $0.start < $1.start }.map(\.text)
         return .init(participant: timeline.participant.name, entries: entries)
