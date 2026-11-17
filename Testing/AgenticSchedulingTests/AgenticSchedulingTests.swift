@@ -10,15 +10,15 @@ private enum AgenticSchedulingTestingFailure: Error {
 @main
 struct AgenticSchedulingTestingMain {
     static func main() async throws {
-        let reporter = PlainTextTestReporter()
+        let reporter = PlainTextTestReporter(
+            output: ClosureTestTextOutput { text in
+                FileHandle.standardOutput.write(Data(text.utf8))
+            }
+        )
         let result = await TestRunner.run(
             AgenticSchedulingTestSuite.suite,
             sink: reporter
         )
-        let rendered = await reporter.rendered()
-        if !rendered.isEmpty {
-            print(rendered)
-        }
         if result.isFailure {
             throw AgenticSchedulingTestingFailure.failed
         }
@@ -95,6 +95,15 @@ enum AgenticSchedulingTestSuite {
         }
         Test("tools-report-configuration-state") {
             try await SchedulingFrameTests.reportsConfigurationState()
+        }
+        Test("propose-reevaluates-every-option") {
+            try await SchedulingPresentationTests.reevaluates()
+        }
+        Test("propose-presents-timeline-and-options") {
+            try await SchedulingPresentationTests.presentsProposal()
+        }
+        Test("intermediate-results-are-inspector-only") {
+            try await SchedulingPresentationTests.intermediateResultsAreInspectorOnly()
         }
     }
 }

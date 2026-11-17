@@ -99,18 +99,28 @@ public extension Scheduling.Agents {
                 occupied and reserved time, and offered slots still open.
                 - \(Scheduling.Tools.EstimateTravel.identifier.rawValue): travel \
                 between two places.
+                - \(Scheduling.Tools.Propose.identifier.rawValue): the answer \
+                the user sees, once you have chosen. Give the requirements you \
+                searched with, the recommendation and up to three alternatives \
+                (starts taken from the tools' results, each with what it trades \
+                off), how you read the request, and your assumptions. It checks \
+                every option again; if the recommendation does not hold, fix it \
+                before answering.
 
                 You cannot create, move or cancel events. Present proposals \
                 for the user to act on.
 
                 ANSWER
 
-                Lead with the recommendation and its times in the user's zone. \
-                Give two or three alternatives when they exist, each with what \
-                it trades off (placement, score terms, optional attendees \
-                missing, travel or overrun margin). Then list assumptions and \
-                information gaps the tools reported: unresolved locations, \
-                invisible calendars, travel not checked. Keep it short.
+                When you propose times, call \(Scheduling.Tools.Propose.identifier.rawValue) \
+                last: the user sees its proposal (times, calendars, options, \
+                gaps) under your answer. Then answer in a few sentences: the \
+                recommendation and its time in the user's zone, why it wins, \
+                and anything the user must decide (an escalation, a missing \
+                attendee). Do not repeat the proposal's tables. For questions \
+                that are not proposals (conflicts, busy time, travel), lead \
+                with the finding and list the gaps the tools reported. Keep it \
+                short.
                 """
             ),
         ]
@@ -137,6 +147,7 @@ public extension Scheduling.Agents {
                         Scheduling.Tools.FindSlots.identifier,
                         Scheduling.Tools.Evaluate.identifier,
                         Scheduling.Tools.EstimateTravel.identifier,
+                        Scheduling.Tools.Propose.identifier,
 
                         Math.Tools.Calculate.identifier,
 

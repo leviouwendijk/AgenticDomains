@@ -98,6 +98,9 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Schema.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Macros.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Errors.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Reporting.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/DSL.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Search.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/UniFi.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Difference.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Processes.git", branch: "master"),
@@ -131,6 +134,9 @@ let package = Package(
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "Frame", package: "Frame"),
+                .product(name: "Reporting", package: "Reporting"),
+                .product(name: "DSL", package: "DSL"),
+                .product(name: "Search", package: "Search"),
             ]
         ),
 
@@ -141,6 +147,7 @@ let package = Package(
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "Frame", package: "Frame"),
                 .product(name: "Testing", package: "Testing"),
+                .product(name: "Reporting", package: "Reporting"),
             ],
             path: "Testing/AgenticSchedulingTests"
         ),
