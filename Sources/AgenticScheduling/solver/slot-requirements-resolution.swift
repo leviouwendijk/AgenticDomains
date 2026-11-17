@@ -49,10 +49,11 @@ struct ResolvedRequirements: Sendable {
     let location: String?
     let travelMode: TravelMode
     let placement: SlotPlacement
-    let allowReserved: Bool
+    /// Variable so a copy can ask what escalation would open.
+    var allowReserved: Bool
     let overrun: ScheduleMinutes
     let sharedTravel: Bool
-    let allowSplitTravel: Bool
+    var allowSplitTravel: Bool
     let splitTravel: SplitTravelPolicy
     let preferences: [Preference]
 

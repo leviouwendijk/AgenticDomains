@@ -131,6 +131,14 @@ public extension Scheduling.Agents {
                 occupied and reserved time, and offered slots still open.
                 - \(Scheduling.Tools.EstimateTravel.identifier.rawValue): travel \
                 between two places.
+                - \(Scheduling.Tools.Availability.identifier.rawValue): every \
+                possibility at once, as a grid the user sees: a row per \
+                stretch of start times that fits (or per day with `rows: \
+                days`, or per start you give), a column per participant with \
+                their events, reserved hours and offers around it, and a mark: \
+                ✓ fits, ⚠ fits only with a named escalation, ✗ does not fit \
+                (with why). Escalations are always weighed, so one call \
+                answers "what if we open reserved time".
                 - \(Scheduling.Tools.Propose.identifier.rawValue): the answer \
                 the user sees, once you have chosen. Give the requirements you \
                 searched with, the recommendation and up to three alternatives \
@@ -145,39 +153,46 @@ public extension Scheduling.Agents {
                 PRESENTING
 
                 The user sees results, not only your text. Each scheduling \
-                tool's result can be opened with its call. Two things appear \
-                under your answer:
+                tool's result can be opened with its call. Choose the view \
+                that answers the question, and show each thing once:
 
-                - A proposal: when you propose times, call \
-                \(Scheduling.Tools.Propose.identifier.rawValue) last. The user \
+                - "When can we…", "find a time": a few options. Call \
+                \(Scheduling.Tools.Propose.identifier.rawValue) last; the user \
                 sees the times, everyone's calendar around them, the options \
                 and the gaps.
-                - A report: for an overview that is not a proposal (a week's \
-                agenda, conflicts across the team, busy hours per person), call \
-                \(Standard.Tools.CreateReport.identifier.rawValue) once with \
-                datasets read from the calls that found them: `from_call` is \
-                the call's id, `rows_path` the array in its result, and a \
-                column's `field` the path inside each row. For example, \
-                agenda entries are `participants.0.entries` (fields `start`, \
-                `end`, `title`, `calendar`, `location`, `reading`), conflicts \
-                are `conflicts` (fields `participant`, `kind`, `first.title`, \
-                `second.title`, `gap_minutes`), busy blocks are \
-                `participants.0.blocks`; `*` takes every participant at once, \
-                and `../participant` reads the participant from inside an \
-                entry. Never type times or titles into rows yourself.
+                - "All possibilities", "which days could work", "why not \
+                Wednesday", "show per person what is in the way": the grid. \
+                Call \(Scheduling.Tools.Availability.identifier.rawValue) \
+                with the requirements; `rows: days` when the question is about \
+                days, `starts` when the user names times. Do not run \
+                \(Scheduling.Tools.FindSlots.identifier.rawValue) several times \
+                with and without escalations to build such an overview: one \
+                grid shows clean and escalated stretches together. Follow it \
+                with a proposal only when the user wants a recommendation.
+                - "What does the week look like": a timeline. Call \
+                \(Standard.Tools.CreateReport.identifier.rawValue) with a \
+                dataset read from \(Scheduling.Tools.Agenda.identifier.rawValue): \
+                `from_call` is the tool's name (`\(Scheduling.Tools.Agenda.identifier.rawValue)`) \
+                for its latest result, or a call's id; leave `rows` out. Use \
+                rows_path `participants.*.entries` and columns `who` (field \
+                `../participant`), `start` and `end` (date), `title` and \
+                `reading` (text), then a `timeline` block with lane `who`, \
+                label `title`, mark `reading` and the user's time_zone. \
+                Reserved hours are entries with reading `reserved`. Other \
+                overviews work the same way: conflicts are rows_path \
+                `conflicts` (fields `participant`, `kind`, `first.title`, \
+                `second.title`, `gap_minutes`), busy blocks \
+                `participants.*.blocks`. Lead with a `facts` block, add a \
+                `callout` (tone `warning` for what needs a decision, `info` \
+                for gaps; `text` and `tone` sit on the block itself) and \
+                title the report by what it shows, such as `Week of 24 Nov`.
 
-                Show time as a `timeline` block: for a team's agenda, one \
-                dataset with rows_path `participants.*.entries`, columns `who` \
-                (field `../participant`), `start` and `end` (date), `title` and \
-                `reading` (text), then a timeline with lane `who`, label \
-                `title`, mark `reading` and the user's time_zone. Add a table \
-                beside it only for what a timeline cannot show, such as \
-                locations. Lead with a `facts` block (the answer at a glance), \
-                add a `callout` with tone `warning` for what needs a decision \
-                and `info` for the gaps the tools reported, and title it by \
-                what it shows, such as `Week of 24 Nov`.
-
-                Skip both for a one-line answer, such as whether one time works.
+                Never type times, titles or calendar contents into report \
+                rows or tables yourself: read them from a call, or use the \
+                grid. When the user asks for a table in your answer itself \
+                (Markdown), copy it from the grid's or proposal's result, \
+                keeping its rows; never assemble one from memory. Skip all of \
+                these for a one-line answer, such as whether one time works.
 
                 ANSWER
 
@@ -218,6 +233,7 @@ public extension Scheduling.Agents {
                         Scheduling.Tools.FindSlots.identifier,
                         Scheduling.Tools.Evaluate.identifier,
                         Scheduling.Tools.EstimateTravel.identifier,
+                        Scheduling.Tools.Availability.identifier,
                         Scheduling.Tools.Propose.identifier,
 
                         Math.Tools.Calculate.identifier,

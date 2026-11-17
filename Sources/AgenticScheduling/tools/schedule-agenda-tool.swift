@@ -71,7 +71,9 @@ public extension Scheduling.Tools {
         public struct ParticipantAgenda: HashableResult {
             public let participant: String
             public let time_zone: String
-            /// Events in time order, as scheduling reads them.
+            /// Events in time order, as scheduling reads them, with the weekly
+            /// reserved hours as `reserved` entries in the calendar
+            /// `(reserved hours)`.
             public let entries: [Entry]
             /// Weekly reserved hours on the days in the window, such as
             /// `tuesday 10:00-21:00`.
@@ -89,6 +91,9 @@ public extension Scheduling.Tools {
             public let participants: [ParticipantAgenda]
             public let information_gaps: [String]
         }
+
+        /// The calendar named on entries that stand for weekly reserved hours.
+        public static let reservedHoursCalendar = "(reserved hours)"
 
         /// Entries returned per participant at most.
         public static let limit = 150
@@ -125,7 +130,23 @@ public extension Scheduling.Tools {
                 let unlocated = zip(owned, all)
                     .filter { !$0.0.isAllDay && [.blocking, .provisional].contains($0.1.reading) && $0.0.locationText == nil }
                     .count
-                let entries = input.include_records == true ? all : all.filter { $0.reading != .record }
+                // Reserved hours are time too: shown as entries, so a
+                // timeline of the agenda shows them without retyping.
+                let reservedHours = participant.reservedIntervals(in: window).map { interval in
+                    Entry(
+                        start: ScheduleTimestamp.render(interval.start, in: zone),
+                        end: ScheduleTimestamp.render(interval.end, in: zone),
+                        title: "reserved hours",
+                        calendar: Self.reservedHoursCalendar,
+                        all_day: false,
+                        reading: .reserved,
+                        location: nil
+                    )
+                }
+                let events = input.include_records == true ? all : all.filter { $0.reading != .record }
+                let entries = (events + reservedHours).sorted {
+                    ((try? ScheduleTimestamp.parse($0.start, field: "start")) ?? .distantPast) < ((try? ScheduleTimestamp.parse($1.start, field: "start")) ?? .distantPast)
+                }
                 if unlocated > 0 {
                     gaps.append("\(unlocated) of \(participant.identifier)'s timed commitments have no location; travel around them cannot be checked.")
                 }
@@ -135,7 +156,7 @@ public extension Scheduling.Tools {
                     entries: Array(entries.prefix(Self.limit)),
                     reserved_hours: Self.reservedHours(participant, in: window),
                     omitted: max(entries.count - Self.limit, 0),
-                    hidden_records: all.count - entries.count
+                    hidden_records: all.count - events.count
                 )
             }
 

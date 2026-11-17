@@ -51,6 +51,26 @@ public struct SchedulingParticipant: Sendable, Hashable {
             .map { (day, $0) }
     }
 
+    /// The weekly reserved hours as concrete stretches of time within the
+    /// window, clipped to it, in the participant's zone.
+    public func reservedIntervals(in window: ScheduleInterval) -> [ScheduleInterval] {
+        let calendar = timeZone.calendar
+        var result: [ScheduleInterval] = []
+        var day = calendar.startOfDay(for: window.start)
+        while day < window.end {
+            for range in reservedHours.ranges(on: ScheduleWeekday.of(day, in: timeZone)) {
+                guard let from = calendar.date(byAdding: .minute, value: range.from.minuteOfDay, to: day),
+                      let to = calendar.date(byAdding: .minute, value: range.to.minuteOfDay, to: day),
+                      let clipped = try? ScheduleInterval(start: max(from, window.start), end: min(to, window.end))
+                else { continue }
+                result.append(clipped)
+            }
+            guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+            day = next
+        }
+        return result
+    }
+
     public func owns(_ event: ScheduledEvent) -> Bool {
         calendars.isEmpty || calendars.contains { $0.matches(event.calendar) }
     }

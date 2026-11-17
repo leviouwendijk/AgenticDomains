@@ -112,6 +112,53 @@ public extension Scheduling.Tools.Propose {
     }
 }
 
+public extension Scheduling.Tools.Availability {
+    /// The grid sits with the answer: it is what the user asked to see.
+    func present(_ output: Output, input _: Input) -> ToolPresentation? {
+        let zone = SchedulePresentation.zone(output.time_zone)
+        var facts: [ReportBlock.Facts.Fact] = [
+            .init("Who", output.participants.joined(separator: ", ")),
+            .init("Length", "\(output.duration_minutes) min"),
+            .init("Window", SchedulePresentation.window(output.window_start, output.window_end, zone: zone)),
+            .init("Rows", "\(output.clean) ✓ fits · \(output.escalation) ⚠ needs escalation · \(output.blocked) ✗ does not fit"),
+        ]
+        if let location = output.location { facts.insert(.init("Where", location), at: 2) }
+        var blocks: [ReportBlock] = [.facts(.init(facts: facts))]
+        let columns = ["fit", "when"] + output.participants + ["why"]
+        if output.rows.isEmpty {
+            blocks.append(.callout(.init(tone: .warning, title: "Nothing fits", content: .paragraph([.text("No start time fits in this window, even with escalation.")]))))
+        } else {
+            blocks.append(.table(.init(dataset: "grid", columns: columns)))
+        }
+        let notes = output.information_gaps + (output.omitted > 0 ? ["\(output.omitted) more rows left out."] : [])
+        if !notes.isEmpty {
+            blocks.append(.callout(.init(tone: .info, title: "Check", content: SchedulePresentation.list(notes))))
+        }
+        let rows = output.rows.map { row -> ReportDataset.Row in
+            let why: [String]
+            switch row.status {
+            case .clean: why = row.offered_starts.isEmpty ? ["open time"] : ["offered: " + row.offered_starts.joined(separator: ", ")]
+            case .escalation: why = row.escalations
+            case .blocked: why = row.reasons
+            }
+            let cells = output.participants.map { name -> StructuredValue? in
+                let entries = row.cells.first { $0.participant == name }?.entries ?? []
+                return .text(entries.isEmpty ? "free" : entries.joined(separator: "\n"))
+            }
+            return .init(values: [.text(row.status.symbol), .text(SchedulePresentation.when(row, days: output.rows_kind == .days, zone: zone))] + cells + [.text(why.joined(separator: "\n"))])
+        }
+        let dataset = try? ReportDataset(
+            id: "grid",
+            columns: columns.map { .init($0, kind: .text) },
+            rows: rows,
+            coverage: output.omitted > 0 ? .partial(offset: 0, total: output.rows.count + output.omitted) : .complete
+        )
+        return (try? ReportDocument(title: output.title, datasets: dataset.map { [$0] } ?? [], blocks: blocks)).map {
+            ToolPresentation($0)
+        }
+    }
+}
+
 public extension Scheduling.Tools.Busy {
     func present(_ output: Output, input _: Input) -> ToolPresentation? {
         guard let start = try? ScheduleTimestamp.parse(output.window_start, field: "window_start"),
@@ -297,6 +344,34 @@ enum SchedulePresentation {
         formatter.timeZone = zone
         formatter.dateFormat = format
         return formatter
+    }
+
+    /// A grid row's time: `Thu 19 Nov 14:30–19:00 · starts 14:30–17:30`;
+    /// a day row is the day and its starts, `Tue 24 Nov · starts 09:30–11:15, 14:00`.
+    static func when(_ row: Scheduling.Tools.Availability.Row, days: Bool, zone: TimeZone) -> String {
+        guard let from = date(row.start) else { return row.start }
+        let day = formatter("EEE d MMM", zone: zone).string(from: from)
+        if row.starts.isEmpty { return day }
+        if days { return day + " · starts " + row.starts.joined(separator: ", ") }
+        let span = span(row.start, row.end, zone: zone)
+        let single = row.starts.count == 1 && !row.starts[0].contains("–")
+        return single ? span : span + " · starts " + row.starts.joined(separator: ", ")
+    }
+
+    /// A window of whole days as days, `Mon 23 Nov – Sun 6 Dec`; otherwise
+    /// as a span.
+    static func window(_ start: String, _ end: String, zone: TimeZone) -> String {
+        guard let from = date(start), let to = date(end) else { return "\(start) – \(end)" }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = zone
+        guard calendar.startOfDay(for: from) == from, calendar.startOfDay(for: to) == to else {
+            return span(start, end, zone: zone)
+        }
+        let days = formatter("EEE d MMM", zone: zone)
+        let last = to.addingTimeInterval(-1)
+        return calendar.isDate(from, inSameDayAs: last)
+            ? days.string(from: from)
+            : days.string(from: from) + " – " + days.string(from: last)
     }
 
     static func placement(_ kind: SlotPlacementKind) -> String {
