@@ -42,7 +42,7 @@ public extension Scheduling.Tools {
         public init() {}
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try context.require(Scheduling.Runtime.self)
+            let runtime = try Scheduling.runtime(in: context)
             let departing = try input.departing.map { try ScheduleTimestamp.parse($0, field: "departing") } ?? Date()
             let oracle = TravelOracle(
                 resolver: runtime.places,

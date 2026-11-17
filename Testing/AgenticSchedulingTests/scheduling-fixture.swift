@@ -75,9 +75,9 @@ enum SchedulingFixture {
         Scheduling.Runtime(
             sources: [FixtureCalendarSource(entries: events)],
             participants: [
-                .init(identifier: "levi", name: "Levi", timeZone: zone, calendars: ["Levi"]),
-                .init(identifier: "anna", name: "Anna", timeZone: zone, calendars: ["Anna"]),
-                .init(identifier: "sam", name: "Sam", timeZone: zone, calendars: ["Sam"]),
+                .init(identifier: "levi", name: "Levi", timeZone: zone, calendars: [CalendarPolicy("Levi")]),
+                .init(identifier: "anna", name: "Anna", timeZone: zone, calendars: [CalendarPolicy("Anna")]),
+                .init(identifier: "sam", name: "Sam", timeZone: zone, calendars: [CalendarPolicy("Sam")]),
             ] + extraParticipants,
             places: StaticPlaceResolver([
                 (office, ["office", "kantoor"]),

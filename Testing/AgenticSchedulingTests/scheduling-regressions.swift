@@ -196,7 +196,7 @@ enum SchedulingConflictTests {
 
 enum SchedulingCalendarTests {
     static func run() async throws {
-        let ghost = SchedulingParticipant(identifier: "ghost", name: "Ghost", timeZone: F.zone, calendars: ["Ghost"])
+        let ghost = SchedulingParticipant(identifier: "ghost", name: "Ghost", timeZone: F.zone, calendars: [CalendarPolicy("Ghost")])
         let result = try await Scheduling.Tools.ListCalendars().call(
             .init(),
             in: try F.context(F.runtime(extraParticipants: [ghost]))

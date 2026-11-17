@@ -4,6 +4,9 @@ import Foundation
 
 /// Apple Calendar as a scheduling source: every event calendar this Mac's
 /// account sees, including subscribed and shared ones.
+///
+/// Access is requested on first use. Without it EventKit returns no events
+/// at all, which would make everyone look free, so reads throw instead.
 public actor EventKitCalendarSource:
     CalendarSource
 {
@@ -48,11 +51,13 @@ public actor EventKitCalendarSource:
         }
     }
 
-    public func calendars() -> [CalendarReference] {
-        eventStore.calendars(for: .event).map(Self.reference)
+    public func calendars() async throws -> [CalendarReference] {
+        try await requireAccess()
+        return eventStore.calendars(for: .event).map(Self.reference)
     }
 
-    public func events(in interval: ScheduleInterval) -> [ScheduledEvent] {
+    public func events(in interval: ScheduleInterval) async throws -> [ScheduledEvent] {
+        try await requireAccess()
         let predicate = eventStore.predicateForEvents(
             withStart: interval.start,
             end: interval.end,
@@ -79,6 +84,16 @@ public actor EventKitCalendarSource:
         }
     }
 
+    private func requireAccess() async throws {
+        if authorization() == .not_determined, #available(macOS 14.0, *) {
+            _ = try? await eventStore.requestFullAccessToEvents()
+        }
+        let status = authorization()
+        guard status == .authorized else {
+            throw EventKitCalendarSourceError.notAuthorized(source: identifier, status: status)
+        }
+    }
+
     private static func reference(_ calendar: EKCalendar) -> CalendarReference {
         .init(identifier: calendar.calendarIdentifier, title: calendar.title)
     }
@@ -99,6 +114,17 @@ public actor EventKitCalendarSource:
             return event.isAllDay ? .free : .busy
         @unknown default:
             return event.isAllDay ? .free : .busy
+        }
+    }
+}
+
+public enum EventKitCalendarSourceError: Error, Sendable, LocalizedError {
+    case notAuthorized(source: String, status: CalendarSourceAuthorization)
+
+    public var errorDescription: String? {
+        switch self {
+        case .notAuthorized(let source, let status):
+            return "Calendar source \(source) has no full calendar access (\(status.rawValue)). Grant it in System Settings > Privacy & Security > Calendars."
         }
     }
 }

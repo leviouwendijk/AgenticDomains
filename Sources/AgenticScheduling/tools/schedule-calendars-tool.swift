@@ -34,7 +34,7 @@ public extension Scheduling.Tools {
             public let identifier: String
             public let name: String
             public let time_zone: String
-            /// Configured calendar names; empty means every calendar.
+            /// Configured calendars; empty means every calendar.
             public let calendars: [String]
             /// Working hours per weekday, such as `monday 09:00-17:00`.
             public let working_hours: [String]
@@ -55,7 +55,7 @@ public extension Scheduling.Tools {
         public init() {}
 
         public func call(_: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try context.require(Scheduling.Runtime.self)
+            let runtime = try Scheduling.runtime(in: context)
             var gaps: [String] = []
             var sources: [SourceSummary] = []
             var seen: [CalendarReference] = []
@@ -80,21 +80,19 @@ public extension Scheduling.Tools {
                             role: policy.role,
                             overrun_minutes: policy.overrun.raw,
                             participants: runtime.participants
-                                .filter { $0.calendars.isEmpty || $0.calendars.contains(where: calendar.matches) }
+                                .filter { $0.calendars.isEmpty || $0.calendars.contains { $0.matches(calendar) } }
                                 .map(\.identifier)
                         )
                     }
                 ))
             }
 
-            for policy in runtime.calendars where !seen.contains(where: { $0.matches(policy.calendar) }) {
-                gaps.append("Calendar '\(policy.calendar)' has a \(policy.role.rawValue) policy but is not visible in any source.")
-            }
-
-            for participant in runtime.participants {
-                for name in participant.calendars where !seen.contains(where: { $0.matches(name) }) {
-                    gaps.append("Calendar '\(name)' configured for \(participant.identifier) is not visible in any source; their busy time is incomplete.")
-                }
+            for policy in runtime.calendars where !seen.contains(where: policy.matches) {
+                let owners = runtime.participants
+                    .filter { $0.calendars.contains { $0.describesSameCalendar(as: policy) } }
+                    .map(\.identifier)
+                let usage = owners.isEmpty ? "" : " for \(owners.joined(separator: ", "))"
+                gaps.append("Calendar '\(policy.label)' (\(policy.role.rawValue))\(usage) is not visible in any source; what it holds is missing.")
             }
 
             return .init(
@@ -104,7 +102,7 @@ public extension Scheduling.Tools {
                         identifier: participant.identifier,
                         name: participant.name,
                         time_zone: participant.timeZone.raw,
-                        calendars: participant.calendars,
+                        calendars: participant.calendars.map(\.label),
                         working_hours: ScheduleWeekday.allCases.flatMap { day in
                             participant.workingHours.ranges(on: day).map { "\(day.rawValue) \($0.from.raw)-\($0.to.raw)" }
                         }

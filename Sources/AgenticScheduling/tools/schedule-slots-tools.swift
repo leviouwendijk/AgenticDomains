@@ -56,7 +56,7 @@ public extension Scheduling.Tools {
         public init() {}
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try context.require(Scheduling.Runtime.self)
+            let runtime = try Scheduling.runtime(in: context)
             let window = try ScheduleTimestamp.window(start: input.window_start, end: input.window_end)
             let requirements = try ResolvedRequirements(input.requirements, runtime: runtime)
             let step = try parsed("step_minutes") {
@@ -136,7 +136,7 @@ public extension Scheduling.Tools {
         public init() {}
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try context.require(Scheduling.Runtime.self)
+            let runtime = try Scheduling.runtime(in: context)
             let requirements = try ResolvedRequirements(input.requirements, runtime: runtime)
             let start = try ScheduleTimestamp.parse(input.start, field: "start")
             let slot = try ScheduleInterval(start: start, end: start.addingTimeInterval(requirements.duration.seconds))

@@ -50,7 +50,7 @@ public extension Scheduling.Tools {
         public init() {}
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try context.require(Scheduling.Runtime.self)
+            let runtime = try Scheduling.runtime(in: context)
             let window = try ScheduleTimestamp.window(start: input.window_start, end: input.window_end)
             let participants = try runtime.participants(input.participants)
             let buffer = try parsed("buffer_minutes") {

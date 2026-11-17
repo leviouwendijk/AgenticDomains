@@ -76,9 +76,4 @@ public struct CalendarReference: Sendable, Hashable {
         self.identifier = identifier
         self.title = title
     }
-
-    /// Matches a configured calendar name by identifier or title.
-    public func matches(_ name: String) -> Bool {
-        identifier == name || title.caseInsensitiveCompare(name) == .orderedSame
-    }
 }

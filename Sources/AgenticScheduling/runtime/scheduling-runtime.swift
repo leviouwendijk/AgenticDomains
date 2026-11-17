@@ -49,7 +49,8 @@ public extension Scheduling {
         /// The first participant is the primary one: the default when a
         /// request names nobody.
         public let participants: [SchedulingParticipant]
-        /// How to read each calendar; unlisted calendars are commitments.
+        /// Every configured calendar: the participants' and any listed on
+        /// their own. Unconfigured calendars are commitments.
         public let calendars: [CalendarPolicy]
         public let places: any PlaceResolver
         public let travel: any TravelEstimator
@@ -65,7 +66,12 @@ public extension Scheduling {
         ) {
             self.sources = sources
             self.participants = participants
-            self.calendars = calendars
+            var merged: [CalendarPolicy] = []
+            for policy in calendars + participants.flatMap(\.calendars)
+            where !merged.contains(where: { $0.describesSameCalendar(as: policy) }) {
+                merged.append(policy)
+            }
+            self.calendars = merged
             self.places = places
             self.travel = travel
             self.defaults = defaults
@@ -124,16 +130,14 @@ public extension Scheduling {
         }
 
         public func policy(for calendar: CalendarReference) -> CalendarPolicy {
-            calendars.first { calendar.matches($0.calendar) }
-                ?? CalendarPolicy(calendar.title)
+            calendars.first { $0.matches(calendar) }
+                ?? CalendarPolicy(calendar.title, identifier: calendar.identifier)
         }
 
         /// Whether any calendar the participant owns offers slots.
         public func offersSlots(_ participant: SchedulingParticipant) -> Bool {
-            calendars.contains { policy in
-                policy.role == .offers
-                    && (participant.calendars.isEmpty || participant.calendars.contains(where: policy.names))
-            }
+            (participant.calendars.isEmpty ? calendars : participant.calendars)
+                .contains { $0.role == .offers }
         }
 
         /// Each participant's events overlapping `interval`.

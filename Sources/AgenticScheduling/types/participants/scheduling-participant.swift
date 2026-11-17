@@ -8,17 +8,16 @@ public struct SchedulingParticipant: Sendable, Hashable {
     public let name: String
     public let timeZone: ScheduleTimeZone
     public let workingHours: WorkingHours
-    /// Calendars (identifier or title) that represent this person's time.
-    /// Empty means every calendar of every source, which only makes sense
-    /// for a single person.
-    public let calendars: [String]
+    /// Calendars that represent this person's time. Empty means every
+    /// calendar of every source, which only makes sense for a single person.
+    public let calendars: [CalendarPolicy]
 
     public init(
         identifier: String,
         name: String,
         timeZone: ScheduleTimeZone,
         workingHours: WorkingHours = .weekdays,
-        calendars: [String] = []
+        calendars: [CalendarPolicy] = []
     ) {
         self.identifier = identifier
         self.name = name
@@ -28,7 +27,7 @@ public struct SchedulingParticipant: Sendable, Hashable {
     }
 
     public func owns(_ event: ScheduledEvent) -> Bool {
-        calendars.isEmpty || calendars.contains { event.calendar.matches($0) }
+        calendars.isEmpty || calendars.contains { $0.matches(event.calendar) }
     }
 }
 

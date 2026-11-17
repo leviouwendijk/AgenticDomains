@@ -87,5 +87,14 @@ enum AgenticSchedulingTestSuite {
         Test("team-calendars-show-roles") {
             try await SchedulingTeamWorkflowTests.calendarsShowRoles()
         }
+        Test("frame-configuration-reads-team") {
+            try await SchedulingFrameTests.readsTeam()
+        }
+        Test("frame-configuration-rejects-invalid-files") {
+            try SchedulingFrameTests.rejectsInvalid()
+        }
+        Test("tools-report-configuration-state") {
+            try await SchedulingFrameTests.reportsConfigurationState()
+        }
     }
 }

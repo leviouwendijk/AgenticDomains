@@ -102,6 +102,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Difference.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Processes.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Testing.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Frame.git", branch: "master"),
     ],
     targets: [
         .target(
@@ -129,6 +130,7 @@ let package = Package(
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
+                .product(name: "Frame", package: "Frame"),
             ]
         ),
 
@@ -137,6 +139,7 @@ let package = Package(
             dependencies: [
                 "AgenticScheduling",
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Frame", package: "Frame"),
                 .product(name: "Testing", package: "Testing"),
             ],
             path: "Testing/AgenticSchedulingTests"

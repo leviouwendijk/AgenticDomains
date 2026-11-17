@@ -6,7 +6,7 @@ import Testing
 /// Two trainers with their own sessions, a shared duo calendar, offered
 /// concept slots, cancellation records and an internal day, on Wednesday
 /// 2026-11-25 and Thursday 2026-11-26.
-private enum TeamFixture {
+enum TeamFixture {
     typealias F = SchedulingFixture
 
     static let wednesday = (start: "2026-11-25T00:00:00+01:00", end: "2026-11-26T00:00:00+01:00")
@@ -24,25 +24,24 @@ private enum TeamFixture {
     ]
 
     static func runtime() throws -> Scheduling.Runtime {
+        let sessionsA = CalendarPolicy("Sessions A", overrun: try ScheduleMinutes(15))
+        let sessionsB = CalendarPolicy("Sessions B", overrun: try ScheduleMinutes(15))
+        let duo = CalendarPolicy("Duo", overrun: try ScheduleMinutes(20))
+        let conceptA = CalendarPolicy("Concept A", role: .offers)
+        let conceptB = CalendarPolicy("Concept B", role: .offers)
+        let cancelledA = CalendarPolicy("Cancelled A", role: .records)
+        let cancelledB = CalendarPolicy("Cancelled B", role: .records)
+        let internalA = CalendarPolicy("Internal A", role: .reserved)
+
         let weekdays = WorkingHours.weekdays
         let wednesdays = WorkingHours([.wednesday: weekdays.ranges(on: .wednesday)])
         return Scheduling.Runtime(
             sources: [FixtureCalendarSource(entries: events)],
             participants: [
                 .init(identifier: "trainer_a", name: "Trainer A", timeZone: F.zone,
-                      calendars: ["Sessions A", "Duo", "Cancelled A", "Concept A", "Internal A"]),
+                      calendars: [sessionsA, duo, cancelledA, conceptA, internalA]),
                 .init(identifier: "trainer_b", name: "Trainer B", timeZone: F.zone, workingHours: wednesdays,
-                      calendars: ["Sessions B", "Duo", "Cancelled B", "Concept B"]),
-            ],
-            calendars: [
-                .init("Sessions A", overrun: try ScheduleMinutes(15)),
-                .init("Sessions B", overrun: try ScheduleMinutes(15)),
-                .init("Duo", overrun: try ScheduleMinutes(20)),
-                .init("Concept A", role: .offers),
-                .init("Concept B", role: .offers),
-                .init("Cancelled A", role: .records),
-                .init("Cancelled B", role: .records),
-                .init("Internal A", role: .reserved),
+                      calendars: [sessionsB, duo, cancelledB, conceptB]),
             ],
             defaults: .init(timeZone: F.zone)
         )
