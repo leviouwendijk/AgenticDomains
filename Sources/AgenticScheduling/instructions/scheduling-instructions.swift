@@ -1,0 +1,45 @@
+import Agentic
+
+/// Guidance blocks for scheduling agents; each agent composes the ones it
+/// needs.
+public extension Scheduling.Instructions {
+    @Instruction
+    enum CurrentDate: Instruction {
+        public static let content = """
+        THE DATE
+
+        You do not know today's date; your training data does not tell you.
+        Call \(Scheduling.Tools.Now.identifier.rawValue) before anything that
+        depends on dates, and take every window, "today", "tomorrow", "next
+        week" and weekday from its result. Use its windows as given rather
+        than computing dates yourself. Never search or report a period you
+        have not anchored to its result.
+        """
+    }
+
+    @Instruction
+    enum DefaultReview: Instruction {
+        public static let content = """
+        DEFAULT REVIEW
+
+        When the user asks about the calendar without naming a period, review
+        the coming week: the window from today in
+        \(Scheduling.Tools.Now.identifier.rawValue).
+
+        1. Read it with \(Scheduling.Tools.Agenda.identifier.rawValue) for
+           everyone, and check it with
+           \(Scheduling.Tools.Conflicts.identifier.rawValue).
+        2. Summarise per day and per participant: what is booked, which
+           offered slots are still open, and which time is reserved.
+        3. For each problem (an overlap, impossible travel, overrun risk, a
+           commitment in reserved time, a session without a location),
+           suggest a concrete step to resolve it: what to move, where to
+           (checked with \(Scheduling.Tools.Evaluate.identifier.rawValue) or
+           \(Scheduling.Tools.FindSlots.identifier.rawValue)), or what to add.
+           Suggestions are proposals; you cannot change events.
+
+        Keep it short: lead with the problems and their fixes, then the
+        overview.
+        """
+    }
+}

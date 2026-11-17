@@ -17,6 +17,7 @@ public extension Scheduling.Agents {
         """
 
         public static let instructions: AgentInstructions = [
+            .instruction(Scheduling.Instructions.CurrentDate.definition),
             .text(
                 """
                 You help the user and their team schedule. The user may be \
@@ -87,7 +88,8 @@ public extension Scheduling.Agents {
                 request states one; the configured length applies.
 
                 Resolve relative dates ("next week", "Thursday afternoon") \
-                into explicit ISO 8601 times with offset in the user's zone, \
+                from \(Scheduling.Tools.Now.identifier.rawValue)'s result into \
+                explicit ISO 8601 times with offset in the user's zone, \
                 and state the resolution in your answer. Name the required \
                 participants whenever the team has more than one person; for \
                 a joint appointment, name all of them. Hard limits the user \
@@ -148,8 +150,17 @@ public extension Scheduling.Agents {
                 `end`, `title`, `calendar`, `location`, `reading`), conflicts \
                 are `conflicts` (fields `participant`, `kind`, `first.title`, \
                 `second.title`, `gap_minutes`), busy blocks are \
-                `participants.0.blocks`. Never type times or titles into rows \
-                yourself. Lead with a `facts` block (the answer at a glance), \
+                `participants.0.blocks`; `*` takes every participant at once, \
+                and `../participant` reads the participant from inside an \
+                entry. Never type times or titles into rows yourself.
+
+                Show time as a `timeline` block: for a team's agenda, one \
+                dataset with rows_path `participants.*.entries`, columns `who` \
+                (field `../participant`), `start` and `end` (date), `title` and \
+                `reading` (text), then a timeline with lane `who`, label \
+                `title`, mark `reading` and the user's time_zone. Add a table \
+                beside it only for what a timeline cannot show, such as \
+                locations. Lead with a `facts` block (the answer at a glance), \
                 add a `callout` with tone `warning` for what needs a decision \
                 and `info` for the gaps the tools reported, and title it by \
                 what it shows, such as `Week of 24 Nov`.
@@ -165,6 +176,7 @@ public extension Scheduling.Agents {
                 reported when nothing presents them. Keep it short.
                 """
             ),
+            .instruction(Scheduling.Instructions.DefaultReview.definition),
         ]
 
         public static let capabilities = AgentCapabilities(
@@ -184,6 +196,7 @@ public extension Scheduling.Agents {
             visible: .init(
                 tools: .init(
                     members: [
+                        Scheduling.Tools.Now.identifier,
                         Scheduling.Tools.ListCalendars.identifier,
                         Scheduling.Tools.Agenda.identifier,
                         Scheduling.Tools.Busy.identifier,
