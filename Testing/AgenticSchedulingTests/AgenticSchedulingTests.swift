@@ -108,7 +108,7 @@ enum AgenticSchedulingTestSuite {
         Test("agenda-lists-events-as-read") {
             try await SchedulingAgendaTests.run()
         }
-        Test("now-gives-anchored-windows") {
+        Test("current-datetime-gives-anchored-windows") {
             try SchedulingNowTests.run()
         }
         Test("propose-reevaluates-every-option") {

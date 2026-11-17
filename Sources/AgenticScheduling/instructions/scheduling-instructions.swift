@@ -1,4 +1,5 @@
 import Agentic
+import AgenticStandard
 
 /// Guidance blocks for scheduling agents; each agent composes the ones it
 /// needs.
@@ -9,8 +10,10 @@ public extension Scheduling.Instructions {
         THE DATE
 
         You do not know today's date; your training data does not tell you.
-        Call \(Scheduling.Tools.Now.identifier.rawValue) before anything that
-        depends on dates, and take every window, "today", "tomorrow", "next
+        Call \(Standard.Tools.CurrentDatetime.identifier.rawValue) before
+        anything that depends on dates, with the team's time zone when you
+        know it (\(Scheduling.Tools.ListCalendars.identifier.rawValue) lists
+        each participant's zone), and take every window, "today", "tomorrow", "next
         week" and weekday from its result. Use its windows as given rather
         than computing dates yourself. Never search or report a period you
         have not anchored to its result.
@@ -24,7 +27,7 @@ public extension Scheduling.Instructions {
 
         When the user asks about the calendar without naming a period, review
         the coming week: the window from today in
-        \(Scheduling.Tools.Now.identifier.rawValue).
+        \(Standard.Tools.CurrentDatetime.identifier.rawValue).
 
         1. Read it with \(Scheduling.Tools.Agenda.identifier.rawValue) for
            everyone, and check it with

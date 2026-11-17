@@ -88,7 +88,7 @@ public extension Scheduling.Agents {
                 request states one; the configured length applies.
 
                 Resolve relative dates ("next week", "Thursday afternoon") \
-                from \(Scheduling.Tools.Now.identifier.rawValue)'s result into \
+                from \(Standard.Tools.CurrentDatetime.identifier.rawValue)'s result into \
                 explicit ISO 8601 times with offset in the user's zone, \
                 and state the resolution in your answer. Name the required \
                 participants whenever the team has more than one person; for \
@@ -190,13 +190,13 @@ public extension Scheduling.Agents {
                         Standard.Tools.ClarifyWithUser.identifier,
                         Standard.Tools.InspectCapability.identifier,
                         Standard.Tools.CreateReport.identifier,
+                        Standard.Tools.CurrentDatetime.identifier,
                     ]
                 )
             ),
             visible: .init(
                 tools: .init(
                     members: [
-                        Scheduling.Tools.Now.identifier,
                         Scheduling.Tools.ListCalendars.identifier,
                         Scheduling.Tools.Agenda.identifier,
                         Scheduling.Tools.Busy.identifier,
@@ -207,6 +207,8 @@ public extension Scheduling.Agents {
                         Scheduling.Tools.Propose.identifier,
 
                         Math.Tools.Calculate.identifier,
+
+                        Standard.Tools.CurrentDatetime.identifier,
 
                         Standard.Tools.CreateReport.identifier,
                         Standard.Tools.ClarifyWithUser.identifier,

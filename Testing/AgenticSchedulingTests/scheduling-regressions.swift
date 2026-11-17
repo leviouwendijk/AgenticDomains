@@ -1,5 +1,6 @@
 import Agentic
 import AgenticScheduling
+import AgenticStandard
 import Foundation
 import Testing
 
@@ -220,19 +221,20 @@ private func requireFirst<Element>(_ elements: [Element]) throws -> Element {
 
 enum SchedulingNowTests {
     static func run() throws {
-        let wednesday = try Scheduling.Tools.Now.output(at: F.date("2026-11-18T15:00:00+01:00"), in: F.zone)
+        let zone = F.zone.timeZone
+        let wednesday = try Standard.Tools.CurrentDatetime.output(at: F.date("2026-11-18T15:00:00+01:00"), in: zone)
         try Expect.equal(wednesday.today, "2026-11-18", "Local date")
-        try Expect.equal(wednesday.weekday, .wednesday, "Weekday")
+        try Expect.equal(wednesday.weekday, "wednesday", "Weekday")
         try Expect.equal(wednesday.coming_week_start, "2026-11-18T00:00:00+01:00", "Coming week from today")
         try Expect.equal(wednesday.coming_week_end, "2026-11-25T00:00:00+01:00", "Seven days on")
         try Expect.equal(wednesday.this_week_start, "2026-11-16T00:00:00+01:00", "This week from Monday")
         try Expect.equal(wednesday.this_week_end, "2026-11-23T00:00:00+01:00", "To the next Monday")
 
-        let sunday = try Scheduling.Tools.Now.output(at: F.date("2026-11-22T23:30:00+01:00"), in: F.zone)
+        let sunday = try Standard.Tools.CurrentDatetime.output(at: F.date("2026-11-22T23:30:00+01:00"), in: zone)
         try Expect.equal(sunday.this_week_start, "2026-11-16T00:00:00+01:00", "Sunday still belongs to Monday's week")
 
-        let lateUTC = try Scheduling.Tools.Now.output(at: F.date("2026-11-22T23:30:00Z"), in: F.zone)
+        let lateUTC = try Standard.Tools.CurrentDatetime.output(at: F.date("2026-11-22T23:30:00Z"), in: zone)
         try Expect.equal(lateUTC.today, "2026-11-23", "The zone decides the date")
-        try Expect.equal(lateUTC.weekday, .monday, "Already Monday in Amsterdam")
+        try Expect.equal(lateUTC.weekday, "monday", "Already Monday in Amsterdam")
     }
 }
