@@ -51,6 +51,9 @@ struct ResolvedRequirements: Sendable {
     let placement: SlotPlacement
     let allowReserved: Bool
     let overrun: ScheduleMinutes
+    let sharedTravel: Bool
+    let allowSplitTravel: Bool
+    let splitTravel: SplitTravelPolicy
     let preferences: [Preference]
 
     init(_ input: SlotRequirements, runtime: Scheduling.Runtime) throws {
@@ -96,6 +99,11 @@ struct ResolvedRequirements: Sendable {
         self.travelMode = input.travel_mode ?? runtime.defaults.travelMode
         self.placement = input.placement ?? runtime.defaults.placement
         self.allowReserved = input.allow_reserved ?? false
+        // Travelling together needs somewhere to travel to.
+        let location = input.location?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        self.sharedTravel = input.shared_travel ?? (required.count > 1 && !location.isEmpty)
+        self.allowSplitTravel = input.allow_split_travel ?? false
+        self.splitTravel = runtime.defaults.splitTravel
         self.overrun = try parsed("overrun_minutes") { try ScheduleMinutes.parse(input.overrun_minutes, default: runtime.defaults.overrun) }
 
         let preferences = input.preferences ?? []

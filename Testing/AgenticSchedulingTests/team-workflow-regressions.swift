@@ -176,14 +176,15 @@ enum SchedulingAgendaTests {
         let trainer = result.participants[0]
         try Expect.equal(
             trainer.entries.map(\.title),
-            ["Cancelled: Jansen", "Concept", "Session: de Vries", "Duo: Bakker", "Concept", "Internal day", "Session: Visser"],
-            "Every owned event in time order"
+            ["Concept", "Session: de Vries", "Duo: Bakker", "Concept", "Internal day", "Session: Visser"],
+            "Owned events in time order, records left out"
         )
         try Expect.equal(
             trainer.entries.map(\.reading),
-            [.record, .offer, .blocking, .blocking, .offer, .reserved, .blocking],
+            [.offer, .blocking, .blocking, .offer, .reserved, .blocking],
             "Each read through its calendar's role"
         )
+        try Expect.equal(trainer.hidden_records, 1, "The cancellation is counted, not listed")
         try Expect.true(
             result.information_gaps.contains { $0.contains("trainer_a") && $0.contains("no location") },
             "Sessions without a location are flagged"

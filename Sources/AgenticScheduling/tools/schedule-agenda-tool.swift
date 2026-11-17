@@ -17,6 +17,9 @@ public enum AgendaReading:
     case blocking
     /// In a commitments calendar but marked free: does not block.
     case marked_free
+    /// In an offers calendar but no longer titled as an open slot: a
+    /// provisional booking. Blocks.
+    case provisional
     /// Held back; opened by escalation or an offered slot.
     case reserved
     /// An offered slot, open for booking.
@@ -36,11 +39,20 @@ public extension Scheduling.Tools {
             public let window_end: String
             /// Participants (identifier or name). Defaults to everyone.
             public let participants: [String]?
+            /// Also list records, such as cancellations and birthdays. Default
+            /// false: they never affect availability.
+            public let include_records: Bool?
 
-            public init(window_start: String, window_end: String, participants: [String]? = nil) {
+            public init(
+                window_start: String,
+                window_end: String,
+                participants: [String]? = nil,
+                include_records: Bool? = nil
+            ) {
                 self.window_start = window_start
                 self.window_end = window_end
                 self.participants = participants
+                self.include_records = include_records
             }
         }
 
@@ -66,6 +78,8 @@ public extension Scheduling.Tools {
             public let reserved_hours: [String]
             /// Entries left out because the window held more than the limit.
             public let omitted: Int
+            /// Records left out; ask with `include_records` to see them.
+            public let hidden_records: Int
         }
 
         @JSONSchema
@@ -80,7 +94,7 @@ public extension Scheduling.Tools {
         public static let limit = 150
 
         public static let purpose =
-            "List each participant's events in a window with time, title, calendar, location and how scheduling reads them (blocking, marked free, reserved, offer, record), plus their weekly reserved hours. Use it to see what a day or week actually holds."
+            "List each participant's events in a window with time, title, calendar, location and how scheduling reads them (\(AgendaReading.allCases.map(\.rawValue).joined(separator: ", "))), plus their weekly reserved hours. Records are left out unless asked for. Use it to see what a day or week actually holds."
         public static let risk: ActionRisk = .observe
 
         public init() {}
@@ -97,20 +111,21 @@ public extension Scheduling.Tools {
             let agendas = participants.map { participant in
                 let zone = participant.timeZone
                 let owned = events.filter { participant.owns($0) }
-                let entries = owned.map { event in
+                let all = owned.map { event in
                     Entry(
                         start: ScheduleTimestamp.render(event.interval.start, in: zone),
                         end: ScheduleTimestamp.render(event.interval.end, in: zone),
                         title: event.title,
                         calendar: event.calendar.title,
                         all_day: event.isAllDay,
-                        reading: Self.reading(event, policy: runtime.policy(for: event.calendar)),
+                        reading: runtime.policy(for: event.calendar).reading(of: event),
                         location: event.locationText
                     )
                 }
-                let unlocated = zip(owned, entries)
-                    .filter { !$0.0.isAllDay && $0.1.reading == .blocking && $0.0.locationText == nil }
+                let unlocated = zip(owned, all)
+                    .filter { !$0.0.isAllDay && [.blocking, .provisional].contains($0.1.reading) && $0.0.locationText == nil }
                     .count
+                let entries = input.include_records == true ? all : all.filter { $0.reading != .record }
                 if unlocated > 0 {
                     gaps.append("\(unlocated) of \(participant.identifier)'s timed commitments have no location; travel around them cannot be checked.")
                 }
@@ -119,7 +134,8 @@ public extension Scheduling.Tools {
                     time_zone: zone.raw,
                     entries: Array(entries.prefix(Self.limit)),
                     reserved_hours: Self.reservedHours(participant, in: window),
-                    omitted: max(entries.count - Self.limit, 0)
+                    omitted: max(entries.count - Self.limit, 0),
+                    hidden_records: all.count - entries.count
                 )
             }
 
@@ -129,19 +145,6 @@ public extension Scheduling.Tools {
                 participants: agendas,
                 information_gaps: gaps
             )
-        }
-
-        static func reading(_ event: ScheduledEvent, policy: CalendarPolicy) -> AgendaReading {
-            switch policy.role(of: event) {
-            case .commitments:
-                return event.blocks ? .blocking : .marked_free
-            case .reserved:
-                return .reserved
-            case .offers:
-                return .offer
-            case .records:
-                return .record
-            }
         }
 
         /// The participant's reserved hours on each weekday the window touches.

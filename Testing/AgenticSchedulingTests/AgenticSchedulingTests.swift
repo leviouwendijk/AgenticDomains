@@ -111,6 +111,9 @@ enum AgenticSchedulingTestSuite {
         Test("current-datetime-gives-anchored-windows") {
             try SchedulingNowTests.run()
         }
+        Test("shared-travel-provisional-and-records") {
+            try await SchedulingSharedTravelTests.run()
+        }
         Test("propose-reevaluates-every-option") {
             try await SchedulingPresentationTests.reevaluates()
         }

@@ -33,9 +33,13 @@ public extension Scheduling.Instructions {
            everyone, and check it with
            \(Scheduling.Tools.Conflicts.identifier.rawValue).
         2. Summarise per day and per participant: what is booked, which
-           offered slots are still open, and which time is reserved.
+           offered slots are still open, and which time is reserved. Mention
+           only what matters for planning: appointments, open slots,
+           provisional bookings and held-back days. Leave out reminders and
+           other entries that do not block anyone.
         3. For each problem (an overlap, impossible travel, overrun risk, a
-           commitment in reserved time, a session without a location),
+           commitment in reserved time, a split shared trip, a session
+           without a location),
            suggest a concrete step to resolve it: what to move, where to
            (checked with \(Scheduling.Tools.Evaluate.identifier.rawValue) or
            \(Scheduling.Tools.FindSlots.identifier.rawValue)), or what to add.

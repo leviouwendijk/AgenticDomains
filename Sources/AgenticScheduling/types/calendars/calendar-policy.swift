@@ -42,24 +42,53 @@ public struct CalendarPolicy: Sendable, Hashable {
     /// nominal end. A soft margin: it lowers scores and raises warnings,
     /// it never excludes a slot.
     public let overrun: ScheduleMinutes
+    /// For an offers calendar: title fragments that mark a slot as still
+    /// open, such as `Slot`. An event whose title contains none of them is
+    /// a provisional booking and blocks. Empty means every event is open.
+    public let offerTitles: [String]
+    /// Its participants travel together, in one vehicle: they arrive from
+    /// the same place and leave for the same place.
+    public let sharedTravel: Bool
 
     public init(
         _ title: String,
         identifier: String? = nil,
         role: CalendarRole = .commitments,
         allDayRole: CalendarRole? = nil,
-        overrun: ScheduleMinutes = .zero
+        overrun: ScheduleMinutes = .zero,
+        offerTitles: [String] = [],
+        sharedTravel: Bool = false
     ) {
         self.title = title
         self.identifier = identifier
         self.role = role
         self.allDayRole = allDayRole
         self.overrun = overrun
+        self.offerTitles = offerTitles
+        self.sharedTravel = sharedTravel
     }
 
     /// How this event in the calendar is read.
     public func role(of event: ScheduledEvent) -> CalendarRole {
         event.isAllDay ? (allDayRole ?? role) : role
+    }
+
+    /// How scheduling reads this event: its calendar's role, the event's own
+    /// availability, and for offers whether the slot is still open.
+    public func reading(of event: ScheduledEvent) -> AgendaReading {
+        switch role(of: event) {
+        case .commitments:
+            return event.blocks ? .blocking : .marked_free
+        case .reserved:
+            return .reserved
+        case .records:
+            return .record
+        case .offers:
+            let open = offerTitles.isEmpty || offerTitles.contains {
+                event.title.range(of: $0, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+            }
+            return open ? .offer : .provisional
+        }
     }
 
     public func matches(_ calendar: CalendarReference) -> Bool {

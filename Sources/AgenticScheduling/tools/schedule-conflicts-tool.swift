@@ -44,7 +44,7 @@ public extension Scheduling.Tools {
         }
 
         public static let purpose =
-            "Per participant within a window, find overlapping commitments, gaps shorter than the buffer or than an appointment's usual overrun, consecutive same-day appointments too far apart to travel between, and commitments placed in reserved time."
+            "Per participant within a window, find overlapping commitments, gaps shorter than the buffer or than an appointment's usual overrun, consecutive same-day appointments too far apart to travel between, commitments placed in reserved time, and shared trips that split (participants travelling together who arrive from or leave for different places)."
         public static let risk: ActionRisk = .observe
 
         public init() {}
@@ -68,11 +68,53 @@ public extension Scheduling.Tools {
             for timeline in timelines {
                 conflicts += await detection.conflicts(in: timeline)
             }
+            conflicts += try await Self.splitTravel(among: participants, in: window, runtime: runtime)
             return .init(
                 conflicts: conflicts,
                 events_considered: timelines.reduce(0) { $0 + $1.blocking.count },
                 information_gaps: await oracle.gaps
             )
+        }
+
+        /// Shared trips that already split, involving any of the participants.
+        /// Every participant's timeline is read, since a travel partner may
+        /// not be among them.
+        static func splitTravel(
+            among participants: [SchedulingParticipant],
+            in window: ScheduleInterval,
+            runtime: Scheduling.Runtime
+        ) async throws -> [ScheduleConflict] {
+            let team = try await runtime.timelines(for: runtime.participants, in: window)
+            let asked = Set(participants.map(\.identifier))
+            var items: [String: [SharedTravel.Item]] = [:]
+            var zones: [String: ScheduleTimeZone] = [:]
+            for timeline in team {
+                items[timeline.participant.identifier] = SharedTravel.items(timeline)
+                zones[timeline.participant.identifier] = timeline.participant.timeZone
+            }
+            return SharedTravel.splits(items, zones: zones).compactMap { split in
+                guard
+                    split.stops.contains(where: { asked.contains($0.participant) }),
+                    let trip = split.trip.event,
+                    let diverging = split.diverging,
+                    let other = diverging.stop.event,
+                    let zone = zones[diverging.participant]
+                else {
+                    return nil
+                }
+                let first = split.arriving ? other : trip
+                let second = split.arriving ? trip : other
+                return ScheduleConflict(
+                    kind: .split_travel,
+                    participant: diverging.participant,
+                    first: .init(trip, in: zone),
+                    second: .init(other, in: zone),
+                    gap_minutes: wholeMinutes(second.interval.start.timeIntervalSince(first.interval.end)),
+                    required_minutes: nil,
+                    travel: nil,
+                    detail: "Shared trip splits \(split.description)."
+                )
+            }
         }
     }
 }

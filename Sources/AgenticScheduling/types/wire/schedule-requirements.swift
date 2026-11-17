@@ -45,6 +45,13 @@ public struct SlotRequirements: HashableSource {
     /// margin kept before the next commitment. Defaults to the configured
     /// margin.
     public let overrun_minutes: Int?
+    /// Whether the required participants travel together to this
+    /// appointment. Defaults to true when more than one is required and a
+    /// location is given.
+    public let shared_travel: Bool?
+    /// Escalation: allow a placement that splits a shared trip, so a second
+    /// vehicle is needed. Default false.
+    public let allow_split_travel: Bool?
     /// Weighted soft preferences. Absent means "earlier is better".
     public let preferences: [SlotPreference]?
 
@@ -64,6 +71,8 @@ public struct SlotRequirements: HashableSource {
         placement: SlotPlacement? = nil,
         allow_reserved: Bool? = nil,
         overrun_minutes: Int? = nil,
+        shared_travel: Bool? = nil,
+        allow_split_travel: Bool? = nil,
         preferences: [SlotPreference]? = nil
     ) {
         self.duration_minutes = duration_minutes
@@ -81,6 +90,8 @@ public struct SlotRequirements: HashableSource {
         self.placement = placement
         self.allow_reserved = allow_reserved
         self.overrun_minutes = overrun_minutes
+        self.shared_travel = shared_travel
+        self.allow_split_travel = allow_split_travel
         self.preferences = preferences
     }
 }

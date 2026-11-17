@@ -322,7 +322,7 @@ enum SchedulePresentation {
 
     static func mark(_ reading: AgendaReading) -> ReportBlock.Timeline.Mark? {
         switch reading {
-        case .blocking: .occupied
+        case .blocking, .provisional: .occupied
         case .reserved: .reserved
         case .offer: .available
         case .marked_free, .record: nil

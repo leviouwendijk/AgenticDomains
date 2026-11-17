@@ -30,6 +30,8 @@ struct SlotEvaluator: Sendable {
     let optional: [ParticipantTimeline]
     let meeting: SchedulingPlace?
     let oracle: TravelOracle
+    /// Everyone's timeline, for shared trips with people outside the request.
+    let team: [ParticipantTimeline]
 
     /// Fetches timelines a day beyond the window on both sides, so adjacent
     /// appointments still count for buffers and travel at its edges.
@@ -39,10 +41,10 @@ struct SlotEvaluator: Sendable {
         runtime: Scheduling.Runtime
     ) async throws -> SlotEvaluator {
         let day = try ScheduleMinutes(24 * 60)
-        let timelines = try await runtime.timelines(
-            for: requirements.everyone,
-            in: window.padded(before: day, after: day)
-        )
+        let padded = window.padded(before: day, after: day)
+        let timelines = try await runtime.timelines(for: requirements.everyone, in: padded)
+        let others = runtime.participants.filter { !requirements.everyone.contains($0) }
+        let team = try await timelines + runtime.timelines(for: others, in: padded)
         let oracle = TravelOracle(
             resolver: runtime.places,
             estimator: runtime.travel,
@@ -58,7 +60,8 @@ struct SlotEvaluator: Sendable {
             required: Array(timelines.prefix(requirements.required.count)),
             optional: Array(timelines.dropFirst(requirements.required.count)),
             meeting: meeting,
-            oracle: oracle
+            oracle: oracle,
+            team: team
         )
     }
 
@@ -244,6 +247,16 @@ struct SlotEvaluator: Sendable {
             }
         }
 
+        if requirements.splitTravel == .avoid, !requirements.allowSplitTravel {
+            for split in splits(slot) {
+                violations.append(.init(
+                    constraint: .split_travel,
+                    participant: split.diverging?.participant,
+                    detail: "Splits a shared trip \(split.description); a second vehicle would be needed."
+                ))
+            }
+        }
+
         let placement: SlotPlacementKind
         if opensReserved {
             placement = .reserved
@@ -364,6 +377,10 @@ struct SlotEvaluator: Sendable {
         if requirements.overrun > .zero || required.contains(where: \.hasOverruns) {
             let margin = overrunMargin(slot)
             terms.append(term(.overrun_margin, margin?.detail, 1, margin?.satisfaction ?? 1))
+        }
+        if requirements.splitTravel == .warn, sharedTravelMatters {
+            let split = splits(slot).first
+            terms.append(term(.shared_travel, split?.description, 1, split == nil ? 1 : 0))
         }
         if !optional.isEmpty {
             let attendance = optionalAttendance(slot)
@@ -522,6 +539,40 @@ struct SlotEvaluator: Sendable {
             }
         }
         return (available, unavailable)
+    }
+
+    /// The candidate as a trip item for each required participant.
+    static let candidateKey = "candidate"
+
+    /// Shared trips the slot would split: those it joins, and those it
+    /// becomes the diverging stop of. Splits that exist without it are not
+    /// the slot's doing and are left to the conflicts tool.
+    func splits(_ slot: ScheduleInterval) -> [SharedTravel.Split] {
+        let requiredIDs = Set(required.map(\.participant.identifier))
+        var items: [String: [SharedTravel.Item]] = [:]
+        var zones: [String: ScheduleTimeZone] = [:]
+        for timeline in team {
+            let id = timeline.participant.identifier
+            zones[id] = timeline.participant.timeZone
+            items[id] = SharedTravel.items(timeline)
+            if requiredIDs.contains(id) {
+                items[id, default: []].append(.init(
+                    key: Self.candidateKey,
+                    title: "the new appointment",
+                    interval: slot,
+                    shared: requirements.sharedTravel,
+                    event: nil
+                ))
+            }
+        }
+        return SharedTravel.splits(items, zones: zones)
+            .filter { $0.involves.contains(Self.candidateKey) }
+    }
+
+    /// Whether any shared trip can be affected, so the warn-mode term is
+    /// scored for every candidate or for none.
+    private var sharedTravelMatters: Bool {
+        requirements.sharedTravel || team.contains { !$0.sharedTravel.isEmpty }
     }
 
     static func rounded(_ value: Double) -> Double {

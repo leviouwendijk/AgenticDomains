@@ -67,6 +67,19 @@ public extension Scheduling.Agents {
                 day or development days). An offered slot placed inside \
                 reserved time opens it: booking there needs no escalation.
 
+                Some calendars mark shared travel: their participants go \
+                together in one vehicle. A placement that makes them arrive \
+                from or leave for different places (\(SlotConstraintKind.split_travel.rawValue)) \
+                needs a second vehicle. Treat it like reserved time: avoid \
+                it, and only when nothing else fits present it as an \
+                escalation the user must approve. A new appointment for \
+                several participants at a location travels together by \
+                default.
+
+                In an offers calendar, an event no longer titled as an open \
+                slot is \(AgendaReading.provisional.rawValue): a provisional \
+                booking that blocks. Never present it as an open slot.
+
                 Reserved time is an escalation. Search without it first. Only \
                 when nothing suitable fits, or the user asks, search again \
                 allowing reserved time, and present such candidates as \

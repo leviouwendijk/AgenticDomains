@@ -308,3 +308,86 @@ enum SchedulingReservedHoursTests {
         try Expect.equal(weekend.placement, .open, "Nothing offered on Saturday")
     }
 }
+
+enum SchedulingSharedTravelTests {
+    static let source = """
+    import Scheduling;
+
+    let sessionsA: Calendar = .{ .title = "Sessions A" };
+    let sessionsB: Calendar = .{ .title = "Sessions B" };
+    let duo: Calendar = .{ .title = "Duo", .sharedTravel = true };
+    let slotsA: Calendar = .{ .title = "Slots A", .role = .offers, .offerTitles = ["Slot"] };
+    let cancelled: Calendar = .{ .title = "Cancelled", .role = .records };
+
+    let a: Participant = .{
+        .workingHours = .{ .saturday = ["10:00-21:00"], .sunday = ["10:00-21:00"] },
+        .calendars = [sessionsA, duo, slotsA, cancelled],
+    };
+    let b: Participant = .{
+        .workingHours = .{ .saturday = ["10:00-21:00"], .sunday = ["10:00-21:00"] },
+        .calendars = [sessionsB, duo],
+    };
+
+    let scheduling: SchedulingSettings = .{
+        .timeZone = "Europe/Amsterdam",
+        .defaultDurationMinutes = 90,
+    };
+    """
+
+    static let events: [ScheduledEvent] = [
+        // Saturday: after the duo, a continues to Diemen and b goes home.
+        SchedulingFixture.event("Duo: Mirjam", "2026-12-12T13:00:00+01:00", "2026-12-12T14:30:00+01:00", calendar: "Duo", location: "Amsterdam"),
+        SchedulingFixture.event("Session: Diemen", "2026-12-12T15:30:00+01:00", "2026-12-12T17:00:00+01:00", calendar: "Sessions A", location: "Diemen"),
+        SchedulingFixture.event("Slot 1", "2026-12-12T10:00:00+01:00", "2026-12-12T11:30:00+01:00", calendar: "Slots A", availability: .free),
+        SchedulingFixture.event("o.v. Client | Dog", "2026-12-12T18:00:00+01:00", "2026-12-12T19:30:00+01:00", calendar: "Slots A", availability: .free),
+        SchedulingFixture.event("Cancelled: Jan", "2026-12-12T11:30:00+01:00", "2026-12-12T13:00:00+01:00", calendar: "Cancelled"),
+        // Sunday: only a duo.
+        SchedulingFixture.event("Duo: Zoey", "2026-12-13T13:00:00+01:00", "2026-12-13T14:30:00+01:00", calendar: "Duo", location: "Amsterdam"),
+    ]
+
+    static func run() async throws {
+        let runtime = try SchedulingConfiguration(source: source)
+            .runtime(sources: [FixtureCalendarSource(entries: events)])
+        let context = try SchedulingFixture.context(runtime)
+
+        let conflicts = try await Scheduling.Tools.Conflicts().call(
+            .init(window_start: "2026-12-12T00:00:00+01:00", window_end: "2026-12-13T00:00:00+01:00", participants: ["b"]),
+            in: context
+        )
+        let split = conflicts.conflicts.first { $0.kind == .split_travel }
+        try Expect.equal(split?.participant, "a", "a continues elsewhere, found from b's side too")
+        try Expect.equal(split?.second.title, "Session: Diemen", "Names where the trip splits")
+        try Expect.true(split?.detail?.contains("b to home") ?? false, "Says who goes home")
+
+        func evaluate(_ start: String, _ participants: [String], allow: Bool? = nil) async throws -> Scheduling.Tools.Evaluate.Output {
+            try await Scheduling.Tools.Evaluate().call(
+                .init(start: start, requirements: .init(participants: participants, allow_split_travel: allow)),
+                in: context
+            )
+        }
+
+        let solo = try await evaluate("2026-12-13T15:00:00+01:00", ["a"])
+        try Expect.equal(solo.violations.map(\.constraint), [.split_travel], "A solo session right after the duo splits the trip")
+        try Expect.true(try await evaluate("2026-12-13T15:00:00+01:00", ["a"], allow: true).feasible, "Escalation allows a second vehicle")
+        let together = try await Scheduling.Tools.Evaluate().call(
+            .init(start: "2026-12-13T15:00:00+01:00", requirements: .init(participants: ["a", "b"], location: "Amsterdam")),
+            in: context
+        )
+        try Expect.true(together.feasible, "Both continuing together keeps the trip whole")
+        let morning = try await evaluate("2026-12-13T10:00:00+01:00", ["a"])
+        try Expect.equal(morning.violations.map(\.constraint), [.split_travel], "Coming from a solo session, a would arrive separately")
+
+        let provisional = try await evaluate("2026-12-12T18:00:00+01:00", ["a"])
+        try Expect.true(provisional.violations.contains { $0.constraint == .busy }, "A provisional booking in a slots calendar blocks")
+
+        let agenda = try await Scheduling.Tools.Agenda().call(
+            .init(window_start: "2026-12-12T00:00:00+01:00", window_end: "2026-12-13T00:00:00+01:00", participants: ["a"]),
+            in: context
+        )
+        let entries = agenda.participants.first?.entries ?? []
+        try Expect.equal(entries.first { $0.title == "Slot 1" }?.reading, .offer, "Titled as a slot: open")
+        try Expect.equal(entries.first { $0.title == "o.v. Client | Dog" }?.reading, .provisional, "Titled otherwise: provisional")
+        try Expect.false(entries.contains { $0.title == "Cancelled: Jan" }, "Records are left out by default")
+        try Expect.equal(agenda.participants.first?.hidden_records, 1, "And counted")
+    }
+}

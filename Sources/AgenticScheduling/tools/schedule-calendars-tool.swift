@@ -21,6 +21,10 @@ public extension Scheduling.Tools {
             public let all_day_role: CalendarRole?
             /// Usual overrun of its appointments, in minutes.
             public let overrun_minutes: Int
+            /// Its participants travel together.
+            public let shared_travel: Bool
+            /// Title fragments that mark an offer as still open.
+            public let offer_titles: [String]
             /// Participants whose time this calendar represents.
             public let participants: [String]
         }
@@ -101,6 +105,8 @@ public extension Scheduling.Tools {
                             role: owners.isEmpty ? nil : policy.role,
                             all_day_role: owners.isEmpty ? nil : policy.allDayRole,
                             overrun_minutes: policy.overrun.raw,
+                            shared_travel: policy.sharedTravel,
+                            offer_titles: policy.offerTitles,
                             participants: owners
                         )
                     }

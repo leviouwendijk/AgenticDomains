@@ -23,6 +23,8 @@ public extension Scheduling {
             /// Hours appointments preferably fall in, scored for every
             /// request that sets no time-of-day preference of its own.
             public let preferredHours: ClockRange?
+            /// What splitting a shared trip means.
+            public let splitTravel: SplitTravelPolicy
 
             public init(
                 timeZone: ScheduleTimeZone = .current(),
@@ -32,7 +34,8 @@ public extension Scheduling {
                 placement: SlotPlacement = .prefer_offered,
                 duration: ScheduleMinutes? = nil,
                 overrun: ScheduleMinutes = .zero,
-                preferredHours: ClockRange? = nil
+                preferredHours: ClockRange? = nil,
+                splitTravel: SplitTravelPolicy = .avoid
             ) {
                 self.timeZone = timeZone
                 self.buffer = buffer
@@ -42,6 +45,7 @@ public extension Scheduling {
                 self.duration = duration ?? (try? ScheduleMinutes(60)) ?? .zero
                 self.overrun = overrun
                 self.preferredHours = preferredHours
+                self.splitTravel = splitTravel
             }
         }
 
@@ -188,6 +192,8 @@ public struct ParticipantTimeline: Sendable {
     /// an absence of offers means "nothing offered" rather than "not used".
     public let offersSlots: Bool
     private let overruns: [ScheduledEvent: ScheduleMinutes]
+    /// Events whose participants travel together.
+    public let sharedTravel: Set<ScheduledEvent>
 
     public init(
         participant: SchedulingParticipant,
@@ -196,12 +202,13 @@ public struct ParticipantTimeline: Sendable {
     ) {
         let sorted = events.sorted { $0.event.interval.start < $1.event.interval.start }
         self.participant = participant
-        func role(_ entry: (event: ScheduledEvent, policy: CalendarPolicy)) -> CalendarRole {
-            entry.policy.role(of: entry.event)
+        func reading(_ entry: (event: ScheduledEvent, policy: CalendarPolicy)) -> AgendaReading {
+            entry.policy.reading(of: entry.event)
         }
-        self.blocking = sorted.filter { role($0) == .commitments && $0.event.blocks }.map(\.event)
-        self.reserved = sorted.filter { role($0) == .reserved }.map(\.event)
-        self.offers = sorted.filter { role($0) == .offers }.map(\.event)
+        self.blocking = sorted.filter { [.blocking, .provisional].contains(reading($0)) }.map(\.event)
+        self.reserved = sorted.filter { reading($0) == .reserved }.map(\.event)
+        self.offers = sorted.filter { reading($0) == .offer }.map(\.event)
+        self.sharedTravel = Set(sorted.filter { $0.policy.sharedTravel }.map(\.event))
         self.busy = ScheduleInterval.merged(blocking.map(\.interval))
         self.offersSlots = offersSlots
         self.overruns = Dictionary(

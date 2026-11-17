@@ -33,6 +33,8 @@ public enum SchedulingFrame {
         public let role: CalendarRole?
         public let allDayRole: CalendarRole?
         public let overrunMinutes: Int?
+        public let offerTitles: [String]?
+        public let sharedTravel: Bool?
     }
 
     /// Working time per weekday as `HH:mm-HH:mm` ranges. A day left out is
@@ -84,6 +86,7 @@ public enum SchedulingFrame {
         public let defaultDurationMinutes: Int?
         public let defaultOverrunMinutes: Int?
         public let preferredHours: String?
+        public let splitTravel: SplitTravelPolicy?
         /// Calendars configured without belonging to a participant.
         public let calendars: [Calendar]?
     }
@@ -102,6 +105,8 @@ extension SchedulingFrame.Calendar: FrameDescribable {
             ]), summary: "How the calendar's events are read."),
             .init("allDayRole", .members(of: CalendarRole.self), summary: "How its all-day events are read, when that differs from role: for example timed meetings as commitments and all-day office days as reserved."),
             .init("overrunMinutes", .integer, summary: "How far its appointments usually run past their end. A soft margin, never an exclusion."),
+            .init("offerTitles", .array(.string), summary: "For an offers calendar: title fragments that mark a slot as still open, such as \"Slot\". An event titled otherwise is a provisional booking and blocks. Absent means every event is open."),
+            .init("sharedTravel", .boolean, summary: "Its participants travel together in one vehicle, so they must arrive from and leave for the same place."),
         ], summary: "A calendar and how scheduling reads it.")
     }
 }
@@ -154,6 +159,10 @@ extension SchedulingFrame.Settings: FrameDescribable {
             ]), summary: "How offered slots constrain placement."),
             .init("defaultDurationMinutes", .integer, summary: "Appointment length when a request does not say. Default 60."),
             .init("defaultOverrunMinutes", .integer, summary: "How far a new appointment may run over when a request does not say; kept free as a soft margin. Default 0."),
+            .init("splitTravel", .members(of: SplitTravelPolicy.self, summaries: [
+                .avoid: "A placement that splits a shared trip is excluded unless the request allows it. The default.",
+                .warn: "Splitting only lowers the score.",
+            ]), summary: "What splitting a shared trip means: it needs a second vehicle."),
             .init("preferredHours", .string, summary: "Hours appointments preferably fall in, such as \"10:00-17:00\"; scored, never enforced, unless a request sets its own time of day."),
             .init("calendars", .array(.of(SchedulingFrame.Calendar.self)), summary: "Calendars configured without belonging to a participant."),
         ], summary: "Scheduling defaults. Every field is optional.")

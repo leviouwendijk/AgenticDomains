@@ -86,6 +86,9 @@ public enum ScheduleConflictKind:
     case overrun_risk
     /// A commitment lies in reserved time (`first` is the reservation).
     case in_reserved_time
+    /// Participants who travel together to `first` arrive from or leave
+    /// for different places; `second` is where one of them diverges.
+    case split_travel
 }
 
 @JSONSchema
@@ -100,6 +103,8 @@ public struct ScheduleConflict: HashableResult {
     /// Minutes the gap would need (buffer or travel); absent for overlaps.
     public let required_minutes: Int?
     public let travel: TravelEstimate?
+    /// What the conflict is about, when the kind alone does not say.
+    public let detail: String?
 
     public init(
         kind: ScheduleConflictKind,
@@ -108,7 +113,8 @@ public struct ScheduleConflict: HashableResult {
         second: ScheduleEventReference,
         gap_minutes: Int,
         required_minutes: Int?,
-        travel: TravelEstimate?
+        travel: TravelEstimate?,
+        detail: String? = nil
     ) {
         self.kind = kind
         self.participant = participant
@@ -117,6 +123,7 @@ public struct ScheduleConflict: HashableResult {
         self.gap_minutes = gap_minutes
         self.required_minutes = required_minutes
         self.travel = travel
+        self.detail = detail
     }
 }
 
@@ -142,6 +149,8 @@ public enum SlotConstraintKind:
     case reserved
     /// Not inside an offered slot while placement requires one.
     case not_offered
+    /// Splits a shared trip without escalation.
+    case split_travel
 }
 
 /// Where a candidate sits relative to offered and reserved time.
@@ -181,6 +190,8 @@ public enum SlotScoreTermKind:
     /// Travel the placement adds to a participant's day; nearby scores
     /// higher.
     case added_travel
+    /// Whether the placement keeps shared trips together.
+    case shared_travel
 }
 
 @JSONSchema

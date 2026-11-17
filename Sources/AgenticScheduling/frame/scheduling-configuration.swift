@@ -145,7 +145,8 @@ public struct SchedulingConfiguration: Sendable {
             overrun: try field("\(at).defaultOverrunMinutes") {
                 try ScheduleMinutes.parse(settings?.defaultOverrunMinutes, default: .zero)
             },
-            preferredHours: try settings?.preferredHours.map { try range($0, at: "\(at).preferredHours") }
+            preferredHours: try settings?.preferredHours.map { try range($0, at: "\(at).preferredHours") },
+            splitTravel: settings?.splitTravel ?? .avoid
         )
     }
 
@@ -158,7 +159,9 @@ public struct SchedulingConfiguration: Sendable {
             identifier: spec.identifier,
             role: spec.role ?? .commitments,
             allDayRole: spec.allDayRole,
-            overrun: try field("\(path).overrunMinutes") { try ScheduleMinutes.parse(spec.overrunMinutes, default: .zero) }
+            overrun: try field("\(path).overrunMinutes") { try ScheduleMinutes.parse(spec.overrunMinutes, default: .zero) },
+            offerTitles: (spec.offerTitles ?? []).filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty },
+            sharedTravel: spec.sharedTravel ?? false
         )
     }
 
