@@ -164,3 +164,29 @@ private func requireFirst<Element>(_ elements: [Element]) throws -> Element {
     }
     return first
 }
+
+enum SchedulingAgendaTests {
+    static func run() async throws {
+        let result = try await Scheduling.Tools.Agenda().call(
+            .init(window_start: TeamFixture.wednesday.start, window_end: TeamFixture.thursday.end),
+            in: try SchedulingFixture.context(TeamFixture.runtime())
+        )
+        try Expect.equal(result.participants.map(\.participant), ["trainer_a", "trainer_b"], "Everyone by default")
+
+        let trainer = result.participants[0]
+        try Expect.equal(
+            trainer.entries.map(\.title),
+            ["Cancelled: Jansen", "Concept", "Session: de Vries", "Duo: Bakker", "Concept", "Internal day", "Session: Visser"],
+            "Every owned event in time order"
+        )
+        try Expect.equal(
+            trainer.entries.map(\.reading),
+            [.record, .offer, .blocking, .blocking, .offer, .reserved, .blocking],
+            "Each read through its calendar's role"
+        )
+        try Expect.true(
+            result.information_gaps.contains { $0.contains("trainer_a") && $0.contains("no location") },
+            "Sessions without a location are flagged"
+        )
+    }
+}

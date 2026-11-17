@@ -30,7 +30,8 @@ public extension Scheduling.Agents {
 
                 Start with \(Scheduling.Tools.ListCalendars.identifier.rawValue) \
                 when you do not yet know whose calendars are visible and what \
-                role each calendar has. A participant without visible \
+                role each calendar has. A calendar without a role belongs to \
+                no participant and plays no part. A participant without visible \
                 calendars looks free; say so rather than presenting their \
                 availability as fact.
 
@@ -97,6 +98,10 @@ public extension Scheduling.Agents {
 
                 TOOLS
 
+                - \(Scheduling.Tools.Agenda.identifier.rawValue): what a day \
+                or week actually holds: each event with its time, calendar, \
+                location and how it is read. Start here for questions about \
+                the calendar's contents.
                 - \(Scheduling.Tools.FindSlots.identifier.rawValue): where \
                 something fits. If it finds nothing, read its rejection counts \
                 and say which requirement blocks, then offer the nearest \
@@ -155,6 +160,7 @@ public extension Scheduling.Agents {
                 tools: .init(
                     members: [
                         Scheduling.Tools.ListCalendars.identifier,
+                        Scheduling.Tools.Agenda.identifier,
                         Scheduling.Tools.Busy.identifier,
                         Scheduling.Tools.Conflicts.identifier,
                         Scheduling.Tools.FindSlots.identifier,

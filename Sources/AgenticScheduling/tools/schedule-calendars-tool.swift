@@ -14,8 +14,9 @@ public extension Scheduling.Tools {
         public struct CalendarSummary: HashableResult {
             public let identifier: String
             public let title: String
-            /// How the calendar's events are read.
-            public let role: CalendarRole
+            /// How the calendar's events are read. Absent when no participant
+            /// uses the calendar: then it plays no part in scheduling.
+            public let role: CalendarRole?
             /// How its all-day events are read, when that differs.
             public let all_day_role: CalendarRole?
             /// Usual overrun of its appointments, in minutes.
@@ -91,15 +92,16 @@ public extension Scheduling.Tools {
                     authorization: authorization,
                     calendars: calendars.map { calendar in
                         let policy = runtime.policy(for: calendar)
+                        let owners = runtime.participants
+                            .filter { $0.calendars.isEmpty || $0.calendars.contains { $0.matches(calendar) } }
+                            .map(\.identifier)
                         return .init(
                             identifier: calendar.identifier,
                             title: calendar.title,
-                            role: policy.role,
-                            all_day_role: policy.allDayRole,
+                            role: owners.isEmpty ? nil : policy.role,
+                            all_day_role: owners.isEmpty ? nil : policy.allDayRole,
                             overrun_minutes: policy.overrun.raw,
-                            participants: runtime.participants
-                                .filter { $0.calendars.isEmpty || $0.calendars.contains { $0.matches(calendar) } }
-                                .map(\.identifier)
+                            participants: owners
                         )
                     }
                 ))

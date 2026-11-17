@@ -105,6 +105,9 @@ enum AgenticSchedulingTestSuite {
         Test("reserved-hours-open-by-slot-or-escalation") {
             try await SchedulingReservedHoursTests.run()
         }
+        Test("agenda-lists-events-as-read") {
+            try await SchedulingAgendaTests.run()
+        }
         Test("propose-reevaluates-every-option") {
             try await SchedulingPresentationTests.reevaluates()
         }
