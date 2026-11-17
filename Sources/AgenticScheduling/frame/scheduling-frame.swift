@@ -31,6 +31,7 @@ public enum SchedulingFrame {
         public let title: String
         public let identifier: String?
         public let role: CalendarRole?
+        public let allDayRole: CalendarRole?
         public let overrunMinutes: Int?
     }
 
@@ -94,6 +95,7 @@ extension SchedulingFrame.Calendar: FrameDescribable {
                 .reserved: "Held-back time such as internal days. Blocks, whatever an event's availability, unless a request escalates.",
                 .records: "History or notes such as cancellations. Ignored.",
             ]), summary: "How the calendar's events are read."),
+            .init("allDayRole", .members(of: CalendarRole.self), summary: "How its all-day events are read, when that differs from role: for example timed meetings as commitments and all-day office days as reserved."),
             .init("overrunMinutes", .integer, summary: "How far its appointments usually run past their end. A soft margin, never an exclusion."),
         ], summary: "A calendar and how scheduling reads it.")
     }

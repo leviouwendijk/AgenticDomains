@@ -96,6 +96,9 @@ enum AgenticSchedulingTestSuite {
         Test("tools-report-configuration-state") {
             try await SchedulingFrameTests.reportsConfigurationState()
         }
+        Test("all-day-role-reads-office-days-apart-from-meetings") {
+            try await SchedulingAllDayRoleTests.run()
+        }
         Test("propose-reevaluates-every-option") {
             try await SchedulingPresentationTests.reevaluates()
         }

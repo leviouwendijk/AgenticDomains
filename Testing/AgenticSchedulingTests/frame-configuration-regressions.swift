@@ -124,3 +124,62 @@ enum SchedulingFrameTests {
         try Expect.true(false, "Tool must fail without a runtime")
     }
 }
+
+enum SchedulingAllDayRoleTests {
+    static let source = """
+    import Scheduling;
+
+    let internal: Calendar = .{ .title = "Internal", .role = .commitments, .allDayRole = .reserved };
+    let sessions: Calendar = .{ .title = "Sessions" };
+
+    let trainer: Participant = .{ .calendars = [sessions, internal] };
+
+    let scheduling: SchedulingSettings = .{ .timeZone = "Europe/Amsterdam" };
+    """
+
+    static let events: [ScheduledEvent] = [
+        SchedulingFixture.event("Office day", "2026-11-30T00:00:00+01:00", "2026-12-01T00:00:00+01:00", calendar: "Internal", availability: .free, allDay: true),
+        SchedulingFixture.event("Team meeting", "2026-12-01T10:00:00+01:00", "2026-12-01T11:00:00+01:00", calendar: "Internal"),
+    ]
+
+    static func run() async throws {
+        let runtime = try SchedulingConfiguration(source: source)
+            .runtime(sources: [FixtureCalendarSource(entries: events)])
+        let context = try SchedulingFixture.context(runtime)
+
+        let officeDay = try await Scheduling.Tools.FindSlots().call(
+            .init(
+                window_start: "2026-11-30T00:00:00+01:00",
+                window_end: "2026-12-01T00:00:00+01:00",
+                requirements: .init(duration_minutes: 60),
+                step_minutes: 60
+            ),
+            in: context
+        )
+        try Expect.equal(officeDay.candidates.count, 0, "An all-day office day is reserved although marked free")
+        try Expect.equal(officeDay.reserved_only_rejections, 8, "Every working hour opens by escalation")
+
+        let meeting = try await Scheduling.Tools.Evaluate().call(
+            .init(start: "2026-12-01T10:00:00+01:00", requirements: .init(duration_minutes: 60, allow_reserved: true)),
+            in: context
+        )
+        try Expect.equal(meeting.violations.map(\.constraint), [.busy], "A timed meeting blocks, even with escalation")
+
+        let calendars = try await Scheduling.Tools.ListCalendars().call(.init(), in: context)
+        let office = try calendarNamed("Internal", in: calendars)
+        try Expect.equal(office.role, .commitments, "Timed events are commitments")
+        try Expect.equal(office.all_day_role, .reserved, "All-day events are reserved")
+    }
+
+    private struct MissingCalendar: Error {}
+
+    private static func calendarNamed(
+        _ title: String,
+        in output: Scheduling.Tools.ListCalendars.Output
+    ) throws -> Scheduling.Tools.ListCalendars.CalendarSummary {
+        guard let calendar = output.sources.flatMap(\.calendars).first(where: { $0.title == title }) else {
+            throw MissingCalendar()
+        }
+        return calendar
+    }
+}

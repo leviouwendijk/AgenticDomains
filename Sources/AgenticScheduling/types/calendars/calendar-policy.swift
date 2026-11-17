@@ -35,6 +35,9 @@ public struct CalendarPolicy: Sendable, Hashable {
     /// match, so renaming the calendar does not break it.
     public let identifier: String?
     public let role: CalendarRole
+    /// How all-day events are read when that differs from `role`, as when
+    /// a calendar holds timed meetings and all-day office days.
+    public let allDayRole: CalendarRole?
     /// How far appointments in this calendar typically run past their
     /// nominal end. A soft margin: it lowers scores and raises warnings,
     /// it never excludes a slot.
@@ -44,12 +47,19 @@ public struct CalendarPolicy: Sendable, Hashable {
         _ title: String,
         identifier: String? = nil,
         role: CalendarRole = .commitments,
+        allDayRole: CalendarRole? = nil,
         overrun: ScheduleMinutes = .zero
     ) {
         self.title = title
         self.identifier = identifier
         self.role = role
+        self.allDayRole = allDayRole
         self.overrun = overrun
+    }
+
+    /// How this event in the calendar is read.
+    public func role(of event: ScheduledEvent) -> CalendarRole {
+        event.isAllDay ? (allDayRole ?? role) : role
     }
 
     public func matches(_ calendar: CalendarReference) -> Bool {

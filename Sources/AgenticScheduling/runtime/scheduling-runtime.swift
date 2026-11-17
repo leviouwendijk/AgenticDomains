@@ -137,7 +137,7 @@ public extension Scheduling {
         /// Whether any calendar the participant owns offers slots.
         public func offersSlots(_ participant: SchedulingParticipant) -> Bool {
             (participant.calendars.isEmpty ? calendars : participant.calendars)
-                .contains { $0.role == .offers }
+                .contains { $0.role == .offers || $0.allDayRole == .offers }
         }
 
         /// Each participant's events overlapping `interval`.
@@ -182,9 +182,12 @@ public struct ParticipantTimeline: Sendable {
     ) {
         let sorted = events.sorted { $0.event.interval.start < $1.event.interval.start }
         self.participant = participant
-        self.blocking = sorted.filter { $0.policy.role == .commitments && $0.event.blocks }.map(\.event)
-        self.reserved = sorted.filter { $0.policy.role == .reserved }.map(\.event)
-        self.offers = sorted.filter { $0.policy.role == .offers }.map(\.event)
+        func role(_ entry: (event: ScheduledEvent, policy: CalendarPolicy)) -> CalendarRole {
+            entry.policy.role(of: entry.event)
+        }
+        self.blocking = sorted.filter { role($0) == .commitments && $0.event.blocks }.map(\.event)
+        self.reserved = sorted.filter { role($0) == .reserved }.map(\.event)
+        self.offers = sorted.filter { role($0) == .offers }.map(\.event)
         self.busy = ScheduleInterval.merged(blocking.map(\.interval))
         self.offersSlots = offersSlots
         self.overruns = Dictionary(

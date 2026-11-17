@@ -141,6 +141,7 @@ public struct SchedulingConfiguration: Sendable {
             spec.title,
             identifier: spec.identifier,
             role: spec.role ?? .commitments,
+            allDayRole: spec.allDayRole,
             overrun: try field("\(path).overrunMinutes") { try ScheduleMinutes.parse(spec.overrunMinutes, default: .zero) }
         )
     }
@@ -174,6 +175,6 @@ public struct SchedulingConfiguration: Sendable {
     }
 
     private static func describe(_ policy: CalendarPolicy) -> String {
-        "\(policy.role.rawValue), overrun \(policy.overrun.raw) min" + (policy.identifier.map { ", identifier \($0)" } ?? "")
+        "\(policy.role.rawValue)" + (policy.allDayRole.map { ", all-day \($0.rawValue)" } ?? "") + ", overrun \(policy.overrun.raw) min" + (policy.identifier.map { ", identifier \($0)" } ?? "")
     }
 }

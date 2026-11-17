@@ -16,6 +16,8 @@ public extension Scheduling.Tools {
             public let title: String
             /// How the calendar's events are read.
             public let role: CalendarRole
+            /// How its all-day events are read, when that differs.
+            public let all_day_role: CalendarRole?
             /// Usual overrun of its appointments, in minutes.
             public let overrun_minutes: Int
             /// Participants whose time this calendar represents.
@@ -90,6 +92,7 @@ public extension Scheduling.Tools {
                             identifier: calendar.identifier,
                             title: calendar.title,
                             role: policy.role,
+                            all_day_role: policy.allDayRole,
                             overrun_minutes: policy.overrun.raw,
                             participants: runtime.participants
                                 .filter { $0.calendars.isEmpty || $0.calendars.contains { $0.matches(calendar) } }
