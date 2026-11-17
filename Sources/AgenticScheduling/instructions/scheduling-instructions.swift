@@ -37,6 +37,30 @@ public extension Scheduling.Instructions {
     }
 
     @Instruction
+    enum RequestEssentials: Instruction {
+        public static let content = """
+        WHAT A PLACEMENT NEEDS
+
+        Before searching for new appointments, establish:
+        - what kind of appointment it is, which sets its length;
+        - who must attend, and for a team, how many of them and whom;
+        - where it takes place, unless it needs no travel;
+        - how many appointments, and with what spacing for a series;
+        - how far ahead to look, and any limits the client has.
+
+        First derive what you can: the team's brief, the configured
+        defaults, and the calendar itself (an existing client's earlier
+        appointments give their address and usual attendees). Then, if
+        anything that changes the answer is still unknown, ask with
+        \(Standard.Tools.ClarifyWithUser.identifier.rawValue): one question
+        that covers every missing point, each with the value you would
+        assume, so the user can confirm or correct it in one reply. Do not
+        ask about what a default or the calendar already settles, and do
+        not search on a guess for something that changes the answer.
+        """
+    }
+
+    @Instruction
     enum DefaultReview: Instruction {
         public static let content = """
         DEFAULT REVIEW

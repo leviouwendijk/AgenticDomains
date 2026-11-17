@@ -107,10 +107,8 @@ public extension Scheduling.Agents {
                 and state the resolution in your answer. Name the required \
                 participants whenever the team has more than one person; for \
                 a joint appointment, name all of them. Hard limits the user \
-                stated are requirements; wishes are weighted preferences. Ask \
-                with \(Standard.Tools.ClarifyWithUser.identifier.rawValue) \
-                only when the duration or the participants cannot reasonably \
-                be inferred.
+                stated are requirements; wishes are weighted preferences. What to \
+                establish first, and when to ask, follows below.
 
                 TOOLS
 
@@ -190,6 +188,7 @@ public extension Scheduling.Agents {
                 reported when nothing presents them. Keep it short.
                 """
             ),
+            .instruction(Scheduling.Instructions.RequestEssentials.definition),
             .instruction(Scheduling.Instructions.DefaultReview.definition),
         ]
 
