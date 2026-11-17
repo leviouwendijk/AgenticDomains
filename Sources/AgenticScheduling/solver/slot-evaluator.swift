@@ -215,15 +215,16 @@ struct SlotEvaluator: Sendable {
                 }
             }
 
-            let reservations = timeline.reserved(overlapping: slot)
-            if !reservations.isEmpty {
+            // An offered slot is a decision to open reserved time.
+            let reservations = Self.reservations(slot, in: timeline)
+            if !reservations.isEmpty, !timeline.isOffered(slot) {
                 if requirements.allowReserved {
                     opensReserved = true
                 } else {
                     violations.append(.init(
                         constraint: .reserved,
                         participant: participant.identifier,
-                        detail: "Reserved: \(Self.titles(reservations))."
+                        detail: "Reserved: \(reservations.joined(separator: ", "))."
                     ))
                 }
             }
@@ -322,6 +323,14 @@ struct SlotEvaluator: Sendable {
         let from = zone.minutes(of: slot.start, since: slot.start)
         let to = zone.minutes(of: slot.end, since: slot.start)
         return ranges.contains { from >= $0.from.minuteOfDay && to <= $0.to.minuteOfDay }
+    }
+
+    /// Reserved events and reserved hours the slot overlaps, described.
+    static func reservations(_ slot: ScheduleInterval, in timeline: ParticipantTimeline) -> [String] {
+        timeline.reserved(overlapping: slot).map(\.title)
+            + timeline.participant.reservedHours(overlapping: slot).map {
+                "reserved hours (\($0.day.rawValue) \($0.range.from.raw)-\($0.range.to.raw))"
+            }
     }
 
     private static func titles(_ events: [ScheduledEvent]) -> String {
@@ -504,7 +513,7 @@ struct SlotEvaluator: Sendable {
         var unavailable: [String] = []
         for timeline in optional {
             let free = !timeline.isBusy(during: slot)
-                && timeline.reserved(overlapping: slot).isEmpty
+                && (Self.reservations(slot, in: timeline).isEmpty || timeline.isOffered(slot))
                 && (!requirements.workingHoursOnly || Self.withinWorkingHours(slot, timeline.participant))
             if free {
                 available.append(timeline.participant.identifier)

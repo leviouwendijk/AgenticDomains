@@ -71,7 +71,7 @@ actor TravelOracle {
     }
 }
 
-extension ScheduleTimeZone {
+public extension ScheduleTimeZone {
     func sameDay(_ lhs: Date, _ rhs: Date) -> Bool {
         calendar.isDate(lhs, inSameDayAs: rhs)
     }

@@ -102,6 +102,9 @@ enum AgenticSchedulingTestSuite {
         Test("added-travel-prefers-nearby-placements") {
             try await SchedulingTravelPreferenceTests.run()
         }
+        Test("reserved-hours-open-by-slot-or-escalation") {
+            try await SchedulingReservedHoursTests.run()
+        }
         Test("propose-reevaluates-every-option") {
             try await SchedulingPresentationTests.reevaluates()
         }

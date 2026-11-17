@@ -80,7 +80,9 @@ public struct SchedulingConfiguration: Sendable {
                 home: spec.home.flatMap { text in
                     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
                     return trimmed.isEmpty ? nil : trimmed
-                }
+                },
+                reservedHours: try spec.reservedHours.map { try Self.workingHours($0, at: "\(binding.name).reservedHours") }
+                    ?? .init([:])
             ))
         }
         self.participants = participants

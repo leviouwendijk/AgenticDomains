@@ -255,3 +255,56 @@ enum SchedulingTravelPreferenceTests {
         )
     }
 }
+
+enum SchedulingReservedHoursTests {
+    static let source = """
+    import Scheduling;
+
+    let sessions: Calendar = .{ .title = "Sessions" };
+    let slots: Calendar = .{ .title = "Slots", .role = .offers };
+
+    let trainer: Participant = .{
+        .workingHours = .{ .tuesday = ["10:00-21:00"], .saturday = ["10:00-21:00"] },
+        .reservedHours = .{ .tuesday = ["10:00-21:00"] },
+        .calendars = [sessions, slots],
+    };
+
+    let scheduling: SchedulingSettings = .{
+        .timeZone = "Europe/Amsterdam",
+        .defaultDurationMinutes = 90,
+    };
+    """
+
+    static let events: [ScheduledEvent] = [
+        SchedulingFixture.event("Concept", "2026-12-08T14:00:00+01:00", "2026-12-08T15:30:00+01:00", calendar: "Slots", availability: .free),
+    ]
+
+    static func run() async throws {
+        let runtime = try SchedulingConfiguration(source: source)
+            .runtime(sources: [FixtureCalendarSource(entries: events)])
+        let context = try SchedulingFixture.context(runtime)
+
+        func evaluate(_ start: String, escalate: Bool? = nil) async throws -> Scheduling.Tools.Evaluate.Output {
+            try await Scheduling.Tools.Evaluate().call(
+                .init(start: start, requirements: .init(allow_reserved: escalate)),
+                in: context
+            )
+        }
+
+        let devDay = try await evaluate("2026-12-08T11:00:00+01:00")
+        try Expect.equal(devDay.violations.map(\.constraint), [.reserved], "Tuesday is held back by default")
+        try Expect.true(devDay.violations.first?.detail.contains("tuesday 10:00-21:00") ?? false, "Names the reserved hours")
+
+        let slotted = try await evaluate("2026-12-08T14:00:00+01:00")
+        try Expect.true(slotted.feasible, "A concept slot opens reserved hours")
+        try Expect.equal(slotted.placement, .offered, "Booked into the slot")
+
+        let escalated = try await evaluate("2026-12-08T11:00:00+01:00", escalate: true)
+        try Expect.true(escalated.feasible, "Escalation opens reserved hours")
+        try Expect.equal(escalated.placement, .reserved, "Marked as an escalation")
+
+        let weekend = try await evaluate("2026-12-12T11:00:00+01:00")
+        try Expect.true(weekend.feasible, "Saturday is open")
+        try Expect.equal(weekend.placement, .open, "Nothing offered on Saturday")
+    }
+}

@@ -15,6 +15,9 @@ public struct SchedulingParticipant: Sendable, Hashable {
     /// text (an address or a known place). Travel from and to it counts
     /// towards a placement's added travel, never as a hard limit.
     public let home: String?
+    /// Time held back by default each week, such as an office day or
+    /// development days. Opened by escalation, or by an offered slot.
+    public let reservedHours: WorkingHours
 
     public init(
         identifier: String,
@@ -22,7 +25,8 @@ public struct SchedulingParticipant: Sendable, Hashable {
         timeZone: ScheduleTimeZone,
         workingHours: WorkingHours = .weekdays,
         calendars: [CalendarPolicy] = [],
-        home: String? = nil
+        home: String? = nil,
+        reservedHours: WorkingHours = .init([:])
     ) {
         self.identifier = identifier
         self.name = name
@@ -30,6 +34,17 @@ public struct SchedulingParticipant: Sendable, Hashable {
         self.workingHours = workingHours
         self.calendars = calendars
         self.home = home
+        self.reservedHours = reservedHours
+    }
+
+    /// The reserved-hours ranges the interval overlaps, on its start day.
+    public func reservedHours(overlapping slot: ScheduleInterval) -> [(day: ScheduleWeekday, range: ClockRange)] {
+        let day = ScheduleWeekday.of(slot.start, in: timeZone)
+        let from = timeZone.minutes(of: slot.start, since: slot.start)
+        let to = timeZone.minutes(of: slot.end, since: slot.start)
+        return reservedHours.ranges(on: day)
+            .filter { from < $0.to.minuteOfDay && to > $0.from.minuteOfDay }
+            .map { (day, $0) }
     }
 
     public func owns(_ event: ScheduledEvent) -> Bool {

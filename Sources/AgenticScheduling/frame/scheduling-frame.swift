@@ -65,6 +65,7 @@ public enum SchedulingFrame {
         public let workingHours: WorkingWeek?
         public let calendars: [Calendar]?
         public let home: String?
+        public let reservedHours: WorkingWeek?
     }
 
     public struct Place: Sendable, Hashable, Decodable {
@@ -123,6 +124,7 @@ extension SchedulingFrame.Participant: FrameDescribable {
             .init("workingHours", .of(SchedulingFrame.WorkingWeek.self), summary: "Monday to Friday 09:00-17:00 when absent."),
             .init("calendars", .array(.of(SchedulingFrame.Calendar.self)), summary: "Calendars that represent this person's time, shared ones included. Empty or absent means every calendar."),
             .init("home", .string, summary: "Where the day usually starts and ends: an address, or a Place's name or alias. Travel from and to it counts towards added travel, never as a hard limit."),
+            .init("reservedHours", .of(SchedulingFrame.WorkingWeek.self), summary: "Time held back by default each week, such as an office day or development days. Opened by escalation, or by an offered slot placed inside it."),
         ], summary: "Someone whose time scheduling reasons about, identified by the binding name. The first declared is the default.")
     }
 }

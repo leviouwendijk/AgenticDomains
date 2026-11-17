@@ -60,6 +60,11 @@ public extension Scheduling.Agents {
                 the offer is removed and the appointment added to the right \
                 \(CalendarRole.commitments.rawValue) calendar. Say which offer a proposal uses.
 
+                Reserved time is reserved calendar events plus each \
+                participant's reserved hours per weekday (such as an office \
+                day or development days). An offered slot placed inside \
+                reserved time opens it: booking there needs no escalation.
+
                 Reserved time is an escalation. Search without it first. Only \
                 when nothing suitable fits, or the user asks, search again \
                 allowing reserved time, and present such candidates as \

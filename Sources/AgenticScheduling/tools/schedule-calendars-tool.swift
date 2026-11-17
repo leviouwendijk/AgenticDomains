@@ -40,6 +40,9 @@ public extension Scheduling.Tools {
             public let calendars: [String]
             /// Working hours per weekday, such as `monday 09:00-17:00`.
             public let working_hours: [String]
+            /// Hours held back by default per weekday.
+            public let reserved_hours: [String]
+            public let home: String?
         }
 
         @JSONSchema
@@ -119,13 +122,19 @@ public extension Scheduling.Tools {
                         name: participant.name,
                         time_zone: participant.timeZone.raw,
                         calendars: participant.calendars.map(\.label),
-                        working_hours: ScheduleWeekday.allCases.flatMap { day in
-                            participant.workingHours.ranges(on: day).map { "\(day.rawValue) \($0.from.raw)-\($0.to.raw)" }
-                        }
+                        working_hours: Self.week(participant.workingHours),
+                        reserved_hours: Self.week(participant.reservedHours),
+                        home: participant.home
                     )
                 },
                 information_gaps: gaps
             )
+        }
+
+        private static func week(_ hours: WorkingHours) -> [String] {
+            ScheduleWeekday.allCases.flatMap { day in
+                hours.ranges(on: day).map { "\(day.rawValue) \($0.from.raw)-\($0.to.raw)" }
+            }
         }
     }
 }
