@@ -18,6 +18,7 @@ public extension Scheduling.Agents {
 
         public static let instructions: AgentInstructions = [
             .instruction(Scheduling.Instructions.CurrentDate.definition),
+            .instruction(Scheduling.Instructions.TeamContext.definition),
             .text(
                 """
                 You help the user and their team schedule. The user may be \
@@ -210,6 +211,7 @@ public extension Scheduling.Agents {
             visible: .init(
                 tools: .init(
                     members: [
+                        Scheduling.Tools.Context.identifier,
                         Scheduling.Tools.ListCalendars.identifier,
                         Scheduling.Tools.Agenda.identifier,
                         Scheduling.Tools.Busy.identifier,

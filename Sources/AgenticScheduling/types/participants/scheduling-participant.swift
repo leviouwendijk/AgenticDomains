@@ -18,6 +18,8 @@ public struct SchedulingParticipant: Sendable, Hashable {
     /// Time held back by default each week, such as an office day or
     /// development days. Opened by escalation, or by an offered slot.
     public let reservedHours: WorkingHours
+    /// What this person does, in the team's own words.
+    public let about: String?
 
     public init(
         identifier: String,
@@ -26,7 +28,8 @@ public struct SchedulingParticipant: Sendable, Hashable {
         workingHours: WorkingHours = .weekdays,
         calendars: [CalendarPolicy] = [],
         home: String? = nil,
-        reservedHours: WorkingHours = .init([:])
+        reservedHours: WorkingHours = .init([:]),
+        about: String? = nil
     ) {
         self.identifier = identifier
         self.name = name
@@ -35,6 +38,7 @@ public struct SchedulingParticipant: Sendable, Hashable {
         self.calendars = calendars
         self.home = home
         self.reservedHours = reservedHours
+        self.about = about
     }
 
     /// The reserved-hours ranges the interval overlaps, on its start day.

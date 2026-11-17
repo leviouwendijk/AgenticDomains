@@ -68,6 +68,7 @@ public enum SchedulingFrame {
         public let calendars: [Calendar]?
         public let home: String?
         public let reservedHours: WorkingWeek?
+        public let about: String?
     }
 
     public struct Place: Sendable, Hashable, Decodable {
@@ -87,6 +88,7 @@ public enum SchedulingFrame {
         public let defaultOverrunMinutes: Int?
         public let preferredHours: String?
         public let splitTravel: SplitTravelPolicy?
+        public let context: String?
         /// Calendars configured without belonging to a participant.
         public let calendars: [Calendar]?
     }
@@ -129,6 +131,7 @@ extension SchedulingFrame.Participant: FrameDescribable {
             .init("workingHours", .of(SchedulingFrame.WorkingWeek.self), summary: "Monday to Friday 09:00-17:00 when absent."),
             .init("calendars", .array(.of(SchedulingFrame.Calendar.self)), summary: "Calendars that represent this person's time, shared ones included. Empty or absent means every calendar."),
             .init("home", .string, summary: "Where the day usually starts and ends: an address, or a Place's name or alias. Travel from and to it counts towards added travel, never as a hard limit."),
+            .init("about", .string, summary: "What this person does, in the team's own words."),
             .init("reservedHours", .of(SchedulingFrame.WorkingWeek.self), summary: "Time held back by default each week, such as an office day or development days. Opened by escalation, or by an offered slot placed inside it."),
         ], summary: "Someone whose time scheduling reasons about, identified by the binding name. The first declared is the default.")
     }
@@ -159,6 +162,7 @@ extension SchedulingFrame.Settings: FrameDescribable {
             ]), summary: "How offered slots constrain placement."),
             .init("defaultDurationMinutes", .integer, summary: "Appointment length when a request does not say. Default 60."),
             .init("defaultOverrunMinutes", .integer, summary: "How far a new appointment may run over when a request does not say; kept free as a soft margin. Default 0."),
+            .init("context", .string, summary: "The team's brief, read by scheduling agents before they answer: who you are, how events are named, what a typical request means, and which questions come up most. A \"\"\" block string works well."),
             .init("splitTravel", .members(of: SplitTravelPolicy.self, summaries: [
                 .avoid: "A placement that splits a shared trip is excluded unless the request allows it. The default.",
                 .warn: "Splitting only lowers the score.",

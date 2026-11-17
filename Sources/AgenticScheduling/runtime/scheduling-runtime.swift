@@ -73,6 +73,9 @@ public extension Scheduling {
         public let places: any PlaceResolver
         public let travel: any TravelEstimator
         public let defaults: Defaults
+        /// The team's own brief: who they are, their conventions and the
+        /// questions they typically ask.
+        public let context: String?
 
         public init(
             sources: [any CalendarSource],
@@ -80,7 +83,8 @@ public extension Scheduling {
             calendars: [CalendarPolicy] = [],
             places: any PlaceResolver = StaticPlaceResolver(),
             travel: any TravelEstimator = StraightLineTravelEstimator(),
-            defaults: Defaults = .init()
+            defaults: Defaults = .init(),
+            context: String? = nil
         ) {
             self.sources = sources
             self.participants = participants
@@ -93,6 +97,7 @@ public extension Scheduling {
             self.places = places
             self.travel = travel
             self.defaults = defaults
+            self.context = context
         }
 
         /// Resolves names by identifier or name, ignoring case. `nil` or an

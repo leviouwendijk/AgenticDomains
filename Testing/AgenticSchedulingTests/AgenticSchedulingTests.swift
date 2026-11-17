@@ -114,6 +114,9 @@ enum AgenticSchedulingTestSuite {
         Test("shared-travel-provisional-and-records") {
             try await SchedulingSharedTravelTests.run()
         }
+        Test("context-brief-and-who-is-who") {
+            try await SchedulingContextTests.run()
+        }
         Test("propose-reevaluates-every-option") {
             try await SchedulingPresentationTests.reevaluates()
         }

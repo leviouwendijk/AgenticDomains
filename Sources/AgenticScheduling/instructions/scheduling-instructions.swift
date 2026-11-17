@@ -21,6 +21,22 @@ public extension Scheduling.Instructions {
     }
 
     @Instruction
+    enum TeamContext: Instruction {
+        public static let content = """
+        THE TEAM
+
+        At the start of a conversation, call
+        \(Scheduling.Tools.Context.identifier.rawValue) once, together with the
+        date. It gives the team's own brief: who they are, how events are
+        named, what typical requests mean, who is who and the defaults.
+        Interpret every request in its terms, so a short request is enough:
+        expand names, conventions and implied requirements from it, and say
+        which you assumed. The brief explains; the tools decide. When the
+        brief and a tool disagree about a fact, the tool wins.
+        """
+    }
+
+    @Instruction
     enum DefaultReview: Instruction {
         public static let content = """
         DEFAULT REVIEW

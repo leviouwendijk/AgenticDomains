@@ -24,6 +24,7 @@ public struct SchedulingConfiguration: Sendable {
     public let calendars: [CalendarPolicy]
     public let places: [(place: SchedulingPlace, aliases: [String])]
     public let defaults: Scheduling.Runtime.Defaults
+    public let context: String?
 
     /// Parses and reads a document's source text.
     public init(source: String, filePath: String? = nil) throws {
@@ -38,6 +39,7 @@ public struct SchedulingConfiguration: Sendable {
         }
         let defaults = try Self.defaults(settings)
         self.defaults = defaults
+        self.context = settings?.context.flatMap(Self.nonEmpty)
 
         var declared: [CalendarPolicy] = []
         func declare(_ spec: SchedulingFrame.Calendar, at field: String) throws -> CalendarPolicy {
@@ -82,7 +84,8 @@ public struct SchedulingConfiguration: Sendable {
                     return trimmed.isEmpty ? nil : trimmed
                 },
                 reservedHours: try spec.reservedHours.map { try Self.workingHours($0, at: "\(binding.name).reservedHours") }
-                    ?? .init([:])
+                    ?? .init([:]),
+                about: spec.about.flatMap(Self.nonEmpty)
             ))
         }
         self.participants = participants
@@ -116,7 +119,8 @@ public struct SchedulingConfiguration: Sendable {
             calendars: calendars,
             places: resolver.map { ChainedPlaceResolver([known, $0]) } ?? known,
             travel: travel,
-            defaults: defaults
+            defaults: defaults,
+            context: context
         )
     }
 
@@ -195,6 +199,11 @@ public struct SchedulingConfiguration: Sendable {
         } catch let failure as InvarianceFailure {
             throw Failure.invalid(field: path, reason: failure.violations.map(\.message).joined(separator: "; "))
         }
+    }
+
+    private static func nonEmpty(_ text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     private static func describe(_ policy: CalendarPolicy) -> String {

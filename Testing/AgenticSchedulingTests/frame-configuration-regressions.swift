@@ -391,3 +391,42 @@ enum SchedulingSharedTravelTests {
         try Expect.equal(agenda.participants.first?.hidden_records, 1, "And counted")
     }
 }
+
+enum SchedulingContextTests {
+    static let source = #"""
+    import Scheduling;
+
+    let sessions: Calendar = .{ .title = "Sessions", .overrunMinutes = 30 };
+    let duo: Calendar = .{ .title = "Duo", .sharedTravel = true };
+
+    let trainer: Participant = .{
+        .name = "Trainer",
+        .about = "Trains clients at home.",
+        .home = "home",
+        .calendars = [sessions, duo],
+    };
+
+    let scheduling: SchedulingSettings = .{
+        .timeZone = "Europe/Amsterdam",
+        .defaultDurationMinutes = 90,
+        .context = """
+            We train dogs at clients' homes.
+            Events are titled Client | Dog.
+            """,
+    };
+    """#
+
+    static func run() async throws {
+        let configured = try SchedulingConfiguration(source: source).runtime(sources: [])
+        let output = try await Scheduling.Tools.Context().call(.init(), in: try SchedulingFixture.context(configured))
+        try Expect.true(output.context?.contains("Client | Dog") ?? false, "The brief comes through")
+        try Expect.equal(output.participants.first?.about, "Trains clients at home.", "About each person")
+        try Expect.equal(output.participants.first?.calendars, ["Sessions (commitments)", "Duo (commitments, shared travel)"], "Calendars with their reading")
+        try Expect.equal(output.defaults.duration_minutes, 90, "Defaults")
+        try Expect.equal(output.information_gaps.count, 0, "Nothing missing")
+
+        let bare = try await Scheduling.Tools.Context().call(.init(), in: try SchedulingFixture.context())
+        try Expect.isNil(bare.context, "No brief configured")
+        try Expect.equal(bare.information_gaps.count, 1, "Its absence is reported")
+    }
+}
