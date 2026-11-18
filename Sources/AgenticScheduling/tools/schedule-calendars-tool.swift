@@ -65,13 +65,26 @@ public extension Scheduling.Tools {
         public init() {}
 
         public func call(_: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try Scheduling.runtime(in: context)
             var gaps: [String] = []
+            // Without a configuration the sources still list, so the file
+            // can be written from the real calendar names.
+            let runtime: Scheduling.Runtime?
+            let calendarSources: [any CalendarSource]
+            do {
+                let loaded = try Scheduling.runtime(in: context)
+                runtime = loaded
+                calendarSources = loaded.sources
+            } catch {
+                guard let store = try? context.require(Scheduling.ConfigurationStore.self) else { throw error }
+                runtime = nil
+                calendarSources = store.sources
+                gaps.append("\(error.localizedDescription) Calendars are listed without roles or participants.")
+            }
             var sources: [SourceSummary] = []
             var seen: [CalendarReference] = []
 
             var everySourceRead = true
-            for source in runtime.sources {
+            for source in calendarSources {
                 // Reading is what asks for access on first use, so try it
                 // unless access was already refused.
                 var calendars: [CalendarReference] = []
@@ -95,6 +108,18 @@ public extension Scheduling.Tools {
                     source: source.identifier,
                     authorization: authorization,
                     calendars: calendars.map { calendar in
+                        guard let runtime else {
+                            return .init(
+                                identifier: calendar.identifier,
+                                title: calendar.title,
+                                role: nil,
+                                all_day_role: nil,
+                                overrun_minutes: 0,
+                                shared_travel: false,
+                                offer_titles: [],
+                                participants: []
+                            )
+                        }
                         let policy = runtime.policy(for: calendar)
                         let owners = runtime.participants
                             .filter { $0.calendars.isEmpty || $0.calendars.contains { $0.matches(calendar) } }
@@ -114,8 +139,8 @@ public extension Scheduling.Tools {
             }
 
             // A missing calendar only means something once every source was read.
-            for policy in runtime.calendars where everySourceRead && !seen.contains(where: policy.matches) {
-                let owners = runtime.participants
+            for policy in runtime?.calendars ?? [] where everySourceRead && !seen.contains(where: policy.matches) {
+                let owners = (runtime?.participants ?? [])
                     .filter { $0.calendars.contains { $0.describesSameCalendar(as: policy) } }
                     .map(\.identifier)
                 let usage = owners.isEmpty ? "" : " for \(owners.joined(separator: ", "))"
@@ -124,7 +149,7 @@ public extension Scheduling.Tools {
 
             return .init(
                 sources: sources,
-                participants: runtime.participants.map { participant in
+                participants: (runtime?.participants ?? []).map { participant in
                     .init(
                         identifier: participant.identifier,
                         name: participant.name,

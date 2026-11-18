@@ -30,13 +30,19 @@ public extension Scheduling {
         }
     }
 
-    /// The session's runtime, from a directly inserted `Runtime` or a
-    /// loaded `ConfigurationState`; otherwise a failure saying why not.
+    /// The session's runtime, from a directly inserted `Runtime`, the
+    /// store's current file, or a loaded `ConfigurationState`; otherwise a
+    /// failure saying why not.
     static func runtime(in context: ToolContext) throws -> Runtime {
         if let runtime = try? context.require(Runtime.self) {
             return runtime
         }
-        guard let state = try? context.require(ConfigurationState.self) else {
+        let state: ConfigurationState
+        if let store = try? context.require(ConfigurationStore.self) {
+            state = store.state()
+        } else if let inserted = try? context.require(ConfigurationState.self) {
+            state = inserted
+        } else {
             throw ConfigurationFailure.notProvided
         }
         switch state {

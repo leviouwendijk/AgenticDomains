@@ -90,6 +90,15 @@ enum AgenticSchedulingTestSuite {
         Test("frame-configuration-reads-team") {
             try await SchedulingFrameTests.readsTeam()
         }
+        Test("calendars-list-without-configuration") {
+            try await SchedulingConfigurationStoreTests.calendarsWithoutConfiguration()
+        }
+        Test("configuration-check-reports-schema-meaning-and-calendars") {
+            try await SchedulingConfigurationStoreTests.check()
+        }
+        Test("configuration-save-archives-refuses-and-applies") {
+            try await SchedulingConfigurationStoreTests.save()
+        }
         Test("frame-configuration-reads-example") {
             try SchedulingFrameTests.readsExample()
         }

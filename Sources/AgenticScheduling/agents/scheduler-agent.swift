@@ -37,6 +37,15 @@ public extension Scheduling.Agents {
                 calendars looks free; say so rather than presenting their \
                 availability as fact.
 
+                SETUP
+
+                When scheduling is not configured, its configuration does not \
+                load, or the user asks to change who is who, calendars, \
+                working hours, places or defaults, delegate to the \
+                \(Configurator.definition.identifier.rawValue) agent with what \
+                the user wants; it writes and saves the configuration with \
+                them. Continue scheduling once it reports back.
+
                 READING CALENDARS
 
                 An event's presence is a mark, not a decision. Each calendar \
@@ -222,7 +231,8 @@ public extension Scheduling.Agents {
                         Standard.Tools.CreateReport.identifier,
                         Standard.Tools.CurrentDatetime.identifier,
                     ]
-                )
+                ),
+                agents: setup
             ),
             visible: .init(
                 tools: .init(
@@ -246,8 +256,25 @@ public extension Scheduling.Agents {
                         Standard.Tools.ClarifyWithUser.identifier,
                         Standard.Tools.InspectCapability.identifier,
                     ]
-                )
+                ),
+                agents: setup
             )
+        )
+
+        public static let delegation = AgentDelegationPolicy.bounded(
+            allowedAgents: setup,
+            limits: .init(
+                depth: 1,
+                children: 1,
+                descendants: 1,
+                concurrentChildren: 1
+            )
+        )
+
+        private static let setup = AgentCapabilitySelection<AgentIdentifier>(
+            members: [
+                Configurator.definition.identifier,
+            ]
         )
 
         // The model serving `.planner` is bound by the application.
