@@ -8,31 +8,55 @@ import SMTP
 
 public extension Email {
     /// Loaded accounts plus how to reach their servers.
+    /// Limits a session to a named access profile from the mail configuration.
+    /// Insert it into the session's tool services; without one, access is unrestricted.
+    struct Scope: Sendable, Hashable {
+        public let profile: String
+
+        public init(
+            _ profile: String
+        ) {
+            self.profile = profile
+        }
+    }
+
+    /// Loaded accounts, the session's access profile, and how to reach the servers.
     struct Runtime: Sendable {
         public let accounts: MailAccounts
+        public let access: MailAccess
         public let connector: MailConnector
 
         public init(
             accounts: MailAccounts,
+            access: MailAccess = .unrestricted,
             connector: @escaping MailConnector = MailServerConfiguration.networkConnector
         ) {
             self.accounts = accounts
+            self.access = access
             self.connector = connector
         }
 
-        /// `identifier`'s account, or the default when nil.
+        /// The same accounts under another profile.
+        public func limited(
+            to access: MailAccess
+        ) -> Runtime {
+            Runtime(accounts: accounts, access: access, connector: connector)
+        }
+
+        /// `identifier`'s account, or the first the profile can see when nil.
         public func account(
             _ identifier: String?
         ) throws -> MailAccounts.Account {
-            let known = accounts.accounts.map(\.identifier)
+            let visible = access.visibleAccounts(in: accounts)
             guard let identifier = identifier.flatMap(Email.nonEmpty) else {
-                guard let account = accounts.defaultAccount else {
+                guard let account = visible.first else {
                     throw Failure.noAccounts
                 }
                 return account
             }
+            try access.check(account: identifier)
             guard let account = accounts.account(named: identifier) else {
-                throw Failure.unknownAccount(identifier, known: known)
+                throw Failure.unknownAccount(identifier, known: visible.map(\.identifier))
             }
             return account
         }
@@ -108,17 +132,22 @@ public extension Email {
 
     /// The session's runtime: inserted directly, or from the configuration
     /// store in the services; otherwise the library's default store, which
-    /// reads `~/.config/mail/*.frame` and reloads when a file changes.
+    /// reads `~/.config/mail/*.frame` and reloads when a file changes. An
+    /// inserted `Scope` limits it to that access profile.
     static func runtime(
         in context: ToolContext
     ) throws -> Runtime {
+        let scope = try? context.require(Scope.self)
         if let runtime = try? context.require(Runtime.self) {
-            return runtime
+            guard let scope else {
+                return runtime
+            }
+            return runtime.limited(to: try runtime.accounts.access(named: scope.profile))
         }
         let store = (try? context.require(MailConfigurationStore.self)) ?? .standard
         switch store.state() {
         case .loaded(let accounts):
-            return Runtime(accounts: accounts)
+            return Runtime(accounts: accounts, access: try accounts.access(named: scope?.profile))
         case .missing(let directory):
             throw Failure.missing(expected: directory)
         case .invalid(let file, let message):

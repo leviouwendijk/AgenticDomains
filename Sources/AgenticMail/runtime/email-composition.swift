@@ -62,8 +62,9 @@ public extension Email {
         _ input: Composition,
         with runtime: Runtime
     ) async throws -> Composed {
+        try runtime.access.checkDrafting()
         let account = try runtime.account(input.account)
-        let identity = try self.identity(input.from, in: account)
+        let identity = try self.identity(input.from, in: account, access: runtime.access)
 
         var to = try addresses(input.to)
         var subject = input.subject.flatMap(nonEmpty)
@@ -71,6 +72,7 @@ public extension Email {
 
         if let uid = input.reply_to_uid {
             let mailbox = input.reply_mailbox.flatMap(nonEmpty) ?? "INBOX"
+            try runtime.access.check(mailbox: mailbox)
             let original = try await runtime.imap(account).session { session in
                 try await session.select(mailbox)
                 return try await session.message(IMAPUID(UInt32(clamping: uid)))
@@ -105,17 +107,24 @@ public extension Email {
         return Composed(account: account, identity: identity, message: message)
     }
 
+    /// `address`'s identity, or the first the profile allows when nil.
     static func identity(
         _ address: String?,
-        in account: MailAccounts.Account
+        in account: MailAccounts.Account,
+        access: MailAccess
     ) throws -> MailIdentity {
+        let allowed = access.identities(of: account)
         guard let address = address.flatMap(nonEmpty) else {
-            return account.defaultIdentity
+            guard let identity = allowed.first else {
+                throw MailAccess.Failure.identity(account.defaultIdentity.address.address.raw, profile: access.name)
+            }
+            return identity
         }
-        guard let identity = account.identities.first(where: {
+        try access.check(identity: address)
+        guard let identity = allowed.first(where: {
             $0.address.address.raw.caseInsensitiveCompare(address) == .orderedSame
         }) else {
-            throw Failure.unknownIdentity(address, account: account.identifier, known: account.identities.map(\.address.address.raw))
+            throw Failure.unknownIdentity(address, account: account.identifier, known: allowed.map(\.address.address.raw))
         }
         return identity
     }

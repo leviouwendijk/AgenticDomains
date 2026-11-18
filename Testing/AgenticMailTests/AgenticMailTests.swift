@@ -57,6 +57,9 @@ enum AgenticMailTestSuite {
         Test("gmail-query-refused-on-other-servers") {
             try await EmailTests.gmailElsewhere()
         }
+        Test("access-profile-limits-every-tool") {
+            try await EmailTests.scoped()
+        }
         Test("unconfigured-mail-says-why") {
             try await EmailTests.unconfigured()
         }
@@ -177,6 +180,61 @@ enum EmailTests {
             try Expect.equal(capability, "X-GM-EXT-1", "Says Gmail is required")
         }
         try Expect.false(await recorder.imapCommands.contains { $0.contains("X-GM-RAW") }, "Never sent")
+    }
+
+    static func scoped() async throws {
+        let recorder = MailRecorder()
+        let context = ToolContext(services: try ToolServices()
+            .inserting(MailFixture.runtime(recorder: recorder))
+            .inserting(Email.Scope("clientDesk")))
+
+        let accounts = try await Email.Tools.ListAccounts().call(.init(), in: context)
+        try Expect.equal(accounts.access, "clientDesk", "Reports the profile")
+        try Expect.equal(accounts.accounts.map(\.account), ["work"], "Only the profile's account")
+        try Expect.equal(accounts.accounts[0].identities.map(\.address), ["info@practice.example"], "Only its identity")
+        try Expect.equal(accounts.accounts[0].sending, "drafts", "Tightened to drafts")
+        try Expect.false(accounts.accounts[0].can_send, "Cannot send")
+
+        let mailboxes = try await Email.Tools.ListMailboxes().call(.init(), in: context)
+        try Expect.equal(mailboxes.mailboxes.map(\.name), ["INBOX", "INBOX/Klanten"], "Only its mailboxes")
+
+        try await expectRefused("Other account") {
+            _ = try await Email.Tools.Search().call(.init(account: "team"), in: context)
+        }
+        try await expectRefused("Other mailbox") {
+            _ = try await Email.Tools.Read().call(.init(mailbox: "Concepten", uid: 42), in: context)
+        }
+        try await expectRefused("Gmail syntax under a mailbox limit") {
+            _ = try await Email.Tools.Search().call(.init(gmail_query: "is:starred"), in: context)
+        }
+        try await expectRefused("Other identity") {
+            _ = try await Email.Tools.SaveDraft().call(.init(from: "alex@practice.example", to: ["jan@example.org"], subject: "x", body: "y"), in: context)
+        }
+
+        let send = Email.Composition(to: ["jan@example.org"], subject: "Hoi", body: "Tot morgen.")
+        try Expect.equal(try await Email.Tools.Send().preflight(send, in: context).risk, .forbidden, "Sending forbidden by the profile")
+        try await expectRefused("Send") {
+            _ = try await Email.Tools.Send().call(send, in: context)
+        }
+
+        let draft = try await Email.Tools.SaveDraft().call(.init(to: ["jan@example.org"], subject: "Hoi", body: "Tot morgen."), in: context)
+        try Expect.equal(draft.from, "info@practice.example", "Drafts as the profile's identity")
+        try Expect.true(await recorder.smtpCommands.isEmpty, "Nothing sent")
+        try Expect.false(await recorder.imapCommands.contains { $0.contains("Concepten") && $0.hasPrefix("EXAMINE") }, "Never opened a refused mailbox")
+    }
+
+    static func expectRefused(
+        _ label: String,
+        _ operation: () async throws -> Void
+    ) async throws {
+        do {
+            try await operation()
+        } catch is MailAccess.Failure {
+            return
+        } catch Email.Failure.sendingNotAllowed {
+            return
+        }
+        throw TestFlowAssertionFailure(label: label, message: "the access profile should refuse this")
     }
 
     static func unconfigured() async throws {

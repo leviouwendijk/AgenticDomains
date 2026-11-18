@@ -79,12 +79,13 @@ public extension Email.Tools {
         public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
             let runtime = try Email.runtime(in: context)
             let account = try runtime.account(input.account)
-            let identity = try Email.identity(input.from, in: account)
+            let identity = try Email.identity(input.from, in: account, access: runtime.access)
             let recipients = try (Email.addresses(input.to) + Email.addresses(input.cc) + Email.addresses(input.bcc))
                 .map(\.address.raw)
 
+            let policy = runtime.access.sending(for: account)
             let risk: ActionRisk
-            switch account.sending {
+            switch policy {
             case .drafts:
                 risk = .forbidden
             case .confirm:
@@ -105,8 +106,8 @@ public extension Email.Tools {
                 estimates: .init(write: .init(count: 1)),
                 preview: .init(command: excerpt),
                 sideEffects: ["delivers an email that cannot be recalled", "saves a copy in Sent"],
-                policyChecks: ["account_sending_policy:\(account.sending.rawValue)"],
-                warnings: account.sending == .drafts ? [Email.Failure.sendingNotAllowed(account: account.identifier).localizedDescription] : []
+                policyChecks: ["account_sending_policy:\(account.sending.rawValue)", "access_profile:\(runtime.access.name)"],
+                warnings: policy == .drafts ? [Email.Failure.sendingNotAllowed(account: account.identifier).localizedDescription] : []
             )
         }
 
@@ -114,7 +115,8 @@ public extension Email.Tools {
             let runtime = try Email.runtime(in: context)
             let account = try runtime.account(input.account)
             // Enforced here too, whatever the host's approval mode.
-            guard account.sending != .drafts else {
+            try runtime.access.checkSending()
+            guard runtime.access.sending(for: account) != .drafts else {
                 throw Email.Failure.sendingNotAllowed(account: account.identifier)
             }
 

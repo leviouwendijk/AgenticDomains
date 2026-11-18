@@ -63,6 +63,13 @@ enum MailFixture {
             .password = .{ .env = "MAIL_PERSONAL" },
             .identities = [.{ .address = "me@example.net" }],
         };
+
+        let clientDesk: Access = .{
+            .accounts = [work],
+            .mailboxes = ["INBOX", "INBOX/Klanten/*"],
+            .identities = ["info@practice.example"],
+            .send = false,
+        };
         """
 
     static func runtime(

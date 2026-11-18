@@ -32,10 +32,14 @@ public extension Email.Tools {
             public let can_send: Bool
             /// drafts: only drafts, the owner sends; confirm: each send needs the owner's approval; allowed: may send.
             public let sending: String
+            /// The only mailboxes this session may read, when its access profile limits them.
+            public let mailboxes: [String]?
         }
 
         @JSONSchema
         public struct Output: HashableResult {
+            /// The access profile limiting this session, if any.
+            public let access: String?
             public let accounts: [AccountSummary]
         }
 
@@ -47,20 +51,25 @@ public extension Email.Tools {
 
         public func call(_: Input, in context: ToolContext) async throws -> Output {
             let runtime = try Email.runtime(in: context)
-            let accounts = runtime.accounts.accounts
-            return Output(accounts: accounts.enumerated().map { index, account in
-                AccountSummary(
-                    account: account.identifier,
-                    is_default: index == 0,
-                    about: account.about,
-                    identities: account.identities.map {
-                        IdentitySummary(address: $0.address.address.raw, name: $0.address.name, has_signature: $0.signature != nil)
-                    },
-                    can_read: account.imap != nil,
-                    can_send: account.smtp != nil,
-                    sending: account.sending.rawValue
-                )
-            })
+            let access = runtime.access
+            let accounts = access.visibleAccounts(in: runtime.accounts)
+            return Output(
+                access: access == .unrestricted ? nil : access.name,
+                accounts: accounts.enumerated().map { index, account in
+                    AccountSummary(
+                        account: account.identifier,
+                        is_default: index == 0,
+                        about: account.about,
+                        identities: access.identities(of: account).map {
+                            IdentitySummary(address: $0.address.address.raw, name: $0.address.name, has_signature: $0.signature != nil)
+                        },
+                        can_read: account.imap != nil,
+                        can_send: account.smtp != nil && access.maySend,
+                        sending: access.sending(for: account).rawValue,
+                        mailboxes: access.mailboxes
+                    )
+                }
+            )
         }
     }
 
@@ -110,7 +119,7 @@ public extension Email.Tools {
 
             let mailboxes = try await runtime.imap(account).session { session in
                 var summaries: [MailboxSummary] = []
-                for mailbox in try await session.list() {
+                for mailbox in try await session.list() where runtime.access.allows(mailbox: mailbox.name) {
                     let status = counted && mailbox.isSelectable ? try? await session.status(mailbox.name) : nil
                     summaries.append(MailboxSummary(
                         name: mailbox.name,
@@ -225,7 +234,11 @@ public extension Email.Tools {
             let runtime = try Email.runtime(in: context)
             let account = try runtime.account(input.account)
             let mailbox = input.mailbox.flatMap(Email.nonEmpty) ?? "INBOX"
+            try runtime.access.check(mailbox: mailbox)
             let query = try Self.query(input)
+            if query.usesGmailExtensions {
+                try runtime.access.checkCrossLabelSearch()
+            }
             let limit = min(max(input.limit ?? 20, 1), 100)
 
             let (total, summaries) = try await runtime.imap(account).session { session in
@@ -348,6 +361,7 @@ public extension Email.Tools {
             let runtime = try Email.runtime(in: context)
             let account = try runtime.account(input.account)
             let mailbox = input.mailbox.flatMap(Email.nonEmpty) ?? "INBOX"
+            try runtime.access.check(mailbox: mailbox)
 
             let message = try await runtime.imap(account).session { session in
                 try await session.select(mailbox)
