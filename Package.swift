@@ -303,6 +303,7 @@ let package = Package(
                 "AppleMusicBridge",
                 "AgenticScheduling",
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticConfiguration", package: "Agentic"),
                 .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
                 .product(name: "Milieu", package: "Milieu"),
