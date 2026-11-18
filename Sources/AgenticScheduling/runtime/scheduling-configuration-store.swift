@@ -1,9 +1,80 @@
 import Agentic
+import AgenticConfiguration
 import Foundation
 import Frame
 import IO
 import Readers
 import Writers
+
+public extension Scheduling.ConfigurationStore {
+    /// The home's `domains/scheduling.frame`, archived into the home's
+    /// `archive/`. The file is parsed again only when its text changes;
+    /// `runtime` turns a configuration into a runtime, with the
+    /// application's place resolver and travel estimator.
+    init(
+        home: AgentHome = AgentHomeLocator().resolveHome(),
+        sources: [any CalendarSource],
+        runtime: @escaping @Sendable (SchedulingConfiguration) -> Scheduling.Runtime
+    ) {
+        let file = home.layout.domainfile(SchedulingFrame.fileName)
+        let cache = SchedulingLoadedState()
+        self.init(file: file, archiveDirectory: home.layout.archivedir, sources: sources) {
+            let text: String?
+            do {
+                let read = try TextFileReader(file).read(options: .init(missingFilePolicy: .returnEmpty))
+                text = read.existed && !read.text.isEmpty ? read.text : nil
+            } catch {
+                return .invalid(file: file.path, message: error.localizedDescription)
+            }
+            return cache.state(for: text) {
+                Scheduling.ConfigurationStore.load(text, file: file, runtime: runtime)
+            }
+        }
+    }
+
+    /// The configuration `text` of `file` as a state: loaded, missing (no
+    /// text) or invalid.
+    static func load(
+        _ text: String?,
+        file: URL,
+        runtime: (SchedulingConfiguration) -> Scheduling.Runtime
+    ) -> Scheduling.ConfigurationState {
+        guard let text else {
+            return .missing(expected: file.path)
+        }
+        do {
+            return .loaded(runtime(try SchedulingConfiguration(source: text, filePath: file.path)))
+        } catch {
+            return .invalid(
+                file: file.path,
+                message: (error as? LocalizedError)?.errorDescription ?? String(describing: error)
+            )
+        }
+    }
+}
+
+/// The last loaded state, kept while the file's text is unchanged, so every
+/// tool call sees a saved file without reparsing an unchanged one.
+private final class SchedulingLoadedState: @unchecked Sendable {
+    private let lock = NSLock()
+    private var text: String??
+    private var loaded: Scheduling.ConfigurationState?
+
+    func state(
+        for current: String?,
+        load: () -> Scheduling.ConfigurationState
+    ) -> Scheduling.ConfigurationState {
+        lock.lock()
+        defer { lock.unlock() }
+        if let loaded, text == .some(current) {
+            return loaded
+        }
+        let state = load()
+        loaded = state
+        text = .some(current)
+        return state
+    }
+}
 
 public extension Scheduling {
     /// Where the application keeps `scheduling.frame`, the calendar sources

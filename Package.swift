@@ -143,6 +143,7 @@ let package = Package(
             dependencies: [
                 .product(name: "AgenticFrame", package: "Agentic"),
                 .product(name: "AgenticContext", package: "Agentic"),
+                .product(name: "AgenticConfiguration", package: "Agentic"),
                 .product(name: "IO", package: "IO"),
                 .product(name: "Readers", package: "Readers"),
                 .product(name: "Writers", package: "Writers"),
@@ -166,6 +167,7 @@ let package = Package(
             dependencies: [
                 "AgenticScheduling",
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticConfiguration", package: "Agentic"),
                 .product(name: "AgenticStandard", package: "Agentic"),
                 .product(name: "Frame", package: "Frame"),
                 .product(name: "Testing", package: "Testing"),

@@ -1,4 +1,5 @@
 import Agentic
+import AgenticConfiguration
 import AgenticScheduling
 import Foundation
 import Testing
@@ -114,4 +115,39 @@ enum SchedulingConfigurationStoreTests {
         let made = try FileManager.default.subpathsOfDirectory(atPath: root.path)
         try Expect.true(!made.contains { $0.contains("safe-file-backups") || $0.contains(".bak") }, "no Writers backups: \(made)")
     }
+
+    /// The store over a home: its domains/scheduling.frame, its archive/,
+    /// missing and invalid files reported, a save picked up.
+    static func homeStore() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("scheduling-home-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let home = AgentHome(root: root, kind: .ephemeral)
+        let source = CalendarListSource(titles: exampleTitles)
+        let store = Scheduling.ConfigurationStore(home: home, sources: [source]) {
+            $0.runtime(sources: [source])
+        }
+        try Expect.equal(store.file, home.layout.domainfile(SchedulingFrame.fileName), "the home's domains/scheduling.frame")
+        try Expect.equal(store.archiveDirectory, home.layout.archivedir, "archived into the home's archive/")
+        guard case .missing = store.state() else {
+            throw SchedulingStoreTestFailure.unexpected("no file is missing, not \(store.state())")
+        }
+
+        _ = try store.save("import Scheduling;\nlet x: Calendar = .{ };\n")
+        guard case .invalid(_, let message) = store.state() else {
+            throw SchedulingStoreTestFailure.unexpected("a broken file is invalid")
+        }
+        try Expect.true(message.contains("title"), "and says why: \(message)")
+
+        // At once: the cache keys on the text, not the modification time.
+        _ = try store.save(SchedulingFrame.example)
+        guard case .loaded(let runtime) = store.state() else {
+            throw SchedulingStoreTestFailure.unexpected("the saved example loads")
+        }
+        try Expect.equal(runtime.participants.map(\.identifier), ["alex", "sam"], "from the file just saved")
+    }
+}
+
+private enum SchedulingStoreTestFailure: Error {
+    case unexpected(String)
 }

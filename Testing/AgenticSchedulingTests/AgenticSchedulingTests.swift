@@ -99,6 +99,9 @@ enum AgenticSchedulingTestSuite {
         Test("configuration-save-archives-refuses-and-applies") {
             try await SchedulingConfigurationStoreTests.save()
         }
+        Test("configuration-store-finds-the-home-file") {
+            try await SchedulingConfigurationStoreTests.homeStore()
+        }
         Test("frame-configuration-reads-example") {
             try SchedulingFrameTests.readsExample()
         }
