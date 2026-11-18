@@ -224,6 +224,7 @@ let package = Package(
                 "AgenticMail",
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "Mail", package: "Mail"),
+                .product(name: "IMAP", package: "Mail"),
                 .product(name: "MailConnection", package: "Mail"),
                 .product(name: "MailFrame", package: "Mail"),
                 .product(name: "Testing", package: "Testing"),

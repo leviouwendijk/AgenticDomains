@@ -1,6 +1,7 @@
 import Agentic
 import AgenticMail
 import Foundation
+import IMAP
 import Mail
 import MailFrame
 import Testing
@@ -52,6 +53,9 @@ enum AgenticMailTestSuite {
         }
         Test("send-delivers-and-saves-sent-copy") {
             try await EmailTests.send()
+        }
+        Test("gmail-query-refused-on-other-servers") {
+            try await EmailTests.gmailElsewhere()
         }
         Test("unconfigured-mail-says-why") {
             try await EmailTests.unconfigured()
@@ -160,6 +164,19 @@ enum EmailTests {
         )
         try Expect.contains(copy.message, String(id), "Sent copy is the delivered message")
         try Expect.equal(copy.flags, "(\\Seen)", "Sent copy marked seen")
+    }
+
+    static func gmailElsewhere() async throws {
+        let recorder = MailRecorder()
+        let plain = try await Email.Tools.Search().call(.init(unread: true), in: try context(recorder))
+        try Expect.isNil(plain.messages.first?.thread_id, "No thread IDs off Gmail")
+        do {
+            _ = try await Email.Tools.Search().call(.init(gmail_query: "has:attachment"), in: try context(recorder))
+            throw TestFlowAssertionFailure(label: "gmail", message: "should be refused")
+        } catch IMAPError.unsupported(let capability) {
+            try Expect.equal(capability, "X-GM-EXT-1", "Says Gmail is required")
+        }
+        try Expect.false(await recorder.imapCommands.contains { $0.contains("X-GM-RAW") }, "Never sent")
     }
 
     static func unconfigured() async throws {

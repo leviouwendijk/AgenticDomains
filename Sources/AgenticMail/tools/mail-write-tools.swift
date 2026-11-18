@@ -128,7 +128,9 @@ public extension Email.Tools {
 
             var warnings: [String] = []
             var copy: String?
-            if account.imap != nil {
+            if account.savesSentMail {
+                copy = "Sent (filed by the provider)"
+            } else if account.imap != nil {
                 do {
                     copy = try await runtime.imap(account).session { session in
                         guard let folder = try await Email.folder(.sent, for: account, in: session, fallback: nil) else {

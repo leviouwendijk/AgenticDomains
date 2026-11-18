@@ -150,6 +150,10 @@ public extension Email.Tools {
             public let since: String?
             /// Received before this day, yyyy-MM-dd.
             public let before: String?
+            /// Gmail search syntax, such as `has:attachment older_than:7d`; Gmail accounts only.
+            public let gmail_query: String?
+            /// Every message of one Gmail conversation, by the `thread_id` a search returned.
+            public let thread_id: String?
             /// Most recent matches to return; 20 when absent, at most 100.
             public let limit: Int?
 
@@ -164,6 +168,8 @@ public extension Email.Tools {
                 text: String? = nil,
                 since: String? = nil,
                 before: String? = nil,
+                gmail_query: String? = nil,
+                thread_id: String? = nil,
                 limit: Int? = nil
             ) {
                 self.account = account
@@ -176,6 +182,8 @@ public extension Email.Tools {
                 self.text = text
                 self.since = since
                 self.before = before
+                self.gmail_query = gmail_query
+                self.thread_id = thread_id
                 self.limit = limit
             }
         }
@@ -192,6 +200,10 @@ public extension Email.Tools {
             public let flagged: Bool
             public let answered: Bool
             public let size: Int?
+            /// The Gmail conversation; search with `thread_id` for all its messages. Gmail only.
+            public let thread_id: String?
+            /// Gmail labels. Gmail only.
+            public let labels: [String]?
         }
 
         @JSONSchema
@@ -204,7 +216,7 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "Search one mailbox on the server by unread/flagged state, sender, recipient, subject, text and received dates; returns the newest matches with sender, subject and flags. Never marks messages read."
+            "Search one mailbox on the server by unread/flagged state, sender, recipient, subject, text and received dates (and, on Gmail, Gmail search syntax or a thread); returns the newest matches with sender, subject, flags and, on Gmail, thread and labels. Never marks messages read."
         public static let risk: ActionRisk = .observe
 
         public init() {}
@@ -236,7 +248,9 @@ public extension Email.Tools {
                         unread: summary.isUnread,
                         flagged: summary.flags.contains(.flagged),
                         answered: summary.flags.contains(.answered),
-                        size: summary.size
+                        size: summary.size,
+                        thread_id: summary.gmail?.threadID,
+                        labels: summary.gmail?.labels
                     )
                 }
             )
@@ -269,6 +283,12 @@ public extension Email.Tools {
             }
             if let before = input.before.flatMap(Email.nonEmpty) {
                 criteria.append(.before(try Email.day(before)))
+            }
+            if let query = input.gmail_query.flatMap(Email.nonEmpty) {
+                criteria.append(.gmail(query))
+            }
+            if let thread = input.thread_id.flatMap(Email.nonEmpty) {
+                criteria.append(.gmailThread(thread))
             }
             return .and(criteria)
         }
