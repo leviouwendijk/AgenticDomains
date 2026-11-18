@@ -109,5 +109,9 @@ enum SchedulingConfigurationStoreTests {
         try Expect.false(unknown.saved, "unknown calendars are refused")
         let accepted = try await save.call(.init(text: misspelt, accept_unknown_calendars: true), in: context)
         try Expect.true(accepted.saved, "unless accepted")
+
+        // Archives are the only copies: Writers makes no backups of its own.
+        let made = try FileManager.default.subpathsOfDirectory(atPath: root.path)
+        try Expect.true(!made.contains { $0.contains("safe-file-backups") || $0.contains(".bak") }, "no Writers backups: \(made)")
     }
 }
