@@ -4,11 +4,18 @@ public extension Email.Instructions {
     @Instruction
     enum Handling: Instruction {
         public static let content = """
-        Mail is personal and outward-facing. Reading never marks a message read:
-        mail_search and mail_read leave flags as they are. Start with
-        mail_accounts when you do not know which account or identity applies;
-        use mail_mailboxes to find folders such as subfolders of INBOX before
-        searching outside INBOX.
+        Mail is personal and outward-facing. A session starts with no access to
+        message content: mail_accounts shows accounts, groups and what is
+        granted. Ask for exactly what the task needs with mail_request_access,
+        giving a reason the owner can judge: selectors name an account, a group
+        or *, optionally with a mailbox, a prefix/* pattern or an @role, as in
+        leads, hondenmeesters:@junk or levi:INBOX/Klanten/*. Prefer read; ask
+        for draft only to write. Do not ask again for what was refused.
+
+        Reading never marks a message read: mail_search and mail_read leave
+        flags as they are. mail_search takes the same selectors as targets, so
+        one call can search a role across a group. Use mail_mailboxes to find
+        folders before searching outside INBOX.
 
         Search narrowly on the server (unread, sender, subject, dates) and read
         only the messages the request needs. Quote message content only as far

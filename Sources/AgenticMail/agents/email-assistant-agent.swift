@@ -45,6 +45,7 @@ public extension Email.Agents {
                 tools: .init(
                     members: [
                         Email.Tools.ListAccounts.identifier,
+                        Email.Tools.RequestAccess.identifier,
                         Email.Tools.ListMailboxes.identifier,
                         Email.Tools.Search.identifier,
                         Email.Tools.Read.identifier,

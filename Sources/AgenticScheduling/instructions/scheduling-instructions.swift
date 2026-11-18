@@ -27,8 +27,10 @@ public extension Scheduling.Instructions {
 
         At the start of a conversation, call
         \(Scheduling.Tools.Context.identifier.rawValue) once, together with the
-        date. It gives the team's own brief: who they are, how events are
-        named, what typical requests mean, who is who and the defaults.
+        date. It gives the team's scheduling brief: what typical requests
+        mean, who is who and the defaults. What the team is, its people and
+        its conventions (event titles, travel) are context entries: read
+        those that bear on the request.
         Interpret every request in its terms, so a short request is enough:
         expand names, conventions and implied requirements from it, and say
         which you assumed. The brief explains; the tools decide. When the

@@ -1,5 +1,6 @@
 import Agentic
 import AgenticMath
+import AgenticContext
 import AgenticStandard
 import Macros
 import Schema
@@ -19,6 +20,7 @@ public extension Scheduling.Agents {
         public static let instructions: AgentInstructions = [
             .instruction(Scheduling.Instructions.CurrentDate.definition),
             .instruction(Scheduling.Instructions.TeamContext.definition),
+            .instruction(Context.Instructions.Gathering.definition),
             .text(
                 """
                 You help the user and their team schedule. The user may be \

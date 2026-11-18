@@ -60,6 +60,18 @@ enum AgenticMailTestSuite {
         Test("access-profile-limits-every-tool") {
             try await EmailTests.scoped()
         }
+        Test("no-grant-reads-nothing") {
+            try await GrantTests.nothingByDefault()
+        }
+        Test("request-access-is-reviewed-and-grants") {
+            try await GrantTests.request()
+        }
+        Test("role-selector-across-a-group") {
+            try await GrantTests.roleAcrossGroup()
+        }
+        Test("mailbox-level-grant") {
+            try await GrantTests.mailboxLevel()
+        }
         Test("unconfigured-mail-says-why") {
             try await EmailTests.unconfigured()
         }
@@ -67,10 +79,20 @@ enum AgenticMailTestSuite {
 }
 
 enum EmailTests {
+    /// A session granted draft access to everything, for tests of the tools themselves.
     static func context(
         _ recorder: MailRecorder
     ) throws -> ToolContext {
-        ToolContext(services: try ToolServices().inserting(MailFixture.runtime(recorder: recorder)))
+        try context(recorder, grants: [Email.Grant(try MailSelector(parsing: "*"), level: .draft, reason: "test")])
+    }
+
+    static func context(
+        _ recorder: MailRecorder,
+        grants: [Email.Grant]
+    ) throws -> ToolContext {
+        ToolContext(services: try ToolServices()
+            .inserting(MailFixture.runtime(recorder: recorder))
+            .inserting(Email.SessionAccess(grants: grants)))
     }
 
     static func accounts() async throws {
@@ -84,11 +106,11 @@ enum EmailTests {
 
     static func mailboxes() async throws {
         let output = try await Email.Tools.ListMailboxes().call(.init(counts: true), in: try context(MailRecorder()))
-        try Expect.equal(output.mailboxes.map(\.name), ["INBOX", "INBOX/Klanten", "Concepten", "Verzonden", "Archief"], "Folders and subfolders")
-        try Expect.equal(output.mailboxes.map(\.role), [nil, nil, "drafts", "sent", nil], "Roles from SPECIAL-USE")
+        try Expect.equal(output.mailboxes.map(\.name), ["INBOX", "INBOX/Klanten", "Concepten", "Verzonden", "Spam", "Archief"], "Folders and subfolders")
+        try Expect.equal(output.mailboxes.map(\.role), ["inbox", nil, "drafts", "sent", "junk", nil], "Roles from SPECIAL-USE")
         try Expect.equal(output.mailboxes[0].unread, 2, "Unread count")
-        try Expect.false(output.mailboxes[4].selectable, "Noselect folder")
-        try Expect.isNil(output.mailboxes[4].total, "No count for a folder that cannot be selected")
+        try Expect.false(output.mailboxes[5].selectable, "Noselect folder")
+        try Expect.isNil(output.mailboxes[5].total, "No count for a folder that cannot be selected")
     }
 
     static func search() async throws {
@@ -186,7 +208,8 @@ enum EmailTests {
         let recorder = MailRecorder()
         let context = ToolContext(services: try ToolServices()
             .inserting(MailFixture.runtime(recorder: recorder))
-            .inserting(Email.Scope("clientDesk")))
+            .inserting(Email.Scope("clientDesk"))
+            .inserting(Email.SessionAccess(grants: [Email.Grant(try MailSelector(parsing: "*:*"), level: .draft, reason: "test")])))
 
         let accounts = try await Email.Tools.ListAccounts().call(.init(), in: context)
         try Expect.equal(accounts.access, "clientDesk", "Reports the profile")

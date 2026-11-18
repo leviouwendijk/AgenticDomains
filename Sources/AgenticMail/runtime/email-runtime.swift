@@ -95,6 +95,12 @@ public extension Email {
         case missingSubject
         case noRecipients
         case messageNotFound(uid: Int, mailbox: String)
+        case accessNotProvided
+        case accessRequired(level: Level, target: String)
+        case noMailboxes(String)
+        case missingReason
+        case missingTargets
+        case unknownLevel(String)
 
         public var errorDescription: String? {
             switch self {
@@ -126,6 +132,18 @@ public extension Email {
                 return "A message needs at least one recipient in to, cc or bcc."
             case .messageNotFound(let uid, let mailbox):
                 return "No message with UID \(uid) in \(mailbox)."
+            case .accessNotProvided:
+                return "This application keeps no mail access for its sessions (Email.SessionAccess), so mail cannot be read."
+            case .accessRequired(let level, let target):
+                return "No \(level.rawValue) access to \(target) in this session. Ask for it with mail_request_access (targets [\"\(target)\"], level \(level.rawValue)) and a reason."
+            case .missingReason:
+                return "Say why the task needs this access; the owner sees the reason."
+            case .missingTargets:
+                return "Name targets (selectors such as leads or hondenmeesters:@junk) or a profile."
+            case .unknownLevel(let level):
+                return "Unknown level '\(level)'; use read or draft."
+            case .noMailboxes(let selectors):
+                return "No mailbox matches \(selectors); list them with mail_mailboxes."
             }
         }
     }

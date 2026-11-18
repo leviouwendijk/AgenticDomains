@@ -31,8 +31,9 @@ public extension Email.Tools {
         public init() {}
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try Email.runtime(in: context)
-            let composed = try await Email.compose(input, with: runtime)
+            let authorization = try await Email.authorization(in: context)
+            let runtime = authorization.runtime
+            let composed = try await Email.compose(input, with: authorization)
             let data = MailRenderer().data(composed.message)
 
             let (folder, uid) = try await runtime.imap(composed.account).session { session in
@@ -77,15 +78,17 @@ public extension Email.Tools {
 
         /// The account's policy decides the risk: drafts forbids, confirm needs review, allowed is bounded.
         public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
-            let runtime = try Email.runtime(in: context)
+            let authorization = try await Email.authorization(in: context)
+            let runtime = authorization.runtime
             let account = try runtime.account(input.account)
             let identity = try Email.identity(input.from, in: account, access: runtime.access)
+            let granted = authorization.level(account: account) == .draft
             let recipients = try (Email.addresses(input.to) + Email.addresses(input.cc) + Email.addresses(input.bcc))
                 .map(\.address.raw)
 
             let policy = runtime.access.sending(for: account)
             let risk: ActionRisk
-            switch policy {
+            switch granted ? policy : .drafts {
             case .drafts:
                 risk = .forbidden
             case .confirm:
@@ -107,12 +110,15 @@ public extension Email.Tools {
                 preview: .init(command: excerpt),
                 sideEffects: ["delivers an email that cannot be recalled", "saves a copy in Sent"],
                 policyChecks: ["account_sending_policy:\(account.sending.rawValue)", "access_profile:\(runtime.access.name)"],
-                warnings: policy == .drafts ? [Email.Failure.sendingNotAllowed(account: account.identifier).localizedDescription] : []
+                warnings: !granted
+                    ? [Email.Failure.accessRequired(level: .draft, target: account.identifier).localizedDescription]
+                    : policy == .drafts ? [Email.Failure.sendingNotAllowed(account: account.identifier).localizedDescription] : []
             )
         }
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try Email.runtime(in: context)
+            let authorization = try await Email.authorization(in: context)
+            let runtime = authorization.runtime
             let account = try runtime.account(input.account)
             // Enforced here too, whatever the host's approval mode.
             try runtime.access.checkSending()
@@ -120,7 +126,7 @@ public extension Email.Tools {
                 throw Email.Failure.sendingNotAllowed(account: account.identifier)
             }
 
-            let composed = try await Email.compose(input, with: runtime)
+            let composed = try await Email.compose(input, with: authorization)
             // Fixed before rendering twice, so the Sent copy is the delivered message.
             var message = composed.message
             message.messageID = "\(UUID().uuidString)@\(message.from.address.domain)"

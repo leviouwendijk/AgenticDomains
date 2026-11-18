@@ -60,10 +60,12 @@ public extension Email {
     /// Resolves account and identity, fetches the original for a reply, and builds the signed message.
     static func compose(
         _ input: Composition,
-        with runtime: Runtime
+        with authorization: Authorization
     ) async throws -> Composed {
+        let runtime = authorization.runtime
         try runtime.access.checkDrafting()
         let account = try runtime.account(input.account)
+        try authorization.require(.draft, account: account)
         let identity = try self.identity(input.from, in: account, access: runtime.access)
 
         var to = try addresses(input.to)
@@ -74,6 +76,8 @@ public extension Email {
             let mailbox = input.reply_mailbox.flatMap(nonEmpty) ?? "INBOX"
             try runtime.access.check(mailbox: mailbox)
             let original = try await runtime.imap(account).session { session in
+                let role = try await Email.role(of: mailbox, account: account, authorization: authorization, session: session)
+                try authorization.require(.read, account: account, mailbox: (mailbox, role))
                 try await session.select(mailbox)
                 return try await session.message(IMAPUID(UInt32(clamping: uid)))
             }

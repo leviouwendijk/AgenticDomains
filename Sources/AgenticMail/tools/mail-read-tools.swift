@@ -24,6 +24,8 @@ public extension Email.Tools {
         @JSONSchema
         public struct AccountSummary: HashableResult {
             public let account: String
+            /// Select every account of a group with the group's name, as in `hondenmeesters:@junk`.
+            public let group: String?
             public let is_default: Bool
             public let about: String?
             /// The first identity is the account's default sender.
@@ -32,32 +34,41 @@ public extension Email.Tools {
             public let can_send: Bool
             /// drafts: only drafts, the owner sends; confirm: each send needs the owner's approval; allowed: may send.
             public let sending: String
-            /// The only mailboxes this session may read, when its access profile limits them.
+            /// The only mailboxes this session may ever read, when its access profile limits them.
             public let mailboxes: [String]?
+            /// What this session has been granted on the account: read, draft, or none.
+            public let granted: String
         }
 
         @JSONSchema
         public struct Output: HashableResult {
             /// The access profile limiting this session, if any.
             public let access: String?
+            public let groups: [String]
             public let accounts: [AccountSummary]
+            /// Grants of this session, such as `read hondenmeesters:@junk`.
+            public let grants: [String]
         }
 
         public static let purpose =
-            "List the configured mail accounts: their identities (From addresses), whether each can read and send, and its sending policy. Never shows servers or passwords."
+            "List the configured mail accounts and groups (metadata only: identities, what each is for, sending policy) and what this session has been granted. No message content; needs no access."
         public static let risk: ActionRisk = .observe
 
         public init() {}
 
         public func call(_: Input, in context: ToolContext) async throws -> Output {
             let runtime = try Email.runtime(in: context)
+            let grants = (try? await Email.authorization(in: context))?.grants ?? []
+            let authorization = Email.Authorization(runtime: runtime, grants: grants)
             let access = runtime.access
             let accounts = access.visibleAccounts(in: runtime.accounts)
             return Output(
                 access: access == .unrestricted ? nil : access.name,
+                groups: runtime.accounts.groups,
                 accounts: accounts.enumerated().map { index, account in
                     AccountSummary(
                         account: account.identifier,
+                        group: account.group,
                         is_default: index == 0,
                         about: account.about,
                         identities: access.identities(of: account).map {
@@ -66,9 +77,11 @@ public extension Email.Tools {
                         can_read: account.imap != nil,
                         can_send: account.smtp != nil && access.maySend,
                         sending: access.sending(for: account).rawValue,
-                        mailboxes: access.mailboxes
+                        mailboxes: access.mailboxes,
+                        granted: authorization.level(account: account)?.rawValue ?? "none"
                     )
-                }
+                },
+                grants: grants.map(\.description)
             )
         }
     }
@@ -77,7 +90,7 @@ public extension Email.Tools {
     struct ListMailboxes {
         @JSONSchema
         public struct Input: HashableSource {
-            /// The account's binding name; the default account when absent.
+            /// The account's name; the default account when absent.
             public let account: String?
             /// Also report total and unread counts per mailbox (one request each).
             public let counts: Bool?
@@ -90,9 +103,9 @@ public extension Email.Tools {
 
         @JSONSchema
         public struct MailboxSummary: HashableResult {
-            /// The full name to pass as `mailbox`, such as `INBOX/Clients`.
+            /// The full name to pass as `mailbox`, such as `INBOX/Klanten`; Gmail labels appear as mailboxes.
             public let name: String
-            /// sent, drafts, archive, trash, junk, all or flagged, when the server or file says so.
+            /// inbox, sent, drafts, archive, trash, junk, all or flagged, when known; select it as `account:@role`.
             public let role: String?
             public let selectable: Bool
             public let total: Int?
@@ -106,24 +119,30 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "List an account's mailboxes (folders and subfolders) with their roles, optionally with total and unread counts. Read-only."
+            "List the mailboxes (folders, subfolders, Gmail labels) of an account that this session may read, with their roles and optional counts."
         public static let risk: ActionRisk = .observe
 
         public init() {}
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try Email.runtime(in: context)
+            let authorization = try await Email.authorization(in: context)
+            let runtime = authorization.runtime
             let account = try runtime.account(input.account)
-            let overrides = Dictionary(account.folders.map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
+            try authorization.require(.read, account: account)
             let counted = input.counts ?? false
 
             let mailboxes = try await runtime.imap(account).session { session in
+                let listed = try await session.list()
                 var summaries: [MailboxSummary] = []
-                for mailbox in try await session.list() where runtime.access.allows(mailbox: mailbox.name) {
+                for mailbox in listed where runtime.access.allows(mailbox: mailbox.name) {
+                    let role = MailboxRole.of(mailbox.name, account: account, listed: listed)
+                    guard authorization.level(account: account, mailbox: (mailbox.name, role)) != nil else {
+                        continue
+                    }
                     let status = counted && mailbox.isSelectable ? try? await session.status(mailbox.name) : nil
                     summaries.append(MailboxSummary(
                         name: mailbox.name,
-                        role: (overrides[mailbox.name] ?? mailbox.specialUse)?.rawValue,
+                        role: role?.description,
                         selectable: mailbox.isSelectable,
                         total: status?.messages,
                         unread: status?.unseen
@@ -139,9 +158,12 @@ public extension Email.Tools {
     struct Search {
         @JSONSchema
         public struct Input: HashableSource {
-            /// The account's binding name; the default account when absent.
+            /// Where to search, as selectors: an account, a group or *, optionally with :mailbox, :prefix/* or :@role,
+            /// as in `hondenmeesters:@junk` or `levi:INBOX/Klanten/*`. Replaces account and mailbox.
+            public let targets: [String]?
+            /// The account's name; the default account when absent and `targets` is not given.
             public let account: String?
-            /// The mailbox's full name from mail_mailboxes; INBOX when absent.
+            /// The mailbox's full name; INBOX when absent.
             public let mailbox: String?
             /// true: only unread; false: only read; absent: both.
             public let unread: Bool?
@@ -167,6 +189,7 @@ public extension Email.Tools {
             public let limit: Int?
 
             public init(
+                targets: [String]? = nil,
                 account: String? = nil,
                 mailbox: String? = nil,
                 unread: Bool? = nil,
@@ -181,6 +204,7 @@ public extension Email.Tools {
                 thread_id: String? = nil,
                 limit: Int? = nil
             ) {
+                self.targets = targets
                 self.account = account
                 self.mailbox = mailbox
                 self.unread = unread
@@ -199,7 +223,9 @@ public extension Email.Tools {
 
         @JSONSchema
         public struct MessageSummary: HashableResult {
-            /// Pass to mail_read or as reply_to_uid.
+            public let account: String
+            public let mailbox: String
+            /// Pass with account and mailbox to mail_read, or as reply_to_uid.
             public let uid: Int
             public let date: String?
             public let from: [String]
@@ -217,44 +243,67 @@ public extension Email.Tools {
 
         @JSONSchema
         public struct Output: HashableResult {
-            public let account: String
-            public let mailbox: String
+            /// Every `account:mailbox` searched.
+            public let searched: [String]
             /// All matches; `messages` holds the most recent `limit`, newest first.
             public let total_matches: Int
             public let messages: [MessageSummary]
         }
 
         public static let purpose =
-            "Search one mailbox on the server by unread/flagged state, sender, recipient, subject, text and received dates (and, on Gmail, Gmail search syntax or a thread); returns the newest matches with sender, subject, flags and, on Gmail, thread and labels. Never marks messages read."
+            "Search mailboxes on the server, across accounts and groups with selectors such as hondenmeesters:@junk, by unread/flagged state, sender, recipient, subject, text and received dates (and, on Gmail, Gmail syntax or a thread). Returns the newest matches. Needs read access; never marks messages read."
         public static let risk: ActionRisk = .observe
 
         public init() {}
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try Email.runtime(in: context)
-            let account = try runtime.account(input.account)
-            let mailbox = input.mailbox.flatMap(Email.nonEmpty) ?? "INBOX"
-            try runtime.access.check(mailbox: mailbox)
+            let authorization = try await Email.authorization(in: context)
+            let runtime = authorization.runtime
             let query = try Self.query(input)
             if query.usesGmailExtensions {
                 try runtime.access.checkCrossLabelSearch()
             }
-            let limit = min(max(input.limit ?? 20, 1), 100)
 
-            let (total, summaries) = try await runtime.imap(account).session { session in
-                try await session.select(mailbox)
-                let uids = try await session.search(query)
-                return (uids.count, try await session.summaries(Array(uids.suffix(limit))))
+            let selectors: [MailSelector]
+            if let targets = input.targets, !targets.isEmpty {
+                selectors = try targets.map(MailSelector.init(parsing:))
+            } else {
+                let account = try runtime.account(input.account)
+                let mailbox = input.mailbox.flatMap(Email.nonEmpty) ?? "INBOX"
+                selectors = [MailSelector(target: .name(account.identifier), mailboxes: .pattern(mailbox))]
+            }
+            // Refuse before connecting when an account has no grant at all: even folder names are content.
+            for selector in selectors {
+                for account in try selector.accounts(in: runtime.accounts) {
+                    try runtime.access.check(account: account.identifier)
+                    try authorization.require(.read, account: account)
+                }
+            }
+
+            let result = try await runtime.accounts.search(
+                query,
+                in: selectors,
+                limit: min(max(input.limit ?? 20, 1), 100),
+                connector: runtime.connector
+            ) { account, mailbox, role in
+                try runtime.access.check(account: account.identifier)
+                try runtime.access.check(mailbox: mailbox)
+                try authorization.require(.read, account: account, mailbox: (mailbox, role))
+            }
+            guard !result.searched.isEmpty else {
+                throw Email.Failure.noMailboxes(selectors.map(\.description).joined(separator: ", "))
             }
 
             return Output(
-                account: account.identifier,
-                mailbox: mailbox,
-                total_matches: total,
-                messages: summaries.reversed().map { summary in
-                    MessageSummary(
+                searched: result.searched,
+                total_matches: result.total,
+                messages: result.hits.map { hit in
+                    let summary = hit.summary
+                    return MessageSummary(
+                        account: hit.account,
+                        mailbox: hit.mailbox,
                         uid: Int(summary.uid.rawValue),
-                        date: Email.timestamp(summary.envelope?.date ?? summary.internalDate),
+                        date: Email.timestamp(hit.date),
                         from: (summary.envelope?.from ?? []).map(Email.display),
                         to: (summary.envelope?.to ?? []).map(Email.display),
                         subject: summary.envelope?.subject,
@@ -311,7 +360,7 @@ public extension Email.Tools {
     struct Read {
         @JSONSchema
         public struct Input: HashableSource {
-            /// The account's binding name; the default account when absent.
+            /// The account's name; the default account when absent.
             public let account: String?
             /// The mailbox holding the message; INBOX when absent.
             public let mailbox: String?
@@ -338,6 +387,8 @@ public extension Email.Tools {
 
         @JSONSchema
         public struct Output: HashableResult {
+            public let account: String
+            public let mailbox: String
             public let uid: Int
             public let date: String?
             public let from: [String]
@@ -352,18 +403,22 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "Read one message: headers, plain-text body (HTML reduced to text) and attachment names. Does not mark it read."
+            "Read one message: headers, plain-text body (HTML reduced to text) and attachment names. Needs read access to its mailbox; does not mark it read."
         public static let risk: ActionRisk = .observe
 
         public init() {}
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let runtime = try Email.runtime(in: context)
+            let authorization = try await Email.authorization(in: context)
+            let runtime = authorization.runtime
             let account = try runtime.account(input.account)
             let mailbox = input.mailbox.flatMap(Email.nonEmpty) ?? "INBOX"
             try runtime.access.check(mailbox: mailbox)
+            try authorization.require(.read, account: account)
 
             let message = try await runtime.imap(account).session { session in
+                let role = try await Email.role(of: mailbox, account: account, authorization: authorization, session: session)
+                try authorization.require(.read, account: account, mailbox: (mailbox, role))
                 try await session.select(mailbox)
                 return try await session.message(IMAPUID(UInt32(clamping: input.uid)))
             }
@@ -374,6 +429,8 @@ public extension Email.Tools {
             let body = message.readableText ?? ""
             let limit = max(input.max_characters ?? 20_000, 1)
             return Output(
+                account: account.identifier,
+                mailbox: mailbox,
                 uid: input.uid,
                 date: Email.timestamp(message.date),
                 from: message.from.map(Email.display),

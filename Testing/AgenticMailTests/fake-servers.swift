@@ -47,6 +47,7 @@ enum MailFixture {
                 .{ .address = "info@practice.example" },
             ],
             .sending = .confirm,
+            .group = "practice",
         };
 
         let team: Account = .{
@@ -55,6 +56,7 @@ enum MailFixture {
             .password = .{ .env = "MAIL_TEAM" },
             .identities = [.{ .address = "team@practice.example" }],
             .sending = .allowed,
+            .group = "practice",
         };
 
         let personal: Account = .{
@@ -126,6 +128,7 @@ actor FakeIMAPServer: MailTransport {
                 "* LIST (\\HasNoChildren) \"/\" \"INBOX/Klanten\"",
                 "* LIST (\\HasNoChildren \\Drafts) \"/\" \"Concepten\"",
                 "* LIST (\\HasNoChildren \\Sent) \"/\" \"Verzonden\"",
+                "* LIST (\\HasNoChildren \\Junk) \"/\" \"Spam\"",
                 "* LIST (\\Noselect \\HasChildren) \"/\" \"Archief\"",
                 "\(tag) OK done"
             )
