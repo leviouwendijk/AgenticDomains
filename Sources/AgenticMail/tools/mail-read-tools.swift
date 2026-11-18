@@ -32,6 +32,8 @@ public extension Email.Tools {
             public let identities: [IdentitySummary]
             public let can_read: Bool
             public let can_send: Bool
+            /// Why reading or sending is off when the environment lacks a setting, as in `imap: … is unset`.
+            public let unavailable: [String]?
             /// drafts: only drafts, the owner sends; confirm: each send needs the owner's approval; allowed: may send.
             public let sending: String
             /// The only mailboxes this session may ever read, when its access profile limits them.
@@ -76,6 +78,9 @@ public extension Email.Tools {
                         },
                         can_read: account.imap != nil,
                         can_send: account.smtp != nil && access.maySend,
+                        unavailable: account.unavailable.isEmpty ? nil : account.unavailable
+                            .sorted { $0.key.rawValue < $1.key.rawValue }
+                            .map { "\($0.key.rawValue): \($0.value)" },
                         sending: access.sending(for: account).rawValue,
                         mailboxes: access.mailboxes,
                         granted: authorization.level(account: account)?.rawValue ?? "none"
@@ -248,6 +253,8 @@ public extension Email.Tools {
             /// All matches; `messages` holds the most recent `limit`, newest first.
             public let total_matches: Int
             public let messages: [MessageSummary]
+            /// Accounts the targets picked that cannot be read, with the reason.
+            public let skipped: [String]
         }
 
         public static let purpose =
@@ -290,6 +297,9 @@ public extension Email.Tools {
                 try runtime.access.check(mailbox: mailbox)
                 try authorization.require(.read, account: account, mailbox: (mailbox, role))
             }
+            if result.searched.isEmpty, let skipped = result.skipped.sorted(by: { $0.key < $1.key }).first {
+                throw Email.Failure.cannotRead(skipped.key, reason: skipped.value)
+            }
             guard !result.searched.isEmpty else {
                 throw Email.Failure.noMailboxes(selectors.map(\.description).joined(separator: ", "))
             }
@@ -314,7 +324,8 @@ public extension Email.Tools {
                         thread_id: summary.gmail?.threadID,
                         labels: summary.gmail?.labels
                     )
-                }
+                },
+                skipped: result.skipped.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value)" }
             )
         }
 

@@ -65,7 +65,7 @@ public extension Email {
             _ account: MailAccounts.Account
         ) throws -> IMAPClient {
             guard let client = accounts.imapClient(for: account, connector: connector) else {
-                throw Failure.cannotRead(account.identifier)
+                throw Failure.cannotRead(account.identifier, reason: account.unavailable[.imap])
             }
             return client
         }
@@ -74,7 +74,7 @@ public extension Email {
             _ account: MailAccounts.Account
         ) throws -> SMTPClient {
             guard let client = accounts.smtpClient(for: account, connector: connector) else {
-                throw Failure.cannotSend(account.identifier)
+                throw Failure.cannotSend(account.identifier, reason: account.unavailable[.smtp])
             }
             return client
         }
@@ -86,8 +86,8 @@ public extension Email {
         case notProvided
         case noAccounts
         case unknownAccount(String, known: [String])
-        case cannotRead(String)
-        case cannotSend(String)
+        case cannotRead(String, reason: String?)
+        case cannotSend(String, reason: String?)
         case sendingNotAllowed(account: String)
         case unknownIdentity(String, account: String, known: [String])
         case invalidAddress(String)
@@ -114,10 +114,10 @@ public extension Email {
                 return "The mail configuration declares no accounts."
             case .unknownAccount(let name, let known):
                 return "No account '\(name)'; known accounts: \(known.joined(separator: ", "))."
-            case .cannotRead(let account):
-                return "Account '\(account)' has no IMAP server, so it cannot be read."
-            case .cannotSend(let account):
-                return "Account '\(account)' has no SMTP server, so it cannot send."
+            case .cannotRead(let account, let reason):
+                return reason.map { "Account '\(account)' cannot be read: \($0)." } ?? "Account '\(account)' has no IMAP server, so it cannot be read."
+            case .cannotSend(let account, let reason):
+                return reason.map { "Account '\(account)' cannot send: \($0)." } ?? "Account '\(account)' has no SMTP server, so it cannot send."
             case .sendingNotAllowed(let account):
                 return "Account '\(account)' only allows drafts (sending = drafts). Save a draft with mail_draft; the owner sends it."
             case .unknownIdentity(let address, let account, let known):
