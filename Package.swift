@@ -60,6 +60,17 @@ let package = Package(
             targets: ["AgenticSchedulingTests"]
         ),
 
+        // the Frame configuration language: modules, schemas, checking
+        .library(
+            name: "AgenticFrame",
+            targets: ["AgenticFrame"]
+        ),
+
+        .executable(
+            name: "t_agentic_frame",
+            targets: ["AgenticFrameTests"]
+        ),
+
         // language-agnostic development agents (orchestration, scouting, review)
         .library(
             name: "AgenticDevelopment",
@@ -138,6 +149,27 @@ let package = Package(
                 .product(name: "DSL", package: "DSL"),
                 .product(name: "Search", package: "Search"),
             ]
+        ),
+
+        .target(
+            name: "AgenticFrame",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Schema", package: "Schema"),
+                .product(name: "Macros", package: "Macros"),
+                .product(name: "Frame", package: "Frame"),
+            ]
+        ),
+
+        .executableTarget(
+            name: "AgenticFrameTests",
+            dependencies: [
+                "AgenticFrame",
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Frame", package: "Frame"),
+                .product(name: "Testing", package: "Testing"),
+            ],
+            path: "Testing/AgenticFrameTests"
         ),
 
         .executableTarget(
