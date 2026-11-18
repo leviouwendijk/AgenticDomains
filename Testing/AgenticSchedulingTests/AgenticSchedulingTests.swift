@@ -90,6 +90,9 @@ enum AgenticSchedulingTestSuite {
         Test("frame-configuration-reads-team") {
             try await SchedulingFrameTests.readsTeam()
         }
+        Test("frame-configuration-reads-example") {
+            try SchedulingFrameTests.readsExample()
+        }
         Test("frame-configuration-rejects-invalid-files") {
             try SchedulingFrameTests.rejectsInvalid()
         }

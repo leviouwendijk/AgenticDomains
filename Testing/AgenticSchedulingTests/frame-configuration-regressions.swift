@@ -1,6 +1,7 @@
 import Agentic
 import AgenticScheduling
 import Foundation
+import Frame
 import Testing
 
 enum SchedulingFrameTests {
@@ -68,6 +69,17 @@ enum SchedulingFrameTests {
             in: try SchedulingFixture.context(runtime)
         )
         try Expect.equal(travel.estimate?.method, .same_place, "Alias and binding name resolve to the place")
+    }
+
+    /// `agentic example scheduling` prints this; it must stay a valid file.
+    static func readsExample() throws {
+        let configuration = try SchedulingConfiguration(source: SchedulingFrame.example, filePath: "scheduling.frame")
+        try Expect.equal(configuration.participants.map(\.identifier), ["alex", "sam"], "Example participants, in order")
+        try Expect.equal(
+            Frame.problems(in: try Frame.parse(SchedulingFrame.example), environment: SchedulingFrame.environment).map(\.message),
+            [],
+            "Example passes the schema editors check"
+        )
     }
 
     static func rejectsInvalid() throws {
