@@ -138,7 +138,7 @@ public extension Email.Tools {
                         return folder
                     }
                     if copy == nil {
-                        warnings.append("No Sent folder is known (set folders.sent in \(MailFrame.fileName)); no copy was saved.")
+                        warnings.append("No Sent folder is known (set folders.sent on the account); no copy was saved.")
                     }
                 } catch {
                     warnings.append("Sent, but saving a copy failed: \(error.localizedDescription)")

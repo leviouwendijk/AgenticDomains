@@ -163,14 +163,16 @@ enum EmailTests {
     }
 
     static func unconfigured() async throws {
+        let empty = FileManager.default.temporaryDirectory.appendingPathComponent("agentic-mail-\(UUID().uuidString)")
         let missing = ToolContext(services: try ToolServices().inserting(
-            Email.ConfigurationState.missing(expected: "/home/.agentic/domains/mail.frame")
+            MailConfigurationStore(directory: empty)
         ))
         do {
             _ = try await Email.Tools.ListAccounts().call(.init(), in: missing)
             throw TestFlowAssertionFailure(label: "missing", message: "should fail")
         } catch let failure as Email.Failure {
-            try Expect.contains(failure.localizedDescription, "no mail.frame", "Says the file is missing")
+            try Expect.contains(failure.localizedDescription, "no .frame file in \(empty.path)", "Says where configuration is expected")
+            try Expect.contains(failure.localizedDescription, "email example", "Points to the email CLI")
         }
     }
 }
