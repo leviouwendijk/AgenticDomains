@@ -1,6 +1,9 @@
 import Agentic
 import Foundation
 import Frame
+import IO
+import Readers
+import Writers
 
 public extension Scheduling {
     /// Where the application keeps `scheduling.frame`, the calendar sources
@@ -34,8 +37,8 @@ public extension Scheduling {
 
         /// The file's text; nil when there is none.
         public func text() throws -> String? {
-            guard FileManager.default.fileExists(atPath: file.path) else { return nil }
-            return String(decoding: try Data(contentsOf: file), as: UTF8.self)
+            let read = try TextFileReader(file).read(options: .init(missingFilePolicy: .returnEmpty))
+            return read.existed ? read.text : nil
         }
 
         /// Archives the current file, if any, then writes `text` in its
@@ -50,16 +53,14 @@ public extension Scheduling {
                 // Saves within one second get -2, -3, ...
                 var archive = archiveDirectory.appendingPathComponent("\(stem).frame")
                 var count = 1
-                while FileManager.default.fileExists(atPath: archive.path) {
+                while FileSystem.default.exists(archive) {
                     count += 1
                     archive = archiveDirectory.appendingPathComponent("\(stem)-\(count).frame")
                 }
-                try FileManager.default.createDirectory(at: archiveDirectory, withIntermediateDirectories: true)
-                try Data(current.utf8).write(to: archive, options: .withoutOverwriting)
+                try FileWriter(archive).write(current)
                 archived = archive
             }
-            try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try Data(text.utf8).write(to: file, options: .atomic)
+            try FileWriter(file).write(text, options: .overwriteWithoutBackup)
             return archived
         }
     }

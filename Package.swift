@@ -93,7 +93,8 @@ let package = Package(
 
         // .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Writers.git", branch: "master"),
-        // .package(url: "https://github.com/leviouwendijk/Readers.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Readers.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/IO.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/FileTypes.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Selection.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Concatenation.git", branch: "master"),
@@ -139,6 +140,9 @@ let package = Package(
             name: "AgenticScheduling",
             dependencies: [
                 "AgenticFrame",
+                .product(name: "IO", package: "IO"),
+                .product(name: "Readers", package: "Readers"),
+                .product(name: "Writers", package: "Writers"),
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticStandard", package: "Agentic"),
                 .product(name: "AgenticMath", package: "Agentic"),
@@ -156,6 +160,7 @@ let package = Package(
             name: "AgenticFrame",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Readers", package: "Readers"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "Frame", package: "Frame"),

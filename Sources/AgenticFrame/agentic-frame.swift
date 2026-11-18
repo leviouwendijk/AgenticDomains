@@ -2,6 +2,7 @@ import Agentic
 import Foundation
 import Frame
 import Macros
+import Readers
 import Schema
 
 /// The Frame configuration language as tools: which modules exist, what a
@@ -76,9 +77,11 @@ public extension FrameLang {
         /// would write; a missing file is not stale, just not installed.
         private static func isStale(_ module: Frame.Module, in directory: URL) -> Bool {
             let file = directory.appendingPathComponent("\(module.name).frame")
-            guard let text = try? String(contentsOf: file, encoding: .utf8),
+            guard let read = try? TextFileReader(file).read(options: .init(missingFilePolicy: .returnEmpty)),
+                  read.existed,
                   let expected = try? module.document().source
             else { return false }
+            let text = read.text
             let body = text.hasPrefix("//")
                 ? String(text.drop(while: { $0 != "\n" }).dropFirst())
                 : text
