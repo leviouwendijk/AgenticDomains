@@ -180,6 +180,7 @@ let package = Package(
             name: "AgenticMail",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticContext", package: "Agentic"),
                 .product(name: "AgenticStandard", package: "Agentic"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),

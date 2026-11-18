@@ -1,4 +1,5 @@
 import Agentic
+import AgenticContext
 import AgenticStandard
 import Macros
 import Schema
@@ -17,6 +18,7 @@ public extension Email.Agents {
 
         public static let instructions: AgentInstructions = [
             .instruction(Email.Instructions.Handling.definition),
+            .instruction(Context.Instructions.Gathering.definition),
             .text(
                 """
                 Resolve relative dates ("this week", "since Monday") from \
