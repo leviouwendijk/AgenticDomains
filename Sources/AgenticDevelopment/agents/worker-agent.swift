@@ -1,5 +1,6 @@
 import Agentic
 import AgenticAssertions
+import AgenticGeneral
 import AgenticHarness
 import AgenticIO
 import AgenticMath
@@ -52,7 +53,7 @@ public extension Development.Agents {
                 implementation passes, no delegation.
                 """
             ),
-            .instruction(Development.Instructions.EvidenceDiscipline.definition),
+            .instruction(General.Instructions.EvidenceDiscipline.definition),
             .text(
                 """
                 REPORT

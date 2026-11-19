@@ -1,5 +1,6 @@
 import Agentic
 import AgenticAssertions
+import AgenticGeneral
 import AgenticGit
 import AgenticIO
 import AgenticStandard
@@ -92,7 +93,7 @@ public extension Development.Agents {
                 """
             ),
             .instruction(Tasks.Instructions.Contract.definition),
-            .instruction(Development.Instructions.EvidenceDiscipline.definition),
+            .instruction(General.Instructions.EvidenceDiscipline.definition),
             .instruction(Development.Instructions.ReadOnly.definition),
             .text(
                 """

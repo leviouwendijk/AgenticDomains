@@ -1,5 +1,6 @@
 import Agentic
 import AgenticAssertions
+import AgenticGeneral
 import AgenticGit
 import AgenticHarness
 import AgenticIO
@@ -113,7 +114,7 @@ public extension Development.Agents {
                 failure or justify one bounded retry.
                 """
             ),
-            .instruction(Development.Instructions.EvidenceDiscipline.definition),
+            .instruction(General.Instructions.EvidenceDiscipline.definition),
             .text(
                 """
                 WORKFLOW

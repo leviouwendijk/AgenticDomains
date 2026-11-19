@@ -1,5 +1,5 @@
 {
-  "originHash" : "e0c6cf7f7bc4c6b2fcca1ad4e1d2d50734e52e4b4167b364225c75c06265d52f",
+  "originHash" : "10170579a2f3253099833ef71d7268e65b1a0dd1c28fbe4742c7f12f699c454c",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3deb1af21e5684e3e7c50789ec1a7273a657d115"
+        "revision" : "54cb9bacdab8bbb31c33958facc941ca01109200"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "93706aba8baf5a018fa00038a2b8aeaa5f376c7a"
+        "revision" : "add1e9c9ec698012bbd0f4b859cb1e6c62b759c4"
       }
     },
     {
@@ -241,7 +241,7 @@
       "location" : "https://github.com/leviouwendijk/Mail.git",
       "state" : {
         "branch" : "master",
-        "revision" : "1f8ca6a7a0424e2ecd4cf0aa374292f038129c34"
+        "revision" : "c6bf0ebf8c2c345bdfc41d9543d2b68c6cd208cb"
       }
     },
     {
@@ -430,7 +430,7 @@
       "location" : "https://github.com/leviouwendijk/Sensitivity.git",
       "state" : {
         "branch" : "master",
-        "revision" : "021efd93a595f0ffb8d8060eab7116fd5b836247"
+        "revision" : "776687488c37d0d56faec1cb69676d41112da0e6"
       }
     },
     {
@@ -538,7 +538,7 @@
       "location" : "https://github.com/leviouwendijk/UniFi.git",
       "state" : {
         "branch" : "master",
-        "revision" : "1393b6bb87549ea9751c22039c2bb10cce7e29dc"
+        "revision" : "1d890c2bf2fc492dfb3c788fbf4c174dbe3bf09f"
       }
     },
     {

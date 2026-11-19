@@ -71,6 +71,12 @@ let package = Package(
             targets: ["AgenticMailTests"]
         ),
 
+        // task-neutral agents and operating guidance; applications fork GeneralPurpose
+        .library(
+            name: "AgenticGeneral",
+            targets: ["AgenticGeneral"]
+        ),
+
         // the Frame configuration language: modules, schemas, checking
         // language-agnostic development agents (orchestration, scouting, review)
         .library(
@@ -135,6 +141,7 @@ let package = Package(
                 "AgenticUniFi",
                 "AgenticProcesses",
                 "AgenticDevelopment",
+                "AgenticGeneral",
                 "AgenticScheduling",
             ]
         ),
@@ -211,6 +218,25 @@ let package = Package(
         ),
 
         .target(
+            name: "AgenticGeneral",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticStandard", package: "Agentic"),
+                .product(name: "AgenticHarness", package: "Agentic"),
+                .product(name: "AgenticMath", package: "Agentic"),
+                .product(name: "AgenticAssertions", package: "Agentic"),
+                .product(name: "AgenticTasks", package: "Agentic"),
+                .product(name: "AgenticIO", package: "AgenticIO"),
+                .product(name: "AgenticSessions", package: "Agentic"),
+                "AgenticGit",
+                "AgenticProcesses",
+
+                .product(name: "Schema", package: "Schema"),
+                .product(name: "Macros", package: "Macros"),
+            ],
+        ),
+
+        .target(
             name: "AgenticDevelopment",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
@@ -221,6 +247,7 @@ let package = Package(
                 .product(name: "AgenticTasks", package: "Agentic"),
                 .product(name: "AgenticIO", package: "AgenticIO"),
                 .product(name: "AgenticSessions", package: "Agentic"),
+                "AgenticGeneral",
                 "AgenticSwift",
                 "AgenticGit",
                 "AgenticProcesses",

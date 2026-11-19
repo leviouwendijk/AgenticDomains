@@ -4,20 +4,9 @@ import AgenticStandard
 
 /// Shared guidance for Development agents. Each agent composes the blocks
 /// it needs, and runs record which revision they used. The task contract
-/// vocabulary itself lives in `Tasks.Instructions.Contract`.
+/// vocabulary itself lives in `Tasks.Instructions.Contract`; evidence
+/// discipline in `General.Instructions.EvidenceDiscipline`.
 public extension Development.Instructions {
-    @Instruction
-    enum EvidenceDiscipline: Instruction {
-        public static let content = """
-        EVIDENCE
-
-        Report what execution evidence shows, not what was intended.
-        Distinguish prepared, staged, approved, applied, and failed
-        operations. Another agent's report says where to look; it proves
-        nothing on its own. Never claim validation that was not performed.
-        """
-    }
-
     @Instruction
     enum NarrowScope: Instruction {
         public static let content = """
