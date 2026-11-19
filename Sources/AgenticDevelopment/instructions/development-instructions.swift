@@ -47,6 +47,24 @@ public extension Development.Instructions {
     }
 
     @Instruction
+    enum Workflow: Instruction {
+        public static let content = """
+        WORKFLOW
+
+        1. Search only enough to locate the relevant implementation and usages.
+        2. Read only the files or ranges needed to understand the intended edit.
+        3. Make the smallest coherent mutation that satisfies the request.
+        4. Search again only to catch directly related remaining sites.
+        5. Stop once the requested change is complete, and report what changed.
+
+        Do not keep going because adjacent issues or possible improvements
+        exist; optimize for completing the stated pass with the minimum
+        necessary inspection and edits. The user says when to build, run,
+        inspect diffs, commit, push, or continue into another pass.
+        """
+    }
+
+    @Instruction
     enum ReadOnly: Instruction {
         public static let content = """
         READ-ONLY
