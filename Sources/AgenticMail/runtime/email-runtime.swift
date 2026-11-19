@@ -168,7 +168,8 @@ public extension Email {
 
     /// The session's runtime: inserted directly, or from the configuration
     /// store in the services; otherwise the library's default store, which
-    /// reads `~/.config/mail/*.frame` and reloads when a file changes. An
+    /// reads every root's `.config/mail/*.frame` and reloads when a file or
+    /// `~/.config/roots.frame` changes. An
     /// inserted `Scope` limits it to that access profile.
     static func runtime(
         in context: ToolContext
