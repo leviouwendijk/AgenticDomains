@@ -176,8 +176,12 @@ public extension Email.Tools {
             public let flagged: Bool?
             /// Substring of the From header (name or address).
             public let from: String?
-            /// Substring of the To header.
+            /// Substring of the To header only.
             public let to: String?
+            /// Substring of the Cc header only.
+            public let cc: String?
+            /// Substring of the To or the Cc header: mail addressed to someone, either way.
+            public let addressed: String?
             /// Substring of the subject.
             public let subject: String?
             /// Substring anywhere in headers or body.
@@ -201,6 +205,8 @@ public extension Email.Tools {
                 flagged: Bool? = nil,
                 from: String? = nil,
                 to: String? = nil,
+                cc: String? = nil,
+                addressed: String? = nil,
                 subject: String? = nil,
                 text: String? = nil,
                 since: String? = nil,
@@ -216,6 +222,8 @@ public extension Email.Tools {
                 self.flagged = flagged
                 self.from = from
                 self.to = to
+                self.cc = cc
+                self.addressed = addressed
                 self.subject = subject
                 self.text = text
                 self.since = since
@@ -235,6 +243,7 @@ public extension Email.Tools {
             public let date: String?
             public let from: [String]
             public let to: [String]
+            public let cc: [String]
             public let subject: String?
             public let unread: Bool
             public let flagged: Bool
@@ -316,6 +325,7 @@ public extension Email.Tools {
                         date: Email.timestamp(hit.date),
                         from: (summary.envelope?.from ?? []).map(Email.display),
                         to: (summary.envelope?.to ?? []).map(Email.display),
+                        cc: (summary.envelope?.cc ?? []).map(Email.display),
                         subject: summary.envelope?.subject,
                         unread: summary.isUnread,
                         flagged: summary.flags.contains(.flagged),
@@ -344,6 +354,12 @@ public extension Email.Tools {
             }
             if let to = input.to.flatMap(Email.nonEmpty) {
                 criteria.append(.to(to))
+            }
+            if let cc = input.cc.flatMap(Email.nonEmpty) {
+                criteria.append(.cc(cc))
+            }
+            if let addressed = input.addressed.flatMap(Email.nonEmpty) {
+                criteria.append(.or(.to(addressed), .cc(addressed)))
             }
             if let subject = input.subject.flatMap(Email.nonEmpty) {
                 criteria.append(.subject(subject))

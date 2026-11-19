@@ -34,7 +34,7 @@ public extension Email.Tools {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             let composed = try await Email.compose(input, with: authorization, in: context)
-            let data = MailRenderer().data(composed.message)
+            let data = MailRenderer(keepsBcc: true).data(composed.message)
 
             let (folder, uid) = try await runtime.imap(composed.account).session { session in
                 let folder = try await Email.folder(.drafts, for: composed.account, in: session, fallback: "Drafts") ?? "Drafts"
@@ -133,7 +133,7 @@ public extension Email.Tools {
             var message = composed.message
             message.messageID = "\(UUID().uuidString)@\(message.from.address.domain)"
             message.date = Date()
-            let data = MailRenderer().data(message)
+            let data = MailRenderer(keepsBcc: true).data(message)
             let delivery = try await runtime.smtp(account).send(message)
 
             var warnings: [String] = []

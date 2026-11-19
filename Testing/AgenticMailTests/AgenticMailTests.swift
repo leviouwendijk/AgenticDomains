@@ -133,6 +133,11 @@ enum EmailTests {
         let commands = await recorder.imapCommands
         try Expect.true(commands.contains("EXAMINE \"INBOX/Klanten\""), "Read-only select of the subfolder")
         try Expect.true(commands.contains("UID SEARCH UNSEEN FROM jan SINCE 1-Nov-2026"), "Server-side query: \(commands)")
+
+        let addressed = MailRecorder()
+        let either = try await Email.Tools.Search().call(.init(addressed: "jan"), in: try context(addressed))
+        try Expect.true(await addressed.imapCommands.contains("UID SEARCH OR TO jan CC jan"), "To or Cc: \(await addressed.imapCommands)")
+        try Expect.equal(either.messages.first?.cc, [], "Cc listed with each result")
     }
 
     static func read() async throws {
@@ -157,6 +162,7 @@ enum EmailTests {
         let input = Email.Composition(
             account: "team",
             to: ["jan@example.org"],
+            bcc: ["boekhouding@example.org"],
             subject: "Offerte",
             html: "<p style=\"color:#333\">Hoi Jan,</p><p>Zie de <b>offerte</b>.</p>",
             attachments: [file.path]
@@ -171,6 +177,9 @@ enum EmailTests {
         try Expect.contains(delivered, "multipart/alternative", "HTML with a text version")
         try Expect.contains(delivered, "Content-Type: application/pdf", "PDF type from the extension")
         try Expect.contains(delivered, "filename=\"offerte.pdf\"", "Attachment name")
+        try Expect.false(delivered.contains("Bcc:"), "Delivered without Bcc")
+        let copy = try Expect.notNil(await recorder.appended.first, "Sent copy")
+        try Expect.contains(copy.message, "Bcc: boekhouding@example.org", "Sent copy records Bcc")
 
         do {
             _ = try await Email.Tools.Send().preflight(.init(account: "team", to: ["jan@example.org"], subject: "x", body: "y", attachments: ["/etc/hosts"]), in: context)
