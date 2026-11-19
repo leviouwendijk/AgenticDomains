@@ -42,17 +42,24 @@ public extension Scheduling.Tools {
             /// Also list records, such as cancellations and birthdays. Default
             /// false: they never affect availability.
             public let include_records: Bool?
+            /// Shows the agenda to the user under your answer, exactly as
+            /// fetched: set it when the user asked to see their calendar,
+            /// so you need not restate it. Leave it off when the agenda only
+            /// informs your own reasoning. Default false.
+            public let show_user: Bool?
 
             public init(
                 window_start: String,
                 window_end: String,
                 participants: [String]? = nil,
-                include_records: Bool? = nil
+                include_records: Bool? = nil,
+                show_user: Bool? = nil
             ) {
                 self.window_start = window_start
                 self.window_end = window_end
                 self.participants = participants
                 self.include_records = include_records
+                self.show_user = show_user
             }
         }
 

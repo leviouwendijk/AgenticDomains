@@ -8,7 +8,7 @@ import Search
 // and sits with it; the rest are working results, shown with their call.
 
 public extension Scheduling.Tools.Propose {
-    func present(_ output: Output, input _: Input) -> ToolPresentation? {
+    func present(_ output: Output, input _: Input, preflight _: ToolPreflight?) -> ToolPresentation? {
         let zone = SchedulePresentation.zone(output.time_zone)
         let recommendation = output.recommendation
         var blocks: [ReportBlock] = []
@@ -114,7 +114,7 @@ public extension Scheduling.Tools.Propose {
 
 public extension Scheduling.Tools.Availability {
     /// The grid sits with the answer: it is what the user asked to see.
-    func present(_ output: Output, input _: Input) -> ToolPresentation? {
+    func present(_ output: Output, input _: Input, preflight _: ToolPreflight?) -> ToolPresentation? {
         let zone = SchedulePresentation.zone(output.time_zone)
         var facts: [ReportBlock.Facts.Fact] = [
             .init("Who", output.participants.joined(separator: ", ")),
@@ -161,7 +161,7 @@ public extension Scheduling.Tools.Availability {
 }
 
 public extension Scheduling.Tools.Busy {
-    func present(_ output: Output, input _: Input) -> ToolPresentation? {
+    func present(_ output: Output, input _: Input, preflight _: ToolPreflight?) -> ToolPresentation? {
         guard let start = try? ScheduleTimestamp.parse(output.window_start, field: "window_start"),
               let end = try? ScheduleTimestamp.parse(output.window_end, field: "window_end"),
               start < end else { return nil }
@@ -184,7 +184,7 @@ public extension Scheduling.Tools.Busy {
 }
 
 public extension Scheduling.Tools.Agenda {
-    func present(_ output: Output, input _: Input) -> ToolPresentation? {
+    func present(_ output: Output, input: Input, preflight _: ToolPreflight?) -> ToolPresentation? {
         guard let start = SchedulePresentation.date(output.window_start),
               let end = SchedulePresentation.date(output.window_end),
               start < end else { return nil }
@@ -217,14 +217,16 @@ public extension Scheduling.Tools.Agenda {
         if !notes.isEmpty {
             blocks.append(.callout(.init(tone: .info, title: "Gaps", content: SchedulePresentation.list(notes))))
         }
-        return (try? ReportDocument(title: "Agenda", datasets: [], blocks: blocks)).map {
-            ToolPresentation($0, placement: .inspector)
+        let (events, datasets) = SchedulePresentation.entries(output)
+        blocks += events
+        return (try? ReportDocument(title: "Agenda", datasets: datasets, blocks: blocks)).map {
+            ToolPresentation($0, placement: input.show_user == true ? .attachment : .inspector)
         }
     }
 }
 
 public extension Scheduling.Tools.FindSlots {
-    func present(_ output: Output, input _: Input) -> ToolPresentation? {
+    func present(_ output: Output, input _: Input, preflight _: ToolPreflight?) -> ToolPresentation? {
         let zone = SchedulePresentation.zone(output.time_zone)
         var blocks: [ReportBlock] = [.facts(.init(facts: [
             .init("Candidates", "\(output.candidates.count) of \(output.candidates_considered) start times considered"),
@@ -262,7 +264,7 @@ public extension Scheduling.Tools.FindSlots {
 }
 
 public extension Scheduling.Tools.Evaluate {
-    func present(_ output: Output, input _: Input) -> ToolPresentation? {
+    func present(_ output: Output, input _: Input, preflight _: ToolPreflight?) -> ToolPresentation? {
         let zone = SchedulePresentation.zone(nil)
         var blocks: [ReportBlock] = [.facts(.init(facts: [
             .init("Time", SchedulePresentation.span(output.start, output.end, zone: zone)),
@@ -283,7 +285,7 @@ public extension Scheduling.Tools.Evaluate {
 }
 
 public extension Scheduling.Tools.Conflicts {
-    func present(_ output: Output, input _: Input) -> ToolPresentation? {
+    func present(_ output: Output, input _: Input, preflight _: ToolPreflight?) -> ToolPresentation? {
         let zone = SchedulePresentation.zone(nil)
         let rows = output.conflicts.map { conflict in
             ReportDataset.Row(values: [
@@ -320,6 +322,62 @@ public extension Scheduling.Tools.Conflicts {
 }
 
 enum SchedulePresentation {
+    /// Every fetched entry, as it was fetched: one card per event (the same
+    /// event in several calendars once, with everyone on it), or a table
+    /// when the window holds more than a screen of them.
+    static func entries(
+        _ output: Scheduling.Tools.Agenda.Output
+    ) -> (blocks: [ReportBlock], datasets: [ReportDataset]) {
+        struct Key: Hashable { let title: String; let start: String; let end: String; let calendar: String }
+        var order: [Key] = []
+        var merged: [Key: (entry: Scheduling.Tools.Agenda.Entry, zone: String, people: [String])] = [:]
+        for agenda in output.participants {
+            for entry in agenda.entries {
+                let key = Key(title: entry.title, start: entry.start, end: entry.end, calendar: entry.calendar)
+                if merged[key] == nil {
+                    order.append(key)
+                    merged[key] = (entry, agenda.time_zone, [])
+                }
+                merged[key]?.people.append(agenda.participant)
+            }
+        }
+        let listed = order.compactMap { merged[$0] }
+        guard !listed.isEmpty else { return ([], []) }
+
+        if listed.count <= 12 {
+            let cards = listed.compactMap { item -> ReportBlock? in
+                guard let start = date(item.entry.start), let end = date(item.entry.end) else { return nil }
+                return .event(.init(
+                    title: item.entry.title,
+                    interval: .init(start: start, end: end),
+                    timeZone: item.zone,
+                    allDay: item.entry.all_day,
+                    calendar: item.entry.calendar,
+                    location: item.entry.location,
+                    attendees: item.people
+                ))
+            }
+            return (cards, [])
+        }
+
+        let rows = listed.map { item in
+            ReportDataset.Row(values: [
+                .text(span(item.entry.start, item.entry.end, zone: zone(item.zone))),
+                .text(item.entry.title),
+                .text(item.entry.calendar),
+                .text(item.people.joined(separator: ", ")),
+                .text(item.entry.location ?? ""),
+            ])
+        }
+        guard let dataset = try? ReportDataset(
+            id: "entries",
+            columns: ["when", "event", "calendar", "who", "where"].map { .init($0, kind: .text) },
+            rows: rows,
+            coverage: .complete
+        ) else { return ([], []) }
+        return ([.table(.init(dataset: "entries", columns: ["when", "event", "calendar", "who", "where"], title: "Events"))], [dataset])
+    }
+
     static func zone(_ identifier: String?) -> TimeZone {
         identifier.flatMap(TimeZone.init(identifier:)) ?? .current
     }

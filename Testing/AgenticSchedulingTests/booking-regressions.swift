@@ -126,6 +126,18 @@ enum SchedulingBookingTests {
         try Expect.true(event.context?.lanes.contains { $0.label == "New" } == true, "The day around it, with the event marked")
         let overlapping = try await book.call(clash, in: context)
         try Expect.true(overlapping.overlaps.contains { $0.contains("Standup") }, "Result names the overlap")
+        let shown = try Expect.notNil(book.present(overlapping, input: clash, preflight: preflight), "A booking presents its card")
+        guard case .event(let written)? = shown.document.blocks.first else {
+            throw TestFlowAssertionFailure(label: "written card", message: "The result is an event card")
+        }
+        try Expect.equal(shown.placement, .attachment, "Under the answer")
+        try Expect.equal(written.title, "Call", "The written title")
+        try Expect.notNil(written.context, "The approved day view is kept, not fetched again")
+        let unreviewed = try Expect.notNil(book.present(overlapping, input: clash, preflight: nil), "Without a review, a card from the output")
+        guard case .event(let plain)? = unreviewed.document.blocks.first else {
+            throw TestFlowAssertionFailure(label: "written card", message: "The result is an event card")
+        }
+        try Expect.isNil(plain.context, "No day view without the review")
 
         do {
             _ = try await book.call(.init(title: "Joint", start: "2026-11-23T15:00:00+01:00", participants: ["levi", "anna"]), in: context)

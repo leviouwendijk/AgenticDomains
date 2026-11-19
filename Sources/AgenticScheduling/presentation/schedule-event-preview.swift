@@ -71,3 +71,75 @@ extension Scheduling.Runtime {
         return .init(start: from, end: to, timeZone: zone.raw, lanes: lanes)
     }
 }
+
+extension SchedulePresentation {
+    /// The result of a calendar write, under the answer: the card the user
+    /// approved, corrected with what was written. Without a review (an
+    /// auto-approved call), the card is built from the written event alone.
+    static func written(
+        preflight: ToolPreflight?,
+        title: String,
+        start: String,
+        end: String,
+        calendar: String?,
+        location: String?,
+        change: ReportBlock.Event.Change
+    ) -> ToolPresentation? {
+        let approved = preflight?.preview.sections.lazy.compactMap { section -> ReportBlock.Event? in
+            guard case .report(let document) = section.content,
+                  case .event(let event)? = document.blocks.first else { return nil }
+            return event
+        }.first
+        let interval = date(start).flatMap { from in
+            date(end).map { ReportBlock.Event.Interval(start: from, end: $0) }
+        } ?? approved?.interval
+        guard let interval else { return nil }
+
+        let event = ReportBlock.Event(
+            title: title,
+            interval: interval,
+            timeZone: approved?.timeZone,
+            allDay: approved?.allDay ?? false,
+            change: change,
+            previous: approved?.previous,
+            calendar: calendar ?? approved?.calendar,
+            location: location ?? approved?.location,
+            attendees: approved?.attendees ?? [],
+            notes: approved?.notes,
+            details: approved?.details ?? [],
+            warnings: approved?.warnings ?? [],
+            context: approved?.context
+        )
+        return (try? ReportDocument(title: title, datasets: [], blocks: [.event(event)])).map {
+            ToolPresentation($0, placement: .attachment)
+        }
+    }
+}
+
+public extension Scheduling.Tools.Book {
+    func present(_ output: Output, input _: Input, preflight: ToolPreflight?) -> ToolPresentation? {
+        SchedulePresentation.written(
+            preflight: preflight, title: output.title, start: output.start, end: output.end,
+            calendar: output.calendar, location: output.location, change: .create
+        )
+    }
+}
+
+public extension Scheduling.Tools.Update {
+    func present(_ output: Output, input _: Input, preflight: ToolPreflight?) -> ToolPresentation? {
+        SchedulePresentation.written(
+            preflight: preflight, title: output.title, start: output.start, end: output.end,
+            calendar: output.calendar, location: output.location, change: .update
+        )
+    }
+}
+
+public extension Scheduling.Tools.Remove {
+    /// Only with the approved card: the output names the removed event as
+    /// text, without its times.
+    func present(_ output: Output, input _: Input, preflight: ToolPreflight?) -> ToolPresentation? {
+        guard let preflight,
+              case .report(let document)? = preflight.preview.sections.first?.content else { return nil }
+        return ToolPresentation(document, placement: .attachment)
+    }
+}

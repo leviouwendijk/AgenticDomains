@@ -54,7 +54,7 @@ enum SchedulingPresentationTests {
     /// marked, an options table and the checks.
     static func presentsProposal() async throws {
         let (input, output) = try await propose()
-        guard let presentation = Scheduling.Tools.Propose().present(output, input: input) else {
+        guard let presentation = Scheduling.Tools.Propose().present(output, input: input, preflight: nil) else {
             throw PresentationFailure("proposal presentation")
         }
         try Expect.equal(presentation.placement, .attachment, "The answer sits with the reply")
@@ -86,29 +86,43 @@ enum SchedulingPresentationTests {
         let context = try F.context()
         let busyInput = Scheduling.Tools.Busy.Input(window_start: F.monday.start, window_end: F.monday.end, participants: ["levi", "anna"])
         let busy = try await Scheduling.Tools.Busy().call(busyInput, in: context)
-        let busyView = try requireSome(Scheduling.Tools.Busy().present(busy, input: busyInput))
+        let busyView = try requireSome(Scheduling.Tools.Busy().present(busy, input: busyInput, preflight: nil))
         try Expect.equal(busyView.placement, .inspector, "Busy view in the inspector")
         try Expect.true(busyView.document.blocks.contains { if case .timeline = $0 { return true }; return false }, "Busy time as a timeline")
 
         let slotsInput = Scheduling.Tools.FindSlots.Input(window_start: F.monday.start, window_end: F.monday.end, requirements: requirements)
         let slots = try await Scheduling.Tools.FindSlots().call(slotsInput, in: context)
-        let slotsView = try requireSome(Scheduling.Tools.FindSlots().present(slots, input: slotsInput))
+        let slotsView = try requireSome(Scheduling.Tools.FindSlots().present(slots, input: slotsInput, preflight: nil))
         try Expect.equal(slotsView.placement, .inspector, "Slot search in the inspector")
         try Expect.equal(slotsView.document.datasets.first?.rows.count, slots.candidates.count, "Every candidate listed")
 
         let agendaInput = Scheduling.Tools.Agenda.Input(window_start: F.monday.start, window_end: F.monday.end)
         let agenda = try await Scheduling.Tools.Agenda().call(agendaInput, in: context)
-        let agendaView = try requireSome(Scheduling.Tools.Agenda().present(agenda, input: agendaInput))
+        let agendaView = try requireSome(Scheduling.Tools.Agenda().present(agenda, input: agendaInput, preflight: nil))
         try Expect.equal(agendaView.placement, .inspector, "Agenda in the inspector")
         guard case .timeline(let agendaTimeline)? = agendaView.document.blocks.first else {
             throw PresentationFailure("agenda timeline")
         }
         try Expect.true(agendaTimeline.lanes.flatMap(\.spans).contains { $0.label == "Standup" && $0.mark == .occupied }, "Blocking entries drawn")
         try Expect.false(agendaTimeline.lanes.flatMap(\.spans).contains { $0.label == "Holiday" }, "All-day entries not drawn")
+        let cards = agendaView.document.blocks.compactMap { block -> ReportBlock.Event? in
+            guard case .event(let event) = block else { return nil }
+            return event
+        }
+        let listed = Set(agenda.participants.flatMap { $0.entries.map { "\($0.title)|\($0.start)" } })
+        try Expect.equal(cards.count, listed.count, "One card per fetched event, shared events once")
+        try Expect.true(cards.contains { $0.title == "Holiday" && $0.allDay }, "All-day entries get a card")
+        let shown = try requireSome(Scheduling.Tools.Agenda().present(
+            agenda,
+            input: .init(window_start: F.monday.start, window_end: F.monday.end, show_user: true),
+            preflight: nil
+        ))
+        try Expect.equal(shown.placement, .attachment, "Shown to the user when asked")
+        try Expect.equal(shown.document, agendaView.document, "Same data either way, only the placement differs")
 
         let conflictsInput = Scheduling.Tools.Conflicts.Input(window_start: F.tuesday.start, window_end: F.tuesday.end)
         let conflicts = try await Scheduling.Tools.Conflicts().call(conflictsInput, in: context)
-        let conflictsView = try requireSome(Scheduling.Tools.Conflicts().present(conflicts, input: conflictsInput))
+        let conflictsView = try requireSome(Scheduling.Tools.Conflicts().present(conflicts, input: conflictsInput, preflight: nil))
         try Expect.equal(conflictsView.document.datasets.first?.rows.count, conflicts.conflicts.count, "Every conflict listed")
     }
 
@@ -160,7 +174,7 @@ enum SchedulingPresentationTests {
         try Expect.equal(days.rows.map(\.status), [.clean, .clean], "Both days have a clean start")
         try Expect.equal(days.rows[1].starts, ["09:30–11:15", "14:00"], "Separate stretches stay apart")
 
-        let view = try requireSome(Scheduling.Tools.Availability().present(output, input: input))
+        let view = try requireSome(Scheduling.Tools.Availability().present(output, input: input, preflight: nil))
         try Expect.equal(view.placement, .attachment, "The grid sits with the answer")
         let grid = try requireFirst(view.document.datasets)
         try Expect.equal(grid.columns.map(\.name), ["fit", "when", "Levi", "Anna", "why"], "A column per participant")
