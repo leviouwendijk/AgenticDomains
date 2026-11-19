@@ -1,0 +1,244 @@
+import Agentic
+import Foundation
+import Macros
+import Schema
+
+public extension Scheduling.Tools {
+    /// Changes one existing event: its time, length, title, location, notes
+    /// or calendar. Only that occurrence of a recurring event changes.
+    @Tool("schedule_update")
+    struct Update {
+        @JSONSchema
+        public struct Input: HashableSource {
+            /// The event's current start, ISO 8601 with offset, as
+            /// `schedule_agenda` lists it.
+            public let event_start: String
+            /// The event's current title, as `schedule_agenda` lists it.
+            public let event_title: String
+            /// The event's current calendar, when the title and start alone
+            /// match several events.
+            public let event_calendar: String?
+            /// New start, ISO 8601 with offset. Keeps the length unless
+            /// `duration_minutes` is given.
+            public let start: String?
+            /// New length in minutes, from the (new) start.
+            public let duration_minutes: Int?
+            public let title: String?
+            /// Calendar to move the event into.
+            public let calendar: String?
+            public let location: String?
+            public let notes: String?
+
+            public init(
+                event_start: String,
+                event_title: String,
+                event_calendar: String? = nil,
+                start: String? = nil,
+                duration_minutes: Int? = nil,
+                title: String? = nil,
+                calendar: String? = nil,
+                location: String? = nil,
+                notes: String? = nil
+            ) {
+                self.event_start = event_start
+                self.event_title = event_title
+                self.event_calendar = event_calendar
+                self.start = start
+                self.duration_minutes = duration_minutes
+                self.title = title
+                self.calendar = calendar
+                self.location = location
+                self.notes = notes
+            }
+        }
+
+        @JSONSchema
+        public struct Output: HashableResult {
+            public let source: String
+            public let identifier: String
+            /// The event before the change.
+            public let before: String
+            public let title: String
+            public let calendar: String
+            public let start: String
+            public let end: String
+            public let location: String?
+            /// Other events and reserved hours the changed event overlaps,
+            /// as approved by the user.
+            public let overlaps: [String]
+        }
+
+        public static let purpose =
+            "Change one existing event (by its start and title from \(Agenda.identifier.rawValue)): move it, change its length, title, location or notes, or move it to another calendar. Only that occurrence of a recurring event changes."
+        public static let risk: ActionRisk = .boundedmutate
+
+        public init() {}
+
+        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+            let runtime = try Scheduling.runtime(in: context)
+            let plan = try await Plan(input, runtime: runtime)
+            return ToolPreflight(
+                tool: Self.definition.identifier,
+                risk: Self.definition.risk,
+                summary: "Change \(runtime.describe(plan.event, in: plan.zone)) to \(plan.after).",
+                estimates: .init(write: .init(count: 1)),
+                sideEffects: ["Changes one event in \(plan.event.calendar.title)"],
+                warnings: plan.overlaps.map { "Overlaps \($0)" }
+            )
+        }
+
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            let runtime = try Scheduling.runtime(in: context)
+            let plan = try await Plan(input, runtime: runtime)
+            let changed = try await plan.source.update(plan.event, with: plan.change)
+            return .init(
+                source: changed.source,
+                identifier: changed.identifier,
+                before: runtime.describe(plan.event, in: plan.zone),
+                title: changed.title,
+                calendar: changed.calendar.title,
+                start: ScheduleTimestamp.render(changed.interval.start, in: plan.zone),
+                end: ScheduleTimestamp.render(changed.interval.end, in: plan.zone),
+                location: changed.location,
+                overlaps: plan.overlaps
+            )
+        }
+    }
+
+    /// Removes one existing event. Only that occurrence of a recurring event
+    /// goes.
+    @Tool("schedule_remove")
+    struct Remove {
+        @JSONSchema
+        public struct Input: HashableSource {
+            /// The event's start, ISO 8601 with offset, as
+            /// `schedule_agenda` lists it.
+            public let event_start: String
+            /// The event's title, as `schedule_agenda` lists it.
+            public let event_title: String
+            /// The event's calendar, when the title and start alone match
+            /// several events.
+            public let event_calendar: String?
+
+            public init(event_start: String, event_title: String, event_calendar: String? = nil) {
+                self.event_start = event_start
+                self.event_title = event_title
+                self.event_calendar = event_calendar
+            }
+        }
+
+        @JSONSchema
+        public struct Output: HashableResult {
+            public let source: String
+            /// The removed event, with its calendar and time.
+            public let removed: String
+        }
+
+        public static let purpose =
+            "Remove one existing event (by its start and title from \(Agenda.identifier.rawValue)), such as a cancelled appointment or an offered slot that is no longer open. Only that occurrence of a recurring event goes."
+        public static let risk: ActionRisk = .boundedmutate
+
+        public init() {}
+
+        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+            let runtime = try Scheduling.runtime(in: context)
+            let event = try await runtime.event(startingAt: input.event_start, title: input.event_title, calendar: input.event_calendar)
+            let zone = runtime.owners(of: event.calendar).first?.timeZone ?? runtime.defaults.timeZone
+            return ToolPreflight(
+                tool: Self.definition.identifier,
+                risk: Self.definition.risk,
+                summary: "Remove \(runtime.describe(event, in: zone)).",
+                estimates: .init(write: .init(count: 1)),
+                sideEffects: ["Removes one event from \(event.calendar.title)"]
+            )
+        }
+
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            let runtime = try Scheduling.runtime(in: context)
+            let event = try await runtime.event(startingAt: input.event_start, title: input.event_title, calendar: input.event_calendar)
+            let zone = runtime.owners(of: event.calendar).first?.timeZone ?? runtime.defaults.timeZone
+            try await runtime.source(named: event.source).remove(event)
+            return .init(source: event.source, removed: runtime.describe(event, in: zone))
+        }
+    }
+}
+
+private extension Scheduling.Tools.Update {
+    /// The event as it is, the change, and what the result runs into.
+    struct Plan {
+        let source: any CalendarSource
+        let event: ScheduledEvent
+        let change: EventChange
+        let zone: ScheduleTimeZone
+        let after: String
+        let overlaps: [String]
+
+        init(_ input: Input, runtime: Scheduling.Runtime) async throws {
+            let event = try await runtime.event(startingAt: input.event_start, title: input.event_title, calendar: input.event_calendar)
+
+            var interval: ScheduleInterval?
+            if input.start != nil || input.duration_minutes != nil {
+                let start = try input.start.map { try ScheduleTimestamp.parse($0, field: "start") } ?? event.interval.start
+                let seconds = try input.duration_minutes.map { try ScheduleMinutes($0).seconds }
+                    ?? event.interval.end.timeIntervalSince(event.interval.start)
+                interval = try ScheduleInterval(start: start, end: start.addingTimeInterval(seconds))
+            }
+
+            var calendar: CalendarReference?
+            if let name = input.calendar?.trimmedNonEmpty {
+                // Any role: moving an appointment into a records calendar
+                // is how a team keeps a cancellation.
+                let target = try await runtime.writableCalendar(
+                    name,
+                    for: runtime.owners(of: event.calendar),
+                    roles: Set(CalendarRole.allCases)
+                )
+                guard target.source.identifier == event.source else {
+                    throw CalendarSourceWriteFailure.calendarNotFound(source: event.source, calendar: name)
+                }
+                calendar = target.calendar
+            }
+
+            let title = input.title?.trimmedNonEmpty
+            if input.title != nil, title == nil {
+                throw Scheduling.EventWriteFailure.emptyTitle
+            }
+
+            let change = EventChange(
+                title: title,
+                interval: interval,
+                calendar: calendar,
+                location: input.location?.trimmedNonEmpty,
+                notes: input.notes?.trimmedNonEmpty
+            )
+            guard !change.isEmpty else {
+                throw Scheduling.EventWriteFailure.nothingToChange
+            }
+
+            let finalCalendar = calendar ?? event.calendar
+            let owners = runtime.owners(of: finalCalendar)
+            let zone = owners.first?.timeZone ?? runtime.defaults.timeZone
+            let finalInterval = interval ?? event.interval
+            let preview = ScheduledEvent(
+                source: event.source,
+                identifier: event.identifier,
+                title: title ?? event.title,
+                interval: finalInterval,
+                isAllDay: event.isAllDay,
+                calendar: finalCalendar,
+                availability: event.availability,
+                location: change.location ?? event.location
+            )
+
+            self.source = try runtime.source(named: event.source)
+            self.event = event
+            self.change = change
+            self.zone = zone
+            self.after = runtime.describe(preview, in: zone)
+                + (change.location.map { " at \($0)" } ?? "")
+            self.overlaps = interval == nil
+                ? []
+                : try await runtime.overlaps(finalInterval, for: owners, zone: zone, excluding: event)
+        }
+    }
+}

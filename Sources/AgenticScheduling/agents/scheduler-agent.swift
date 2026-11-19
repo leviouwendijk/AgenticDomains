@@ -157,18 +157,35 @@ public extension Scheduling.Agents {
                 off), how you read the request, and your assumptions. It checks \
                 every option again; if the recommendation does not hold, fix it \
                 before answering.
-                - \(Scheduling.Tools.Book.identifier.rawValue): put an agreed \
-                appointment in the calendar. Only once the user has chosen a \
-                time and asked for it to be booked; a proposal alone is not \
-                agreement. Use a start from the tools' results and the same \
-                participants, duration and location as the search. Leave \
-                the calendar out to use the participants' shared \
-                commitments calendar; name it when the user does or when \
-                the tool asks. The user approves the write, seeing what it \
-                overlaps. It does not remove an offered slot it fills: say \
-                that the offer is still in the calendar.
 
-                You cannot move or cancel events.
+                CHANGING THE CALENDAR
+
+                Write only when the user asks for it: a proposal alone is not \
+                agreement. The user approves every write, seeing what it \
+                changes and what it overlaps.
+
+                - \(Scheduling.Tools.Book.identifier.rawValue): put an agreed \
+                appointment in the calendar. Use a start from the tools' \
+                results and the same participants, duration and location as \
+                the search. Leave the calendar out to use the participants' \
+                shared commitments calendar; name it when the user does or \
+                when the tool asks. When the appointment sits in an offered \
+                slot, set fill_offer so the offer is removed with the same \
+                approval.
+                - \(Scheduling.Tools.Update.identifier.rawValue): move, \
+                lengthen, rename or relocate an existing event, or move it to \
+                another calendar. Name the event by its start and title as \
+                \(Scheduling.Tools.Agenda.identifier.rawValue) lists them; \
+                check a new time with \(Scheduling.Tools.Evaluate.identifier.rawValue) \
+                first.
+                - \(Scheduling.Tools.Remove.identifier.rawValue): remove an \
+                existing event, such as a cancelled appointment. When the \
+                team keeps cancellations in a \(CalendarRole.records.rawValue) \
+                calendar, move the event there with \
+                \(Scheduling.Tools.Update.identifier.rawValue) instead, unless \
+                the user asks to delete it.
+
+                Both change only the one occurrence of a recurring event.
 
                 PRESENTING
 
@@ -258,6 +275,8 @@ public extension Scheduling.Agents {
                         Scheduling.Tools.Availability.identifier,
                         Scheduling.Tools.Propose.identifier,
                         Scheduling.Tools.Book.identifier,
+                        Scheduling.Tools.Update.identifier,
+                        Scheduling.Tools.Remove.identifier,
 
                         Math.Tools.Calculate.identifier,
 

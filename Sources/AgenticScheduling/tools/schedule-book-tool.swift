@@ -4,9 +4,9 @@ import Macros
 import Schema
 
 public extension Scheduling.Tools {
-    /// Writes one appointment into a calendar. The only scheduling tool that
-    /// changes a calendar; the user approves it from its preflight, which
-    /// names the calendar and what the appointment would overlap.
+    /// Writes one appointment into a calendar. The user approves it from its
+    /// preflight, which names the calendar, what the appointment would
+    /// overlap and the offered slot it fills.
     @Tool("schedule_book")
     struct Book {
         @JSONSchema
@@ -27,6 +27,10 @@ public extension Scheduling.Tools {
             /// Location text, such as the client's address.
             public let location: String?
             public let notes: String?
+            /// Converts the open offered slot holding the appointment: the
+            /// offer is removed once the appointment is written. Defaults
+            /// to false.
+            public let fill_offer: Bool?
 
             public init(
                 title: String,
@@ -35,7 +39,8 @@ public extension Scheduling.Tools {
                 participants: [String]? = nil,
                 calendar: String? = nil,
                 location: String? = nil,
-                notes: String? = nil
+                notes: String? = nil,
+                fill_offer: Bool? = nil
             ) {
                 self.title = title
                 self.start = start
@@ -44,6 +49,7 @@ public extension Scheduling.Tools {
                 self.calendar = calendar
                 self.location = location
                 self.notes = notes
+                self.fill_offer = fill_offer
             }
         }
 
@@ -60,53 +66,40 @@ public extension Scheduling.Tools {
             /// Existing events and reserved hours the appointment overlaps,
             /// as approved by the user.
             public let overlaps: [String]
-        }
-
-        public enum Failure: Error, Sendable, LocalizedError {
-            case emptyTitle
-            case unknownCalendar(String, known: [String])
-            case ambiguousCalendar(String, sources: [String])
-            case noDefaultCalendar(participants: [String], candidates: [String])
-            case unbookableRole(calendar: String, role: CalendarRole)
-
-            public var errorDescription: String? {
-                switch self {
-                case .emptyTitle:
-                    return "An appointment needs a title."
-                case .unknownCalendar(let name, let known):
-                    return "No calendar source shows a calendar '\(name)'. Known: \(known.joined(separator: ", "))."
-                case .ambiguousCalendar(let name, let sources):
-                    return "Calendar '\(name)' exists in several sources (\(sources.joined(separator: ", "))); name it by identifier."
-                case .noDefaultCalendar(let participants, let candidates):
-                    let options = candidates.isEmpty ? "none is configured" : "candidates: \(candidates.joined(separator: ", "))"
-                    return "No single commitments calendar is shared by \(participants.joined(separator: ", ")) (\(options)). Name the calendar."
-                case .unbookableRole(let calendar, let role):
-                    return "Calendar '\(calendar)' is a \(role.rawValue) calendar; appointments go into a \(CalendarRole.commitments.rawValue) calendar."
-                }
-            }
+            /// The offered slot removed because the appointment fills it.
+            public let removed_offer: String?
         }
 
         public static let purpose =
-            "Create one appointment in a calendar, after the user has agreed to a time. Writes into the participants' shared commitments calendar unless a calendar is named. It does not remove an offered slot it fills."
+            "Create one appointment in a calendar, after the user has agreed to a time. Writes into the participants' shared commitments calendar unless a calendar is named; with fill_offer it also removes the offered slot it fills."
         public static let risk: ActionRisk = .boundedmutate
 
         public init() {}
 
         public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
-            let plan = try await Plan(input, runtime: try Scheduling.runtime(in: context))
+            let runtime = try Scheduling.runtime(in: context)
+            let plan = try await Plan(input, runtime: runtime)
+            var sideEffects = ["Adds one event to \(plan.draft.calendar.title)"]
+            if let offer = plan.offer {
+                sideEffects.append("Removes the offered slot \(runtime.describe(offer, in: plan.zone))")
+            }
             return ToolPreflight(
                 tool: Self.definition.identifier,
                 risk: Self.definition.risk,
                 summary: "Create '\(plan.draft.title)' on \(plan.start) – \(plan.end) in calendar \(plan.draft.calendar.title) (\(plan.source.identifier)).",
-                estimates: .init(write: .init(count: 1)),
-                sideEffects: ["Adds one event to \(plan.draft.calendar.title)"],
+                estimates: .init(write: .init(count: sideEffects.count)),
+                sideEffects: sideEffects,
                 warnings: plan.overlaps.map { "Overlaps \($0)" }
             )
         }
 
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
-            let plan = try await Plan(input, runtime: try Scheduling.runtime(in: context))
+            let runtime = try Scheduling.runtime(in: context)
+            let plan = try await Plan(input, runtime: runtime)
             let event = try await plan.source.create(plan.draft)
+            if let offer = plan.offer {
+                try await runtime.source(named: offer.source).remove(offer)
+            }
             return .init(
                 source: event.source,
                 identifier: event.identifier,
@@ -115,125 +108,49 @@ public extension Scheduling.Tools {
                 start: ScheduleTimestamp.render(event.interval.start, in: plan.zone),
                 end: ScheduleTimestamp.render(event.interval.end, in: plan.zone),
                 location: event.location,
-                overlaps: plan.overlaps
+                overlaps: plan.overlaps,
+                removed_offer: plan.offer.map { runtime.describe($0, in: plan.zone) }
             )
         }
     }
 }
 
 private extension Scheduling.Tools.Book {
-    /// The resolved write: where it goes and what it runs into.
+    /// The resolved write: where it goes, what it runs into, which offer it fills.
     struct Plan {
         let source: any CalendarSource
         let draft: EventDraft
         let zone: ScheduleTimeZone
         let overlaps: [String]
+        let offer: ScheduledEvent?
 
         var start: String { ScheduleTimestamp.render(draft.interval.start, in: zone) }
         var end: String { ScheduleTimestamp.render(draft.interval.end, in: zone) }
 
         init(_ input: Input, runtime: Scheduling.Runtime) async throws {
-            let title = input.title.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !title.isEmpty else {
-                throw Failure.emptyTitle
+            guard let title = input.title.trimmedNonEmpty else {
+                throw Scheduling.EventWriteFailure.emptyTitle
             }
             let participants = try runtime.participants(input.participants)
             let start = try ScheduleTimestamp.parse(input.start, field: "start")
             let duration = try ScheduleMinutes.parse(input.duration_minutes, default: runtime.defaults.duration)
             let interval = try ScheduleInterval(start: start, end: start.addingTimeInterval(duration.seconds))
+            let target = try await runtime.writableCalendar(input.calendar, for: participants)
+            let zone = participants.first?.timeZone ?? runtime.defaults.timeZone
 
-            let (source, calendar) = try await Self.target(input.calendar, for: participants, runtime: runtime)
-            let policy = runtime.policy(for: calendar)
-            guard [.commitments, .reserved].contains(policy.role) else {
-                throw Failure.unbookableRole(calendar: calendar.title, role: policy.role)
-            }
-
-            self.source = source
-            self.zone = participants.first?.timeZone ?? runtime.defaults.timeZone
+            self.source = target.source
+            self.zone = zone
             self.draft = EventDraft(
                 title: title,
                 interval: interval,
-                calendar: calendar,
-                location: input.location?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
-                notes: input.notes?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                calendar: target.calendar,
+                location: input.location?.trimmedNonEmpty,
+                notes: input.notes?.trimmedNonEmpty
             )
-            self.overlaps = try await Self.overlaps(interval, for: participants, runtime: runtime, zone: zone)
+            self.overlaps = try await runtime.overlaps(interval, for: participants, zone: zone)
+            self.offer = input.fill_offer == true
+                ? try await runtime.openOffer(holding: interval, for: participants, zone: zone)
+                : nil
         }
-
-        /// The named calendar, or the one commitments calendar every
-        /// participant owns.
-        static func target(
-            _ name: String?,
-            for participants: [SchedulingParticipant],
-            runtime: Scheduling.Runtime
-        ) async throws -> (any CalendarSource, CalendarReference) {
-            var visible: [(source: any CalendarSource, calendar: CalendarReference)] = []
-            for source in runtime.sources {
-                for calendar in try await source.calendars() {
-                    visible.append((source, calendar))
-                }
-            }
-
-            let wanted: (CalendarReference) -> Bool
-            let label: String
-            if let name = name?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
-                label = name
-                wanted = { $0.identifier == name || $0.title.caseInsensitiveCompare(name) == .orderedSame }
-            } else {
-                let shared = runtime.calendars.filter { policy in
-                    policy.role == .commitments
-                        && participants.allSatisfy { participant in
-                            participant.calendars.contains { $0.describesSameCalendar(as: policy) }
-                        }
-                }
-                guard shared.count == 1, let policy = shared.first else {
-                    throw Failure.noDefaultCalendar(
-                        participants: participants.map(\.identifier),
-                        candidates: shared.map(\.label)
-                    )
-                }
-                label = policy.label
-                wanted = policy.matches
-            }
-
-            let matches = visible.filter { wanted($0.calendar) }
-            guard let match = matches.first else {
-                throw Failure.unknownCalendar(label, known: visible.map(\.calendar.title))
-            }
-            guard matches.count == 1 else {
-                throw Failure.ambiguousCalendar(label, sources: matches.map(\.source.identifier))
-            }
-            return match
-        }
-
-        /// What the participants already have at that time, as lines for
-        /// the approval and the result.
-        static func overlaps(
-            _ interval: ScheduleInterval,
-            for participants: [SchedulingParticipant],
-            runtime: Scheduling.Runtime,
-            zone: ScheduleTimeZone
-        ) async throws -> [String] {
-            let timelines = try await runtime.timelines(for: participants, in: interval)
-            var lines: [String] = []
-            for timeline in timelines {
-                let who = timeline.participant.name
-                for event in timeline.blocking(overlapping: interval) + timeline.reserved(overlapping: interval) {
-                    let from = ScheduleTimestamp.render(event.interval.start, in: zone)
-                    let to = ScheduleTimestamp.render(event.interval.end, in: zone)
-                    lines.append("\(who): \(event.title) (\(event.calendar.title), \(from) – \(to))")
-                }
-                if !timeline.participant.reservedHours(overlapping: interval).isEmpty {
-                    lines.append("\(who): reserved hours")
-                }
-            }
-            return lines
-        }
-    }
-}
-
-private extension String {
-    var nilIfEmpty: String? {
-        isEmpty ? nil : self
     }
 }

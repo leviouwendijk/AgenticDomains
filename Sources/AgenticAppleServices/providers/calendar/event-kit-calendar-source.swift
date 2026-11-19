@@ -115,6 +115,73 @@ public actor EventKitCalendarSource:
         )
     }
 
+    public func update(_ event: ScheduledEvent, with change: EventChange) async throws -> ScheduledEvent {
+        try await requireAccess()
+        let stored = try occurrence(of: event)
+        if let target = change.calendar {
+            guard let calendar = eventStore.calendar(withIdentifier: target.identifier) else {
+                throw CalendarSourceWriteFailure.calendarNotFound(source: identifier, calendar: target.title)
+            }
+            guard calendar.allowsContentModifications else {
+                throw CalendarSourceWriteFailure.calendarNotWritable(source: identifier, calendar: calendar.title)
+            }
+            stored.calendar = calendar
+        }
+        if let title = change.title {
+            stored.title = title
+        }
+        if let interval = change.interval {
+            stored.startDate = interval.start
+            stored.endDate = interval.end
+        }
+        if let location = change.location {
+            stored.location = location
+        }
+        if let notes = change.notes {
+            stored.notes = notes
+        }
+        try eventStore.save(stored, span: .thisEvent, commit: true)
+
+        return ScheduledEvent(
+            source: identifier,
+            identifier: stored.eventIdentifier ?? stored.calendarItemIdentifier,
+            title: stored.title ?? "",
+            interval: change.interval ?? event.interval,
+            isAllDay: stored.isAllDay,
+            calendar: Self.reference(stored.calendar),
+            availability: Self.availability(stored),
+            location: stored.location
+        )
+    }
+
+    public func remove(_ event: ScheduledEvent) async throws {
+        try await requireAccess()
+        let stored = try occurrence(of: event)
+        try eventStore.remove(stored, span: .thisEvent, commit: true)
+    }
+
+    /// The stored occurrence `event` was read from. The identifier is shared
+    /// by every occurrence of a recurring event, so its start picks the one.
+    private func occurrence(of event: ScheduledEvent) throws -> EKEvent {
+        let calendars = eventStore.calendar(withIdentifier: event.calendar.identifier).map { [$0] }
+        let predicate = eventStore.predicateForEvents(
+            withStart: event.interval.start,
+            end: event.interval.end,
+            calendars: calendars
+        )
+        let match = eventStore.events(matching: predicate).first { stored in
+            (stored.eventIdentifier ?? stored.calendarItemIdentifier) == event.identifier
+                && stored.startDate == event.interval.start
+        }
+        guard let match else {
+            throw CalendarSourceWriteFailure.eventNotFound(source: identifier, title: event.title)
+        }
+        guard match.calendar.allowsContentModifications else {
+            throw CalendarSourceWriteFailure.calendarNotWritable(source: identifier, calendar: match.calendar.title)
+        }
+        return match
+    }
+
     private func requireAccess() async throws {
         if authorization() == .not_determined, #available(macOS 14.0, *) {
             _ = try? await eventStore.requestFullAccessToEvents()
