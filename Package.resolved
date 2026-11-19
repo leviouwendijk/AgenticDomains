@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e7c3ab1380237e259efd1ce5f84e8e7323e01396"
+        "revision" : "ede9a453acfedf965def904d1656d9131bc3c5a0"
       }
     },
     {
@@ -241,7 +241,7 @@
       "location" : "https://github.com/leviouwendijk/Mail.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3420f76724b5d15c9cf34ae6cc82a2ef2dbd5b87"
+        "revision" : "751b8a0c3b6d1bcc3aa0507e813f3fb636d41a89"
       }
     },
     {
