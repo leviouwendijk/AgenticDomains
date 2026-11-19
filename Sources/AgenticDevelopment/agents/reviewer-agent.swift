@@ -144,7 +144,6 @@ public extension Development.Agents {
         )
 
         private static let reviewTools: [ToolIdentifier] = [
-            Standard.Tools.InspectCapability.identifier,
 
             SystemIO.Tools.SearchSources.identifier,
             SystemIO.Tools.SearchFilepaths.identifier,

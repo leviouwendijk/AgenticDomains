@@ -8,11 +8,9 @@ import AgenticTasks
 
 /// Tool sets shared by the SwiftLang agents.
 enum SwiftAgentTools {
-    /// Interaction and capability discovery every agent may use.
+    /// Interaction every agent may use; discovery comes from the runtime.
     static let standard: [ToolIdentifier] = [
         Standard.Tools.ClarifyWithUser.identifier,
-        Standard.Tools.FindCapabilities.identifier,
-        Standard.Tools.InspectCapability.identifier,
     ]
 
     static let read: [ToolIdentifier] = [
@@ -58,7 +56,7 @@ enum SwiftAgentTools {
         Standard.Tools.ReadGuidelineChapter.identifier,
     ]
 
-    /// Domains available but hidden; reachable through find_capabilities.
+    /// Domains available but hidden; reachable through list_capabilities and search_capabilities.
     static let discoverableDomains: [any Domain.Type] = [
         Math.self,
         Assertions.self,

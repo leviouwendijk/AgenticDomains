@@ -229,7 +229,6 @@ public extension Scheduling.Agents {
                 tools: .init(
                     members: [
                         Standard.Tools.ClarifyWithUser.identifier,
-                        Standard.Tools.InspectCapability.identifier,
                         Standard.Tools.CreateReport.identifier,
                         Standard.Tools.CurrentDatetime.identifier,
                     ]
@@ -256,7 +255,6 @@ public extension Scheduling.Agents {
 
                         Standard.Tools.CreateReport.identifier,
                         Standard.Tools.ClarifyWithUser.identifier,
-                        Standard.Tools.InspectCapability.identifier,
                     ]
                 ),
                 agents: setup

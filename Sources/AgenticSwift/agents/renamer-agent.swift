@@ -75,7 +75,6 @@ public extension SwiftLang.Agents {
                 tools: .init(
                     members: [
                         Standard.Tools.ClarifyWithUser.identifier,
-                        Standard.Tools.InspectCapability.identifier,
                         Tasks.Tools.GetTask.identifier,
 
                         SystemIO.Tools.ReadFiles.identifier,
@@ -106,7 +105,6 @@ public extension SwiftLang.Agents {
                 tools: .init(
                     members: [
                         Standard.Tools.ClarifyWithUser.identifier,
-                        Standard.Tools.InspectCapability.identifier,
                         Tasks.Tools.GetTask.identifier,
 
                         SystemIO.Tools.ReadFiles.identifier,

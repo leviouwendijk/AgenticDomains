@@ -80,7 +80,6 @@ public extension Scheduling.Agents {
                 tools: .init(
                     members: [
                         Standard.Tools.ClarifyWithUser.identifier,
-                        Standard.Tools.InspectCapability.identifier,
                     ]
                 )
             ),
@@ -96,7 +95,6 @@ public extension Scheduling.Agents {
                         FrameLang.Tools.Check.identifier,
 
                         Standard.Tools.ClarifyWithUser.identifier,
-                        Standard.Tools.InspectCapability.identifier,
                     ]
                 )
             )

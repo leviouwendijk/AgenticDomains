@@ -144,7 +144,6 @@ public extension UniFi.Agents {
                 tools: .init(
                     members: [
                         Standard.Tools.ClarifyWithUser.self,
-                        Standard.Tools.InspectCapability.self,
 
                         Standard.Tools.CreateGraph.self,
                         Standard.Tools.CreateReport.self,

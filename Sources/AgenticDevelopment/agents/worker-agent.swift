@@ -81,7 +81,6 @@ public extension Development.Agents {
             visible: .init(
                 tools: .init(
                     members: [
-                        Standard.Tools.InspectCapability.identifier,
 
                         SystemIO.Tools.SearchSources.identifier,
                         SystemIO.Tools.SearchFilepaths.identifier,

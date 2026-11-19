@@ -34,7 +34,7 @@ public extension Development.Instructions {
 
         Respect all preflight and approval requirements. When a needed
         capability is not visible, find it with
-        \(Standard.Tools.FindCapabilities.identifier.rawValue); never bypass
+        \(Standard.Tools.SearchCapabilities.identifier.rawValue); never bypass
         a restriction.
         """
     }

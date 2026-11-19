@@ -159,9 +159,7 @@ public extension Development.Agents {
             visible: .init(
                 tools: .init(
                     members: [
-                        Standard.Tools.FindCapabilities.identifier,
                         Standard.Tools.ClarifyWithUser.identifier,
-                        Standard.Tools.InspectCapability.identifier,
 
                         Standard.Tools.CreateGraph.identifier,
                         Standard.Tools.CreateReport.identifier,

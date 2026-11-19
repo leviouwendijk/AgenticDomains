@@ -135,7 +135,6 @@ public extension Development.Agents {
         )
 
         private static let readTools: [ToolIdentifier] = [
-            Standard.Tools.InspectCapability.identifier,
 
             SystemIO.Tools.SearchSources.identifier,
             SystemIO.Tools.SearchFilepaths.identifier,

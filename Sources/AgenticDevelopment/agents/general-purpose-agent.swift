@@ -29,7 +29,8 @@ public extension Development.Agents {
                 Follow the user's request.
 
                 Few tools are visible at first. Use \
-                \(Standard.Tools.FindCapabilities.identifier.rawValue) to find an \
+                \(Standard.Tools.ListCapabilities.identifier.rawValue) or \
+                \(Standard.Tools.SearchCapabilities.identifier.rawValue) to find an \
                 installed capability you need, and \
                 \(Standard.Tools.InspectCapability.identifier.rawValue) to read its \
                 contract before using it.
@@ -60,8 +61,6 @@ public extension Development.Agents {
                 tools: .init(
                     members: [
                         Standard.Tools.ClarifyWithUser.identifier,
-                        Standard.Tools.FindCapabilities.identifier,
-                        Standard.Tools.InspectCapability.identifier,
                     ]
                 )
             )
