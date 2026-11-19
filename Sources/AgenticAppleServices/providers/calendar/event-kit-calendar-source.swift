@@ -84,6 +84,37 @@ public actor EventKitCalendarSource:
         }
     }
 
+    public func create(_ draft: EventDraft) async throws -> ScheduledEvent {
+        try await requireAccess()
+        guard let calendar = eventStore.calendar(withIdentifier: draft.calendar.identifier) else {
+            throw CalendarSourceWriteFailure.calendarNotFound(source: identifier, calendar: draft.calendar.title)
+        }
+        guard calendar.allowsContentModifications else {
+            throw CalendarSourceWriteFailure.calendarNotWritable(source: identifier, calendar: calendar.title)
+        }
+
+        let event = EKEvent(eventStore: eventStore)
+        event.calendar = calendar
+        event.title = draft.title
+        event.startDate = draft.interval.start
+        event.endDate = draft.interval.end
+        event.location = draft.location
+        event.notes = draft.notes
+        event.availability = Self.availability(draft.availability)
+        try eventStore.save(event, span: .thisEvent, commit: true)
+
+        return ScheduledEvent(
+            source: identifier,
+            identifier: event.eventIdentifier ?? event.calendarItemIdentifier,
+            title: draft.title,
+            interval: draft.interval,
+            isAllDay: false,
+            calendar: Self.reference(calendar),
+            availability: draft.availability,
+            location: draft.location
+        )
+    }
+
     private func requireAccess() async throws {
         if authorization() == .not_determined, #available(macOS 14.0, *) {
             _ = try? await eventStore.requestFullAccessToEvents()
@@ -114,6 +145,19 @@ public actor EventKitCalendarSource:
             return event.isAllDay ? .free : .busy
         @unknown default:
             return event.isAllDay ? .free : .busy
+        }
+    }
+
+    private static func availability(_ availability: EventAvailability) -> EKEventAvailability {
+        switch availability {
+        case .busy:
+            return .busy
+        case .free:
+            return .free
+        case .tentative:
+            return .tentative
+        case .unavailable:
+            return .unavailable
         }
     }
 }

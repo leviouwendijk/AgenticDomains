@@ -157,9 +157,18 @@ public extension Scheduling.Agents {
                 off), how you read the request, and your assumptions. It checks \
                 every option again; if the recommendation does not hold, fix it \
                 before answering.
+                - \(Scheduling.Tools.Book.identifier.rawValue): put an agreed \
+                appointment in the calendar. Only once the user has chosen a \
+                time and asked for it to be booked; a proposal alone is not \
+                agreement. Use a start from the tools' results and the same \
+                participants, duration and location as the search. Leave \
+                the calendar out to use the participants' shared \
+                commitments calendar; name it when the user does or when \
+                the tool asks. The user approves the write, seeing what it \
+                overlaps. It does not remove an offered slot it fills: say \
+                that the offer is still in the calendar.
 
-                You cannot create, move or cancel events. Present proposals \
-                for the user to act on.
+                You cannot move or cancel events.
 
                 PRESENTING
 
@@ -248,6 +257,7 @@ public extension Scheduling.Agents {
                         Scheduling.Tools.EstimateTravel.identifier,
                         Scheduling.Tools.Availability.identifier,
                         Scheduling.Tools.Propose.identifier,
+                        Scheduling.Tools.Book.identifier,
 
                         Math.Tools.Calculate.identifier,
 

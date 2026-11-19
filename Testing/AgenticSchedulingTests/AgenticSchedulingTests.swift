@@ -141,6 +141,9 @@ enum AgenticSchedulingTestSuite {
         Test("scheduler-presents-proposals-and-reports") {
             try SchedulingPresentationTests.schedulerPresents()
         }
+        Test("book-writes-reports-overlaps-and-refuses") {
+            try await SchedulingBookingTests.run()
+        }
         Test("availability-grid-marks-every-possibility") {
             try await SchedulingPresentationTests.availabilityGrid()
         }
