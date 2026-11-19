@@ -144,6 +144,9 @@ enum AgenticSchedulingTestSuite {
         Test("book-writes-fills-offers-and-refuses") {
             try await SchedulingBookingTests.book()
         }
+        Test("event-details-written-shown-and-warned") {
+            try await SchedulingBookingTests.details()
+        }
         Test("update-moves-keeps-length-and-refiles") {
             try await SchedulingBookingTests.update()
         }

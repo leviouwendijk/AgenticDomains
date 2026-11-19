@@ -21,6 +21,11 @@ public actor EventKitCalendarSource:
         self.eventStore = eventStore
     }
 
+    /// EventKit keeps no travel time or attachments in its public API.
+    public nonisolated var storedDetails: Set<EventDetail> {
+        [.notes, .url, .alerts, .recurrence]
+    }
+
     public func authorization() -> CalendarSourceAuthorization {
         let status = EKEventStore.authorizationStatus(for: .event)
         if #available(macOS 14.0, *) {
@@ -79,7 +84,8 @@ public actor EventKitCalendarSource:
                 isAllDay: event.isAllDay,
                 calendar: Self.reference(event.calendar),
                 availability: Self.availability(event),
-                location: event.location
+                location: event.location,
+                details: Self.details(event)
             )
         }
     }
@@ -99,9 +105,9 @@ public actor EventKitCalendarSource:
         event.startDate = draft.interval.start
         event.endDate = draft.interval.end
         event.location = draft.location
-        event.notes = draft.notes
         event.availability = Self.availability(draft.availability)
-        try eventStore.save(event, span: .thisEvent, commit: true)
+        Self.write(draft.details, to: event)
+        try eventStore.save(event, span: draft.details.recurrence == nil ? .thisEvent : .futureEvents, commit: true)
 
         return ScheduledEvent(
             source: identifier,
@@ -111,7 +117,8 @@ public actor EventKitCalendarSource:
             isAllDay: false,
             calendar: Self.reference(calendar),
             availability: draft.availability,
-            location: draft.location
+            location: draft.location,
+            details: Self.details(event)
         )
     }
 
@@ -137,8 +144,14 @@ public actor EventKitCalendarSource:
         if let location = change.location {
             stored.location = location
         }
-        if let notes = change.notes {
+        if let notes = change.details.notes {
             stored.notes = notes
+        }
+        if let url = change.details.url {
+            stored.url = url
+        }
+        if let alerts = change.details.alerts {
+            stored.alarms = alerts.map { EKAlarm(relativeOffset: -$0.seconds) }
         }
         try eventStore.save(stored, span: .thisEvent, commit: true)
 
@@ -150,7 +163,8 @@ public actor EventKitCalendarSource:
             isAllDay: stored.isAllDay,
             calendar: Self.reference(stored.calendar),
             availability: Self.availability(stored),
-            location: stored.location
+            location: stored.location,
+            details: Self.details(stored)
         )
     }
 
@@ -190,6 +204,62 @@ public actor EventKitCalendarSource:
         guard status == .authorized else {
             throw EventKitCalendarSourceError.notAuthorized(source: identifier, status: status)
         }
+    }
+
+    /// Notes, link, relative alerts and the first repetition rule. Alerts
+    /// at a fixed date are left out: they say nothing relative to the event.
+    private static func details(_ event: EKEvent) -> EventDetails {
+        let alerts = (event.alarms ?? []).compactMap { alarm -> ScheduleMinutes? in
+            guard alarm.absoluteDate == nil, alarm.relativeOffset <= 0 else { return nil }
+            return try? ScheduleMinutes(Int((-alarm.relativeOffset / 60).rounded()))
+        }
+        return EventDetails(
+            notes: event.notes.flatMap { $0.isEmpty ? nil : $0 },
+            url: event.url,
+            alerts: alerts.sorted(),
+            recurrence: event.recurrenceRules?.first.flatMap(recurrence)
+        )
+    }
+
+    private static func recurrence(_ rule: EKRecurrenceRule) -> EventRecurrence? {
+        let frequency: EventRecurrence.Frequency
+        switch rule.frequency {
+        case .daily: frequency = .daily
+        case .weekly: frequency = .weekly
+        case .monthly: frequency = .monthly
+        case .yearly: frequency = .yearly
+        @unknown default: return nil
+        }
+        let end = rule.recurrenceEnd
+        return EventRecurrence(
+            frequency: frequency,
+            interval: rule.interval == 1 ? nil : rule.interval,
+            count: end.flatMap { $0.occurrenceCount > 0 ? $0.occurrenceCount : nil },
+            until: end?.endDate.map { ISO8601DateFormatter().string(from: $0) }
+        )
+    }
+
+    private static func write(_ details: EventDetails, to event: EKEvent) {
+        event.notes = details.notes
+        event.url = details.url
+        event.alarms = details.alerts.isEmpty ? nil : details.alerts.map { EKAlarm(relativeOffset: -$0.seconds) }
+        guard let recurrence = details.recurrence else { return }
+        let frequency: EKRecurrenceFrequency
+        switch recurrence.frequency {
+        case .daily: frequency = .daily
+        case .weekly: frequency = .weekly
+        case .monthly: frequency = .monthly
+        case .yearly: frequency = .yearly
+        }
+        var end: EKRecurrenceEnd?
+        if let count = recurrence.count {
+            end = EKRecurrenceEnd(occurrenceCount: count)
+        } else if let until = recurrence.until, let date = try? ScheduleTimestamp.parse(until, field: "until") {
+            end = EKRecurrenceEnd(end: date)
+        }
+        event.recurrenceRules = [
+            EKRecurrenceRule(recurrenceWith: frequency, interval: recurrence.interval ?? 1, end: end),
+        ]
     }
 
     private static func reference(_ calendar: EKCalendar) -> CalendarReference {

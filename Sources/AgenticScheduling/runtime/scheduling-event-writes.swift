@@ -15,11 +15,17 @@ public extension Scheduling {
         case ambiguousOffer(start: String, offers: [String])
         case unknownSource(String)
         case nothingToChange
+        case invalidRecurrence(String)
+        case invalidURL(String)
 
         public var errorDescription: String? {
             switch self {
             case .emptyTitle:
                 return "An appointment needs a title."
+            case .invalidRecurrence(let reason):
+                return "The repetition cannot be written: \(reason)."
+            case .invalidURL(let text):
+                return "'\(text)' is not a URL."
             case .unknownCalendar(let name, let known):
                 return "No calendar source shows a calendar '\(name)'. Known: \(known.joined(separator: ", "))."
             case .ambiguousCalendar(let name, let sources):

@@ -20,6 +20,9 @@ private actor WritableFixtureSource: CalendarSource {
 
     func authorization() async -> CalendarSourceAuthorization { .authorized }
 
+    /// Like Apple Calendar: no travel time, no attachments.
+    nonisolated var storedDetails: Set<EventDetail> { [.notes, .url, .alerts, .recurrence] }
+
     func calendars() async throws -> [CalendarReference] { calendarList }
 
     func events(in interval: ScheduleInterval) async throws -> [ScheduledEvent] {
@@ -36,7 +39,8 @@ private actor WritableFixtureSource: CalendarSource {
             isAllDay: false,
             calendar: draft.calendar,
             availability: draft.availability,
-            location: draft.location
+            location: draft.location,
+            details: draft.details
         )
         entries.append(event)
         return event
@@ -54,7 +58,8 @@ private actor WritableFixtureSource: CalendarSource {
             isAllDay: event.isAllDay,
             calendar: change.calendar ?? event.calendar,
             availability: event.availability,
-            location: change.location ?? event.location
+            location: change.location ?? event.location,
+            details: change.details.applied(to: event.details)
         )
         entries[index] = changed
         return changed
@@ -173,6 +178,67 @@ enum SchedulingBookingTests {
             _ = try await book.call(.init(title: "Intake", start: "2026-11-23T15:00:00+01:00"), in: try F.context())
             try Expect.true(false, "A read-only source must throw")
         } catch CalendarSourceWriteFailure.readOnly {}
+    }
+
+    /// Notes, link, alerts and repetition are written and shown; what the
+    /// source cannot store is named before approval and left out.
+    static func details() async throws {
+        let (source, context) = try fixture()
+        let book = Scheduling.Tools.Book()
+        let input = Scheduling.Tools.Book.Input(
+            title: "Session",
+            start: "2026-11-24T11:00:00+01:00",
+            notes: "Bring the long line",
+            url: "https://example.org/call",
+            alerts_minutes_before: [15, 1440, 15],
+            travel_minutes: 30,
+            attachments: ["plans/intake.pdf"],
+            repeats: .init(frequency: .weekly, count: 5)
+        )
+        let preflight = try await book.preflight(input, in: context)
+        guard case .report(let document)? = preflight.preview.sections.first?.content,
+              case .event(let card)? = document.blocks.first else {
+            throw TestFlowAssertionFailure(label: "event card", message: "Book previews an event card")
+        }
+        try Expect.equal(card.alerts, [15, 1440], "Alerts once each, soonest first")
+        try Expect.equal(card.recurrence, "every week, 5 times", "Repetition in words")
+        try Expect.equal(card.url, "https://example.org/call", "The link")
+        try Expect.equal(card.notes, "Bring the long line", "The notes")
+        try Expect.isNil(card.travelMinutes, "Travel time the source cannot store is not shown as written")
+        try Expect.true(card.warnings.contains { $0.contains("travel time") }, "Unstorable travel time is named")
+        try Expect.true(card.warnings.contains { $0.contains("attachments") }, "Unstorable attachments are named")
+
+        _ = try await book.call(input, in: context)
+        let written = try Expect.notNil(await source.entries.first { $0.title == "Session" }, "Written")
+        try Expect.equal(written.details.alerts.map(\.raw), [15, 1440], "Alerts written")
+        try Expect.equal(written.details.recurrence?.count, 5, "Repetition written")
+        try Expect.isNil(written.details.travel, "Travel time not written")
+
+        let agenda = try await Scheduling.Tools.Agenda().call(
+            .init(window_start: "2026-11-24T00:00:00+01:00", window_end: "2026-11-25T00:00:00+01:00"),
+            in: context
+        )
+        let entry = try Expect.notNil(agenda.participants.flatMap(\.entries).first { $0.title == "Session" }, "Listed")
+        try Expect.equal(entry.url, "https://example.org/call", "The agenda reads the link back")
+        try Expect.equal(entry.alerts_minutes_before, [15, 1440], "and the alerts")
+
+        do {
+            _ = try await book.preflight(
+                .init(title: "Bad", start: "2026-11-24T15:00:00+01:00", repeats: .init(frequency: .daily, count: 3, until: "2026-12-01T00:00:00+01:00")),
+                in: context
+            )
+            try Expect.true(false, "A count and an end date must throw")
+        } catch Scheduling.EventWriteFailure.invalidRecurrence {}
+
+        let update = Scheduling.Tools.Update()
+        let cleared = try await update.call(
+            .init(event_start: "2026-11-24T11:00:00+01:00", event_title: "Session", alerts_minutes_before: []),
+            in: context
+        )
+        try Expect.equal(cleared.title, "Session", "Changed")
+        let after = try Expect.notNil(await source.entries.first { $0.title == "Session" }, "Still there")
+        try Expect.equal(after.details.alerts, [], "An empty list clears the alerts")
+        try Expect.equal(after.details.notes, "Bring the long line", "Other details kept")
     }
 
     static func update() async throws {

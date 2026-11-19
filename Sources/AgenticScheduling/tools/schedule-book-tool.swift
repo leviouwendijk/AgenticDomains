@@ -27,6 +27,17 @@ public extension Scheduling.Tools {
             /// Location text, such as the client's address.
             public let location: String?
             public let notes: String?
+            /// A link to keep with the event, such as a video call.
+            public let url: String?
+            /// Notifications, in minutes before the start: `[1440, 15]` is a
+            /// day before and a quarter of an hour before.
+            public let alerts_minutes_before: [Int]?
+            /// Minutes set aside to get there, blocked before the start.
+            public let travel_minutes: Int?
+            /// Files (workspace paths) or links to attach.
+            public let attachments: [String]?
+            /// Makes it a recurring event.
+            public let repeats: EventRecurrence?
             /// Converts the open offered slot holding the appointment: the
             /// offer is removed once the appointment is written. Defaults
             /// to false.
@@ -40,6 +51,11 @@ public extension Scheduling.Tools {
                 calendar: String? = nil,
                 location: String? = nil,
                 notes: String? = nil,
+                url: String? = nil,
+                alerts_minutes_before: [Int]? = nil,
+                travel_minutes: Int? = nil,
+                attachments: [String]? = nil,
+                repeats: EventRecurrence? = nil,
                 fill_offer: Bool? = nil
             ) {
                 self.title = title
@@ -49,6 +65,11 @@ public extension Scheduling.Tools {
                 self.calendar = calendar
                 self.location = location
                 self.notes = notes
+                self.url = url
+                self.alerts_minutes_before = alerts_minutes_before
+                self.travel_minutes = travel_minutes
+                self.attachments = attachments
+                self.repeats = repeats
                 self.fill_offer = fill_offer
             }
         }
@@ -94,11 +115,12 @@ public extension Scheduling.Tools {
                     change: .create,
                     calendar: plan.draft.calendar.title,
                     location: plan.draft.location,
-                    notes: plan.draft.notes,
+                    details: plan.draft.details,
                     participants: plan.participants,
                     zone: plan.zone,
                     overlaps: plan.overlaps,
-                    details: plan.offer.map { [.init("fills offer", runtime.describe($0, in: plan.zone))] } ?? []
+                    unstored: plan.unstored,
+                    facts: plan.offer.map { [.init("fills offer", runtime.describe($0, in: plan.zone))] } ?? []
                 ),
                 sideEffects: sideEffects,
                 warnings: plan.overlaps.map { "Overlaps \($0)" }
@@ -135,6 +157,8 @@ private extension Scheduling.Tools.Book {
         let participants: [SchedulingParticipant]
         let zone: ScheduleTimeZone
         let overlaps: [String]
+        /// Requested details the source cannot store.
+        let unstored: [String]
         let offer: ScheduledEvent?
 
         var start: String { ScheduleTimestamp.render(draft.interval.start, in: zone) }
@@ -150,6 +174,14 @@ private extension Scheduling.Tools.Book {
             let interval = try ScheduleInterval(start: start, end: start.addingTimeInterval(duration.seconds))
             let target = try await runtime.writableCalendar(input.calendar, for: participants)
             let zone = participants.first?.timeZone ?? runtime.defaults.timeZone
+            let asked = try Scheduling.Runtime.details(
+                notes: input.notes,
+                url: input.url,
+                alerts: input.alerts_minutes_before,
+                travel: input.travel_minutes,
+                attachments: input.attachments
+            ).applied(to: .init(recurrence: try input.repeats?.validated()))
+            self.unstored = runtime.unstored(asked.present, in: target.source)
 
             self.source = target.source
             self.participants = participants
@@ -159,7 +191,7 @@ private extension Scheduling.Tools.Book {
                 interval: interval,
                 calendar: target.calendar,
                 location: input.location?.trimmedNonEmpty,
-                notes: input.notes?.trimmedNonEmpty
+                details: asked.keeping(target.source.storedDetails)
             )
             self.overlaps = try await runtime.overlaps(interval, for: participants, zone: zone)
             self.offer = input.fill_offer == true

@@ -72,6 +72,13 @@ public extension Scheduling.Tools {
             public let all_day: Bool
             public let reading: AgendaReading
             public let location: String?
+            /// The event's notes, cut at 280 characters.
+            public let notes: String?
+            public let url: String?
+            /// How it repeats, when it does: `every week`.
+            public let repeats: String?
+            /// Notifications, in minutes before the start.
+            public let alerts_minutes_before: [Int]?
         }
 
         @JSONSchema
@@ -131,7 +138,11 @@ public extension Scheduling.Tools {
                         calendar: event.calendar.title,
                         all_day: event.isAllDay,
                         reading: runtime.policy(for: event.calendar).reading(of: event),
-                        location: event.locationText
+                        location: event.locationText,
+                        notes: event.details.notes.map { $0.count > 280 ? String($0.prefix(280)) + "…" : $0 },
+                        url: event.details.url?.absoluteString,
+                        repeats: event.details.recurrence?.text,
+                        alerts_minutes_before: event.details.alerts.isEmpty ? nil : event.details.alerts.map(\.raw)
                     )
                 }
                 let unlocated = zip(owned, all)
@@ -147,7 +158,11 @@ public extension Scheduling.Tools {
                         calendar: Self.reservedHoursCalendar,
                         all_day: false,
                         reading: .reserved,
-                        location: nil
+                        location: nil,
+                        notes: nil,
+                        url: nil,
+                        repeats: nil,
+                        alerts_minutes_before: nil
                     )
                 }
                 let events = input.include_records == true ? all : all.filter { $0.reading != .record }

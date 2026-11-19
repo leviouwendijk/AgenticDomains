@@ -11,6 +11,10 @@ public protocol CalendarSource: Sendable {
 
     func calendars() async throws -> [CalendarReference]
 
+    /// The details this source can store with an event. A requested detail
+    /// outside it is named in the approval and not written. Default: all.
+    var storedDetails: Set<EventDetail> { get }
+
     /// Events overlapping `interval`, from every calendar the source sees.
     func events(in interval: ScheduleInterval) async throws -> [ScheduledEvent]
 
@@ -27,6 +31,10 @@ public protocol CalendarSource: Sendable {
 }
 
 public extension CalendarSource {
+    var storedDetails: Set<EventDetail> {
+        Set(EventDetail.allCases)
+    }
+
     func create(_: EventDraft) async throws -> ScheduledEvent {
         throw CalendarSourceWriteFailure.readOnly(source: identifier)
     }
@@ -46,24 +54,24 @@ public struct EventChange: Sendable, Hashable {
     public let interval: ScheduleInterval?
     public let calendar: CalendarReference?
     public let location: String?
-    public let notes: String?
+    public let details: EventDetailsChange
 
     public init(
         title: String? = nil,
         interval: ScheduleInterval? = nil,
         calendar: CalendarReference? = nil,
         location: String? = nil,
-        notes: String? = nil
+        details: EventDetailsChange = .init()
     ) {
         self.title = title
         self.interval = interval
         self.calendar = calendar
         self.location = location
-        self.notes = notes
+        self.details = details
     }
 
     public var isEmpty: Bool {
-        title == nil && interval == nil && calendar == nil && location == nil && notes == nil
+        title == nil && interval == nil && calendar == nil && location == nil && details.isEmpty
     }
 }
 
@@ -74,7 +82,7 @@ public struct EventDraft: Sendable, Hashable {
     public let calendar: CalendarReference
     public let availability: EventAvailability
     public let location: String?
-    public let notes: String?
+    public let details: EventDetails
 
     public init(
         title: String,
@@ -82,14 +90,14 @@ public struct EventDraft: Sendable, Hashable {
         calendar: CalendarReference,
         availability: EventAvailability = .busy,
         location: String? = nil,
-        notes: String? = nil
+        details: EventDetails = .none
     ) {
         self.title = title
         self.interval = interval
         self.calendar = calendar
         self.availability = availability
         self.location = location
-        self.notes = notes
+        self.details = details
     }
 }
 

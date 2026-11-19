@@ -33,6 +33,8 @@ public struct ScheduledEvent: Sendable, Hashable {
     public let calendar: CalendarReference
     public let availability: EventAvailability
     public let location: String?
+    /// Notes, link, alerts and the rest, as far as the source reports them.
+    public let details: EventDetails
 
     public init(
         source: String,
@@ -42,7 +44,8 @@ public struct ScheduledEvent: Sendable, Hashable {
         isAllDay: Bool,
         calendar: CalendarReference,
         availability: EventAvailability,
-        location: String?
+        location: String?,
+        details: EventDetails = .none
     ) {
         self.source = source
         self.identifier = identifier
@@ -52,6 +55,7 @@ public struct ScheduledEvent: Sendable, Hashable {
         self.calendar = calendar
         self.availability = availability
         self.location = location
+        self.details = details
     }
 
     public var blocks: Bool {

@@ -28,6 +28,14 @@ public extension Scheduling.Tools {
             public let calendar: String?
             public let location: String?
             public let notes: String?
+            public let url: String?
+            /// Replaces the notifications, in minutes before the start; an
+            /// empty list removes them.
+            public let alerts_minutes_before: [Int]?
+            public let travel_minutes: Int?
+            /// Replaces the attachments (workspace paths or links); an
+            /// empty list removes them.
+            public let attachments: [String]?
 
             public init(
                 event_start: String,
@@ -38,7 +46,11 @@ public extension Scheduling.Tools {
                 title: String? = nil,
                 calendar: String? = nil,
                 location: String? = nil,
-                notes: String? = nil
+                notes: String? = nil,
+                url: String? = nil,
+                alerts_minutes_before: [Int]? = nil,
+                travel_minutes: Int? = nil,
+                attachments: [String]? = nil
             ) {
                 self.event_start = event_start
                 self.event_title = event_title
@@ -49,6 +61,10 @@ public extension Scheduling.Tools {
                 self.calendar = calendar
                 self.location = location
                 self.notes = notes
+                self.url = url
+                self.alerts_minutes_before = alerts_minutes_before
+                self.travel_minutes = travel_minutes
+                self.attachments = attachments
             }
         }
 
@@ -69,7 +85,7 @@ public extension Scheduling.Tools {
         }
 
         public static let purpose =
-            "Change one existing event (by its start and title from \(Agenda.identifier.rawValue)): move it, change its length, title, location or notes, or move it to another calendar. Only that occurrence of a recurring event changes."
+            "Change one existing event (by its start and title from \(Agenda.identifier.rawValue)): move it, change its length, title, location, notes, link, alerts, travel time or attachments, or move it to another calendar. Only that occurrence of a recurring event changes."
         public static let risk: ActionRisk = .boundedmutate
 
         public init() {}
@@ -90,11 +106,12 @@ public extension Scheduling.Tools {
                     previous: plan.result.interval == plan.event.interval ? nil : plan.event.interval,
                     calendar: plan.result.calendar.title,
                     location: plan.result.location,
-                    notes: plan.change.notes,
+                    details: plan.result.details,
                     participants: plan.owners,
                     zone: plan.zone,
                     overlaps: plan.overlaps,
-                    details: plan.result.title == plan.event.title ? [] : [.init("was titled", plan.event.title)]
+                    unstored: plan.unstored,
+                    facts: plan.result.title == plan.event.title ? [] : [.init("was titled", plan.event.title)]
                 ),
                 sideEffects: ["Changes one event in \(plan.event.calendar.title)"],
                 warnings: plan.overlaps.map { "Overlaps \($0)" }
@@ -170,6 +187,7 @@ public extension Scheduling.Tools {
                     change: .cancel,
                     calendar: event.calendar.title,
                     location: event.location,
+                    details: event.details,
                     participants: runtime.owners(of: event.calendar),
                     zone: zone
                 ),
@@ -198,6 +216,7 @@ private extension Scheduling.Tools.Update {
         let owners: [SchedulingParticipant]
         let zone: ScheduleTimeZone
         let after: String
+        let unstored: [String]
         let overlaps: [String]
 
         init(_ input: Input, runtime: Scheduling.Runtime) async throws {
@@ -231,12 +250,27 @@ private extension Scheduling.Tools.Update {
                 throw Scheduling.EventWriteFailure.emptyTitle
             }
 
+            let source = try runtime.source(named: event.source)
+            let asked = try Scheduling.Runtime.details(
+                notes: input.notes,
+                url: input.url,
+                alerts: input.alerts_minutes_before,
+                travel: input.travel_minutes,
+                attachments: input.attachments
+            )
+            let stored = source.storedDetails
             let change = EventChange(
                 title: title,
                 interval: interval,
                 calendar: calendar,
                 location: input.location?.trimmedNonEmpty,
-                notes: input.notes?.trimmedNonEmpty
+                details: EventDetailsChange(
+                    notes: stored.contains(.notes) ? asked.notes : nil,
+                    url: stored.contains(.url) ? asked.url : nil,
+                    alerts: stored.contains(.alerts) ? asked.alerts : nil,
+                    travel: stored.contains(.travel) ? asked.travel : nil,
+                    attachments: stored.contains(.attachments) ? asked.attachments : nil
+                )
             )
             guard !change.isEmpty else {
                 throw Scheduling.EventWriteFailure.nothingToChange
@@ -254,10 +288,12 @@ private extension Scheduling.Tools.Update {
                 isAllDay: event.isAllDay,
                 calendar: finalCalendar,
                 availability: event.availability,
-                location: change.location ?? event.location
+                location: change.location ?? event.location,
+                details: change.details.applied(to: event.details)
             )
 
-            self.source = try runtime.source(named: event.source)
+            self.source = source
+            self.unstored = runtime.unstored(asked.present, in: source)
             self.event = event
             self.change = change
             self.result = preview

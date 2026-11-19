@@ -14,11 +14,12 @@ extension Scheduling.Runtime {
         previous: ScheduleInterval? = nil,
         calendar: String,
         location: String? = nil,
-        notes: String? = nil,
+        details: EventDetails = .none,
         participants: [SchedulingParticipant],
         zone: ScheduleTimeZone,
         overlaps: [String] = [],
-        details: [ReportBlock.Facts.Fact] = []
+        unstored: [String] = [],
+        facts: [ReportBlock.Facts.Fact] = []
     ) async throws -> ToolPreflight.Preview {
         let event = ReportBlock.Event(
             title: title,
@@ -30,9 +31,14 @@ extension Scheduling.Runtime {
             calendar: calendar,
             location: location,
             attendees: participants.map(\.name),
-            notes: notes,
-            details: details,
-            warnings: overlaps.map { "Overlaps \($0)" },
+            notes: details.notes,
+            recurrence: details.recurrence?.text,
+            alerts: details.alerts.map(\.raw),
+            travelMinutes: details.travel?.raw,
+            url: details.url?.absoluteString,
+            attachments: details.attachments.map(EventDetails.displayName),
+            details: facts,
+            warnings: overlaps.map { "Overlaps \($0)" } + unstored,
             context: allDay ? nil : try await day(around: [interval] + (previous.map { [$0] } ?? []), change: change, participants: participants, zone: zone)
         )
         let document = try ReportDocument(title: title, datasets: [], blocks: [.event(event)])
@@ -106,6 +112,11 @@ extension SchedulePresentation {
             location: location ?? approved?.location,
             attendees: approved?.attendees ?? [],
             notes: approved?.notes,
+            recurrence: approved?.recurrence,
+            alerts: approved?.alerts ?? [],
+            travelMinutes: approved?.travelMinutes,
+            url: approved?.url,
+            attachments: approved?.attachments ?? [],
             details: approved?.details ?? [],
             warnings: approved?.warnings ?? [],
             context: approved?.context
@@ -141,5 +152,46 @@ public extension Scheduling.Tools.Remove {
         guard let preflight,
               case .report(let document)? = preflight.preview.sections.first?.content else { return nil }
         return ToolPresentation(document, placement: .attachment)
+    }
+}
+
+extension EventDetails {
+    /// An attachment by its file or page name.
+    static func displayName(_ attachment: String) -> String {
+        let name = (URL(string: attachment)?.scheme != nil ? URL(string: attachment)!.lastPathComponent : (attachment as NSString).lastPathComponent)
+        return name.isEmpty ? attachment : name
+    }
+}
+
+extension Scheduling.Runtime {
+    /// Warnings for details `source` cannot store; they are not written.
+    func unstored(_ requested: Set<EventDetail>, in source: any CalendarSource) -> [String] {
+        EventDetail.allCases
+            .filter { requested.contains($0) && !source.storedDetails.contains($0) }
+            .map { "\(source.identifier) cannot store \($0.name); it will not be written" }
+    }
+
+    /// The details a book or update input asks for, validated.
+    static func details(
+        notes: String?,
+        url: String?,
+        alerts: [Int]?,
+        travel: Int?,
+        attachments: [String]?
+    ) throws -> EventDetailsChange {
+        var link: URL?
+        if let text = url?.trimmedNonEmpty {
+            guard let parsed = URL(string: text), parsed.scheme != nil else {
+                throw Scheduling.EventWriteFailure.invalidURL(text)
+            }
+            link = parsed
+        }
+        return EventDetailsChange(
+            notes: notes?.trimmedNonEmpty,
+            url: link,
+            alerts: try alerts.map { try Array(Set($0)).sorted().map { try ScheduleMinutes($0) } },
+            travel: try travel.map { try ScheduleMinutes($0) },
+            attachments: attachments.map { $0.compactMap(\.trimmedNonEmpty) }
+        )
     }
 }

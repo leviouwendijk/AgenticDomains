@@ -354,7 +354,11 @@ enum SchedulePresentation {
                     allDay: item.entry.all_day,
                     calendar: item.entry.calendar,
                     location: item.entry.location,
-                    attendees: item.people
+                    attendees: item.people,
+                    notes: item.entry.notes,
+                    recurrence: item.entry.repeats,
+                    alerts: item.entry.alerts_minutes_before ?? [],
+                    url: item.entry.url
                 ))
             }
             return (cards, [])
