@@ -37,9 +37,27 @@ public extension General.Agents {
                 Git.self,
                 Shell.self,
                 Sessions.self
-            ),
+            )
+                + .agents(Worker.self),
             visible: .tools(
                 Standard.Tools.ClarifyWithUser.self
+            )
+                + .agents(Worker.self)
+        )
+
+        /// Bounded assignments go to Workers, one level deep. Forks that bring
+        /// their own Worker (Development) replace this policy.
+        public static let delegation = AgentDelegationPolicy.bounded(
+            allowedAgents: .init(
+                members: [
+                    Worker.self,
+                ]
+            ),
+            limits: .init(
+                depth: 1,
+                children: 30,
+                descendants: 30,
+                concurrentChildren: 30
             )
         )
     }

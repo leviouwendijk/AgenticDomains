@@ -35,6 +35,8 @@ public extension Development.Agents {
                 Git.Tools.RepositoryState.self
             )
                 + .agents(Worker.self),
+            // Development's Worker replaces the general one.
+            removing: .agents(General.Agents.Worker.self),
             delegation: .bounded(
                 allowedAgents: .init(
                     members: [
