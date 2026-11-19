@@ -1,4 +1,5 @@
 import AgenticAppleServices
+import Apple
 import Agentic
 import CryptoKit
 import Darwin

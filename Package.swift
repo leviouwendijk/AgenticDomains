@@ -113,7 +113,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Executable.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Version.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/Milieu.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Apple.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Schema.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Macros.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Errors.git", branch: "master"),
@@ -325,27 +325,18 @@ let package = Package(
         ),
 
         .target(
-            name: "AppleMusicBridge",
-            path: "Sources/AppleMusicBridge",
-            publicHeadersPath: "include",
-            linkerSettings: [.linkedFramework("ScriptingBridge")]
-        ),
-
-        .target(
             name: "AgenticAppleServices",
             dependencies: [
-                "AppleMusicBridge",
                 "AgenticScheduling",
+                .product(name: "Apple", package: "Apple"),
                 .product(name: "Agentic", package: "Agentic"),
                 .product(name: "AgenticConfiguration", package: "Agentic"),
                 .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
-                .product(name: "Milieu", package: "Milieu"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "Interfaces", package: "Interfaces"),
-            ],
-            linkerSettings: [.linkedFramework("iTunesLibrary")]
+            ]
         ),
 
         .target(

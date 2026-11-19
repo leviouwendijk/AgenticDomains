@@ -1,4 +1,5 @@
 import Agentic
+import Apple
 import AgenticAppleServices
 import AgenticRuntime
 import TestFlows

@@ -1,4 +1,5 @@
 import Agentic
+import Apple
 
 public extension AppleServices.Programs {
     @Program

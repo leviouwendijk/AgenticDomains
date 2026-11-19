@@ -1,4 +1,5 @@
 import Agentic
+import Apple
 import Foundation
 
 public extension AppleServices.Programs {

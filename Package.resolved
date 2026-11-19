@@ -1,5 +1,5 @@
 {
-  "originHash" : "0ba84ff58f678f9ee3a1704c6fae239cc41949242d86eb64af11495d492d1e56",
+  "originHash" : "e8975f1d780c433617ef45c5c5efd84f5895b5806c4e7a01ff4e54277b108131",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c817b60734c9d42bd676da37bcb0519822324acc"
+        "revision" : "78953cbffcc4514d6835c987c4fa931f91ff7409"
       }
     },
     {
@@ -26,6 +26,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "1849aa41c88d20c3174d0f3a1082b938c1345985"
+      }
+    },
+    {
+      "identity" : "apple",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Apple.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "80830dd2ca8a78bbfc46aa1b9bf0c7e276c05ed1"
       }
     },
     {
@@ -61,7 +70,7 @@
       "location" : "https://github.com/leviouwendijk/Concatenation.git",
       "state" : {
         "branch" : "master",
-        "revision" : "8c9314ed63ba7b8ebd1df7c729c4244a154f6286"
+        "revision" : "4d9f0e9fc3c4fb7400d85ae8fef285f60ab4688c"
       }
     },
     {
@@ -97,7 +106,7 @@
       "location" : "https://github.com/leviouwendijk/Errors.git",
       "state" : {
         "branch" : "master",
-        "revision" : "aa392c50c6f811056067b65fab5112104c8adc49"
+        "revision" : "6ea0a9ebefd5a3a176f47fd016fe88110f99fc33"
       }
     },
     {
@@ -340,7 +349,7 @@
       "location" : "https://github.com/leviouwendijk/Primitives.git",
       "state" : {
         "branch" : "master",
-        "revision" : "776500d2ee4eb47ca536bd307ce1bb9d48878423"
+        "revision" : "4b81c1605140fe8b2bd01fd02fe9e8782edec564"
       }
     },
     {
@@ -430,7 +439,7 @@
       "location" : "https://github.com/leviouwendijk/Sensitivity.git",
       "state" : {
         "branch" : "master",
-        "revision" : "776687488c37d0d56faec1cb69676d41112da0e6"
+        "revision" : "519861ec843597f0a570439c7e565d06a51e5b42"
       }
     },
     {
@@ -547,7 +556,7 @@
       "location" : "https://github.com/leviouwendijk/UniFi.git",
       "state" : {
         "branch" : "master",
-        "revision" : "1d890c2bf2fc492dfb3c788fbf4c174dbe3bf09f"
+        "revision" : "332513bba9b9d66e51bdc22cf0b95a29c2f0db2b"
       }
     },
     {
