@@ -3,35 +3,10 @@ import Errors
 import Foundation
 import Macros
 import Schema
+import Sensitivity
 import UniFiPlanning
 
 public extension UniFi {
-    /// Restrictive display projection: no IP, CIDR, MAC, URL or dotted host text.
-    /// Safe character classes cannot detect semantic secrets in otherwise ordinary names.
-    fileprivate static func display_label(_ name: String, fallback: String) -> String {
-        let bytes = Array(name.utf8)
-        guard !bytes.isEmpty, bytes.count <= 64,
-              bytes.allSatisfy({ value in
-                  (65...90).contains(Int(value)) ||
-                  (97...122).contains(Int(value)) ||
-                  (48...57).contains(Int(value)) ||
-                  value == 32 || value == 45 || value == 95
-              }),
-              name.trimmingCharacters(in: .whitespaces).count > 0
-        else { return fallback }
-        return name
-    }
-
-    fileprivate static func safe_enum(_ raw: String?) -> String? {
-        guard let raw, !raw.isEmpty, raw.utf8.count <= 48,
-              raw.utf8.allSatisfy({ byte in
-                  (65...90).contains(Int(byte)) ||
-                  (97...122).contains(Int(byte)) ||
-                  (48...57).contains(Int(byte)) || byte == 95
-              }) else { return nil }
-        return raw
-    }
-
     @JSONSchema
     struct SiteReference: Sendable, Codable, Hashable {
         public let site_id: UUID
@@ -105,7 +80,7 @@ public extension UniFi {
             networks = snapshot.networks.map { network in
                 .init(
                     id: network.id,
-                    label: UniFi.display_label(network.name, fallback: "VLAN \(network.vlan_id)"),
+                    label: Sensitivity.SafeLabel.or(network.name, fallback: "VLAN \(network.vlan_id)"),
                     vlan_id: network.vlan_id,
                     enabled: network.enabled,
                     zone_id: network.zone_id
@@ -114,7 +89,7 @@ public extension UniFi {
             zones = snapshot.zones.map { zone in
                 .init(
                     id: zone.id,
-                    label: UniFi.display_label(zone.name, fallback: "Zone \(zone.id.uuidString.prefix(8))"),
+                    label: Sensitivity.SafeLabel.or(zone.name, fallback: "Zone \(zone.id.uuidString.prefix(8))"),
                     network_ids: zone.network_ids,
                     user_defined: zone.origin == "USER_DEFINED"
                 )
@@ -129,12 +104,12 @@ public extension UniFi {
                 }
                 return .init(
                     id: policy.id,
-                    label: UniFi.display_label(policy.name, fallback: "Policy \(policy.index)"),
+                    label: Sensitivity.SafeLabel.or(policy.name, fallback: "Policy \(policy.index)"),
                     source_zone_label: snapshot.zones.first(where: { $0.id == policy.source_zone_id }).map {
-                        UniFi.display_label($0.name, fallback: "Zone \($0.id.uuidString.prefix(8))")
+                        Sensitivity.SafeLabel.or($0.name, fallback: "Zone \($0.id.uuidString.prefix(8))")
                     } ?? "Unresolved zone",
                     destination_zone_label: snapshot.zones.first(where: { $0.id == policy.destination_zone_id }).map {
-                        UniFi.display_label($0.name, fallback: "Zone \($0.id.uuidString.prefix(8))")
+                        Sensitivity.SafeLabel.or($0.name, fallback: "Zone \($0.id.uuidString.prefix(8))")
                     } ?? "Unresolved zone",
                     index: policy.index,
                     enabled: policy.enabled,
@@ -552,17 +527,17 @@ public extension UniFi {
                 guard let value else { return nil }
                 let ports: PortSelection? = value.ports.map { selection in
                     .init(
-                        type: UniFi.safe_enum(selection.type) ?? "UNKNOWN",
+                        type: Sensitivity.SafeToken.or(selection.type) ?? "UNKNOWN",
                         match_opposite: selection.match_opposite,
                         items: selection.items?.map { item in
-                            .init(type: UniFi.safe_enum(item.type) ?? "UNKNOWN",
+                            .init(type: Sensitivity.SafeToken.or(item.type) ?? "UNKNOWN",
                                   value: item.value, start: item.start, stop: item.stop)
                         },
                         traffic_matching_list_id: selection.traffic_matching_list_id
                     )
                 }
                 return .init(
-                    type: UniFi.safe_enum(value.type) ?? "UNKNOWN",
+                    type: Sensitivity.SafeToken.or(value.type) ?? "UNKNOWN",
                     network_ids: value.network_ids,
                     network_match_opposite: value.network_match_opposite,
                     ports: ports,
@@ -570,20 +545,20 @@ public extension UniFi {
                 )
             }
             let protocol_selection: ProtocolSelection? = raw.protocol_selection.map {
-                .init(type: UniFi.safe_enum($0.type) ?? "UNKNOWN",
+                .init(type: Sensitivity.SafeToken.or($0.type) ?? "UNKNOWN",
                       match_opposite: $0.match_opposite,
-                      name: UniFi.safe_enum($0.name),
-                      preset: UniFi.safe_enum($0.preset), number: $0.number)
+                      name: Sensitivity.SafeToken.or($0.name),
+                      preset: Sensitivity.SafeToken.or($0.preset), number: $0.number)
             }
             return .init(
                 policy: policy, source: selection(raw.source_selection),
                 destination: selection(raw.destination_selection),
                 protocol_selection: protocol_selection,
-                ip_version: UniFi.safe_enum(raw.ip_version) ?? "UNKNOWN",
+                ip_version: Sensitivity.SafeToken.or(raw.ip_version) ?? "UNKNOWN",
                 return_traffic: raw.return_traffic,
-                connection_states: raw.connection_states?.compactMap(UniFi.safe_enum),
-                ipsec_filter: UniFi.safe_enum(raw.ipsec_filter),
-                schedule: UniFi.safe_enum(raw.schedule),
+                connection_states: raw.connection_states?.compactMap(Sensitivity.SafeToken.or),
+                ipsec_filter: Sensitivity.SafeToken.or(raw.ipsec_filter),
+                schedule: Sensitivity.SafeToken.or(raw.schedule),
                 raw_addresses_and_descriptions_omitted: true
             )
         }

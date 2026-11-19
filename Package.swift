@@ -120,6 +120,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Processes.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Testing.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Frame.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/Sensitivity.git", branch: "master"),
     ],
     targets: [
         .target(
@@ -336,6 +337,7 @@ let package = Package(
                 .product(name: "AgenticMath", package: "Agentic"),
 
                 .product(name: "UniFiPlanning", package: "UniFi"),
+                .product(name: "Sensitivity", package: "Sensitivity"),
                 .product(name: "Errors", package: "Errors"),
                 .product(name: "Difference", package: "Difference"),
                 .product(name: "Schema", package: "Schema"),
