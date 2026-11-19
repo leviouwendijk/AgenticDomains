@@ -75,6 +75,9 @@ enum AgenticMailTestSuite {
         Test("unconfigured-mail-says-why") {
             try await EmailTests.unconfigured()
         }
+        Test("save-attachment-into-exports") {
+            try await EmailTests.saveAttachment()
+        }
     }
 }
 
@@ -135,6 +138,36 @@ enum EmailTests {
         try Expect.equal(output.subject, "Afspraak volgende week", "Subject")
         try Expect.equal(output.body, "Kan Rex dinsdag om 10:00?", "HTML reduced to text")
         try Expect.true(await recorder.imapCommands.contains("UID FETCH 42 (UID BODY.PEEK[])"), "PEEK keeps it unread")
+    }
+
+    static func saveAttachment() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("mail-downloads-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let recorder = MailRecorder()
+        let context = ToolContext(services: try ToolServices()
+            .inserting(MailFixture.runtime(recorder: recorder))
+            .inserting(Email.SessionAccess(grants: [Email.Grant(try MailSelector(parsing: "*"), level: .read, reason: "test")]))
+            .inserting(Email.Downloads(directory: root)))
+
+        let preflight = try await Email.Tools.SaveAttachment().preflight(.init(uid: 43), in: context)
+        try Expect.equal(preflight.risk, .boundedmutate, "Writing files is bounded")
+        try Expect.contains(preflight.summary, "work/INBOX-43", "Names the destination")
+
+        let output = try await Email.Tools.SaveAttachment().call(.init(uid: 43), in: context)
+        let saved = try Expect.notNil(output.saved.first, "Saved one file")
+        try Expect.equal(saved.path, root.appendingPathComponent("work/INBOX-43/factuur.pdf").standardizedFileURL.path, "Inside the message's folder, sender path dropped")
+        try Expect.equal(saved.bytes, 8, "Decoded content")
+        try Expect.true(await recorder.imapCommands.contains("UID FETCH 43 (UID BODY.PEEK[])"), "PEEK keeps it unread")
+
+        let again = try await Email.Tools.SaveAttachment().call(.init(uid: 43), in: context)
+        try Expect.true(again.saved.first?.path.hasSuffix("factuur (2).pdf") ?? false, "Never overwrites")
+
+        do {
+            _ = try await Email.Tools.SaveAttachment().call(.init(uid: 43, filenames: ["other.pdf"]), in: context)
+            throw TestFlowAssertionFailure(label: "unknown", message: "an unknown filename should be refused")
+        } catch Email.Failure.unknownAttachment(let name, _) {
+            try Expect.equal(name, "other.pdf", "Names the missing attachment")
+        }
     }
 
     static func draftReply() async throws {

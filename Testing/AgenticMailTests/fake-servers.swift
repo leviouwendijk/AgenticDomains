@@ -30,6 +30,28 @@ enum MailFixture {
 
         """
 
+    static let withAttachment = """
+        From: Boekhouding <factuur@example.org>\r
+        To: Alex <alex@practice.example>\r
+        Subject: Factuur november\r
+        Message-ID: <inv-1@example.org>\r
+        MIME-Version: 1.0\r
+        Content-Type: multipart/mixed; boundary="b1"\r
+        \r
+        --b1\r
+        Content-Type: text/plain; charset=utf-8\r
+        \r
+        Zie bijlage.\r
+        --b1\r
+        Content-Type: application/pdf; name="factuur.pdf"\r
+        Content-Disposition: attachment; filename="../factuur.pdf"\r
+        Content-Transfer-Encoding: base64\r
+        \r
+        JVBERi0xLjQ=\r
+        --b1--\r
+
+        """
+
     static let frame = """
         import Mail;
 
@@ -140,8 +162,9 @@ actor FakeIMAPServer: MailTransport {
             if command.hasPrefix("UID SEARCH") {
                 respond("* SEARCH 40 42", "\(tag) OK done")
             } else if command.contains("BODY.PEEK[]") {
-                let body = Data(MailFixture.original.utf8)
-                output.append(Data("* 2 FETCH (UID 42 BODY[] {\(body.count)}\r\n".utf8))
+                let uid = command.contains("FETCH 43 ") ? 43 : 42
+                let body = Data((uid == 43 ? MailFixture.withAttachment : MailFixture.original).utf8)
+                output.append(Data("* 2 FETCH (UID \(uid) BODY[] {\(body.count)}\r\n".utf8))
                 output.append(body)
                 respond(")", "\(tag) OK done")
             } else {

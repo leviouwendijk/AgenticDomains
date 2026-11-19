@@ -51,6 +51,7 @@ public extension Email.Agents {
                         Email.Tools.ListMailboxes.identifier,
                         Email.Tools.Search.identifier,
                         Email.Tools.Read.identifier,
+                        Email.Tools.SaveAttachment.identifier,
                         Email.Tools.SaveDraft.identifier,
                         Email.Tools.Send.identifier,
 

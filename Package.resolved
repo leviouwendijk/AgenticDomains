@@ -1,5 +1,5 @@
 {
-  "originHash" : "08a9a06e5660171ec764861acff54d7f6dd10a99502ce6ecda63e4e862a4e374",
+  "originHash" : "f3eeb21e46e249f18f11859e22e4069cffa4e3f19ebe3bf7e0b7eb9c583f557c",
   "pins" : [
     {
       "identity" : "agentic",
@@ -241,7 +241,7 @@
       "location" : "https://github.com/leviouwendijk/Mail.git",
       "state" : {
         "branch" : "master",
-        "revision" : "21d375f8d2b7ee8795e93dbb4ab7961d2f016512"
+        "revision" : "d3cdc894aaa47fcad393f342334aab275153efec"
       }
     },
     {

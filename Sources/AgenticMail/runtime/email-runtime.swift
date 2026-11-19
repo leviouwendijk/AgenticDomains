@@ -95,6 +95,8 @@ public extension Email {
         case missingSubject
         case noRecipients
         case messageNotFound(uid: Int, mailbox: String)
+        case noAttachments(uid: Int, mailbox: String)
+        case unknownAttachment(String, known: [String])
         case accessNotProvided
         case accessRequired(level: Level, target: String)
         case noMailboxes(String)
@@ -132,6 +134,10 @@ public extension Email {
                 return "A message needs at least one recipient in to, cc or bcc."
             case .messageNotFound(let uid, let mailbox):
                 return "No message with UID \(uid) in \(mailbox)."
+            case .noAttachments(let uid, let mailbox):
+                return "Message \(uid) in \(mailbox) has no attachments."
+            case .unknownAttachment(let name, let known):
+                return "No attachment named '\(name)'; this message has: \(known.joined(separator: ", "))."
             case .accessNotProvided:
                 return "This application keeps no mail access for its sessions (Email.SessionAccess), so mail cannot be read."
             case .accessRequired(let level, let target):

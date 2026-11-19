@@ -15,7 +15,9 @@ public extension Email.Instructions {
         Reading never marks a message read: mail_search and mail_read leave
         flags as they are. mail_search takes the same selectors as targets, so
         one call can search a role across a group. Use mail_mailboxes to find
-        folders before searching outside INBOX.
+        folders before searching outside INBOX. mail_save_attachment writes a
+        message's attachments to files in the exports directory, when the task
+        needs the file itself rather than its name.
 
         Search narrowly on the server (unread, sender, subject, dates) and read
         only the messages the request needs. Quote message content only as far
