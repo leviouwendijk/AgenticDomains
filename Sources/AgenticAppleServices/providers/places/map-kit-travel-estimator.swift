@@ -1,16 +1,20 @@
 import AgenticScheduling
-import CoreLocation
+import Apple
 import Foundation
-import MapKit
 
 /// Travel times from Apple Maps routing. When routing fails (offline,
 /// throttled, no route) it falls back to the straight-line estimate, and
 /// the estimate's method says which one was used.
 public actor MapKitTravelEstimator: TravelEstimator {
+    private let directions: MapKitDirections
     private let fallback: any TravelEstimator
     private var known: [String: TravelEstimate] = [:]
 
-    public init(fallback: any TravelEstimator = StraightLineTravelEstimator()) {
+    public init(
+        directions: MapKitDirections = .init(),
+        fallback: any TravelEstimator = StraightLineTravelEstimator()
+    ) {
+        self.directions = directions
         self.fallback = fallback
     }
 
@@ -31,7 +35,12 @@ public actor MapKitTravelEstimator: TravelEstimator {
         }
         let estimate: TravelEstimate
         do {
-            let route = try await Self.route(from: origin, to: destination, mode: mode, departing: departing)
+            let route = try await directions.route(
+                from: .init(latitude: origin.latitude, longitude: origin.longitude),
+                to: .init(latitude: destination.latitude, longitude: destination.longitude),
+                transport: Self.transport(mode),
+                departing: departing
+            )
             estimate = .init(
                 minutes: Int((route.seconds / 60).rounded(.up)),
                 mode: mode,
@@ -45,41 +54,10 @@ public actor MapKitTravelEstimator: TravelEstimator {
         return estimate
     }
 
-    @MainActor
-    private static func route(
-        from origin: SchedulingPlace,
-        to destination: SchedulingPlace,
-        mode: TravelMode,
-        departing: Date
-    ) async throws -> (seconds: TimeInterval, meters: CLLocationDistance) {
-        let request = MKDirections.Request()
-        request.source = item(origin)
-        request.destination = item(destination)
-        request.transportType = transport(mode)
-        request.departureDate = departing
-        let response = try await MKDirections(request: request).calculateETA()
-        return (response.expectedTravelTime, response.distance)
-    }
-
-    @MainActor
-    private static func item(_ place: SchedulingPlace) -> MKMapItem {
-        if #available(macOS 26.0, *) {
-            return MKMapItem(
-                location: CLLocation(latitude: place.latitude, longitude: place.longitude),
-                address: nil
-            )
-        }
-        return MKMapItem(
-            placemark: MKPlacemark(
-                coordinate: CLLocationCoordinate2D(latitude: place.latitude, longitude: place.longitude)
-            )
-        )
-    }
-
-    private static func transport(_ mode: TravelMode) -> MKDirectionsTransportType {
+    private static func transport(_ mode: TravelMode) -> MapsTransport {
         switch mode {
         case .driving:
-            return .automobile
+            return .driving
         case .cycling:
             return .cycling
         case .walking:

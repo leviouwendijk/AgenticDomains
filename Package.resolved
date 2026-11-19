@@ -1,5 +1,5 @@
 {
-  "originHash" : "e8975f1d780c433617ef45c5c5efd84f5895b5806c4e7a01ff4e54277b108131",
+  "originHash" : "d217a0a00aef0760761f13d660cdc47809a5249de9d1a8952e9dbb50af4394a8",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "78953cbffcc4514d6835c987c4fa931f91ff7409"
+        "revision" : "a60f0d17ba1a906cfbb7060681f7dc5245370402"
       }
     },
     {
@@ -34,7 +34,7 @@
       "location" : "https://github.com/leviouwendijk/Apple.git",
       "state" : {
         "branch" : "master",
-        "revision" : "80830dd2ca8a78bbfc46aa1b9bf0c7e276c05ed1"
+        "revision" : "479db2bd8b50289f23bc474db2b19d21e7645dd7"
       }
     },
     {
@@ -106,7 +106,7 @@
       "location" : "https://github.com/leviouwendijk/Errors.git",
       "state" : {
         "branch" : "master",
-        "revision" : "6ea0a9ebefd5a3a176f47fd016fe88110f99fc33"
+        "revision" : "3e20b181cec40d840b9346e0806dd0bfd369d447"
       }
     },
     {
@@ -124,7 +124,7 @@
       "location" : "https://github.com/leviouwendijk/Executable.git",
       "state" : {
         "branch" : "master",
-        "revision" : "1486ca7a30b45f6eb3bc7a1357d98429f8034e3f"
+        "revision" : "75955eed488921506796e8a2bfcb59437555a1d3"
       }
     },
     {
@@ -205,7 +205,7 @@
       "location" : "https://github.com/leviouwendijk/Interfaces.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3837c19c5d310ecf373384327d3843595bef16e1"
+        "revision" : "7b8306592abd193dd64088aa2b73ae808b3ad63c"
       }
     },
     {
@@ -556,7 +556,7 @@
       "location" : "https://github.com/leviouwendijk/UniFi.git",
       "state" : {
         "branch" : "master",
-        "revision" : "332513bba9b9d66e51bdc22cf0b95a29c2f0db2b"
+        "revision" : "45d30ae5aeef96a381fc0d0cfb0265a83aeb3d8d"
       }
     },
     {
@@ -593,6 +593,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "9f846f6bb04ec29a78480d9f45db41d68a2d27a9"
+      }
+    },
+    {
+      "identity" : "zipfoundation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/weichsel/ZIPFoundation.git",
+      "state" : {
+        "revision" : "22787ffb59de99e5dc1fbfe80b19c97a904ad48d",
+        "version" : "0.9.20"
       }
     }
   ],

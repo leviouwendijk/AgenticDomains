@@ -1,7 +1,8 @@
 import AgenticScheduling
-import CoreLocation
+import Apple
 import Foundation
-import MapKit
+import Readers
+import Writers
 
 /// Resolves location text, such as a client's address in a calendar event,
 /// through Apple's geocoder. Results are cached on disk so an address is
@@ -9,11 +10,16 @@ import MapKit
 /// only, so a corrected address resolves on the next run.
 public actor MapKitPlaceResolver: PlaceResolver {
     private let cacheFile: URL?
+    private let geocoder: MapKitGeocoder
     private var cache: [String: SchedulingPlace]?
     private var misses: Set<String> = []
 
-    public init(cacheFile: URL? = nil) {
+    public init(
+        cacheFile: URL? = nil,
+        geocoder: MapKitGeocoder = .init()
+    ) {
         self.cacheFile = cacheFile
+        self.geocoder = geocoder
     }
 
     public func resolve(_ text: String) async throws -> SchedulingPlace? {
@@ -27,7 +33,7 @@ public actor MapKitPlaceResolver: PlaceResolver {
         if misses.contains(key) {
             return nil
         }
-        guard let coordinate = try await Self.geocode(text) else {
+        guard let coordinate = try await geocoder.coordinate(of: text) else {
             misses.insert(key)
             return nil
         }
@@ -41,31 +47,15 @@ public actor MapKitPlaceResolver: PlaceResolver {
         return place
     }
 
-    @MainActor
-    private static func geocode(_ text: String) async throws -> CLLocationCoordinate2D? {
-        do {
-            if #available(macOS 26.0, *) {
-                guard let request = MKGeocodingRequest(addressString: text) else {
-                    return nil
-                }
-                return try await request.mapItems.first?.location.coordinate
-            }
-            return try await CLGeocoder().geocodeAddressString(text).first?.location?.coordinate
-        } catch let error as CLError where error.code == .geocodeFoundNoResult || error.code == .geocodeFoundPartialResult {
-            return nil
-        } catch let error as MKError where error.code == .placemarkNotFound {
-            return nil
-        }
-    }
-
     private func loadedCache() -> [String: SchedulingPlace] {
         if let cache {
             return cache
         }
         var loaded: [String: SchedulingPlace] = [:]
         if let cacheFile,
-           let data = try? Data(contentsOf: cacheFile),
-           let decoded = try? JSONDecoder().decode([String: SchedulingPlace].self, from: data)
+           let read = try? TextFileReader(cacheFile).read(options: .init(missingFilePolicy: .returnEmpty)),
+           read.existed,
+           let decoded = try? JSONDecoder().decode([String: SchedulingPlace].self, from: Data(read.text.utf8))
         {
             loaded = decoded
         }
@@ -80,14 +70,12 @@ public actor MapKitPlaceResolver: PlaceResolver {
         }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        guard let data = try? encoder.encode(cache) else {
+        guard let data = try? encoder.encode(cache),
+              let text = String(data: data, encoding: .utf8)
+        else {
             return
         }
-        try? FileManager.default.createDirectory(
-            at: cacheFile.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-        try? data.write(to: cacheFile, options: .atomic)
+        _ = try? FileWriter(cacheFile).write(text, options: .overwriteWithoutBackup)
     }
 
     private static func normalized(_ text: String) -> String {

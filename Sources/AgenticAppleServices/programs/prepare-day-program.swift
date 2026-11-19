@@ -24,7 +24,9 @@ public extension AppleServices.Programs {
             reminders: any AppleRemindersProvider =
                 EventKitRemindersProvider(),
             weather: any AppleWeatherProvider =
-                WeatherKitRESTProvider()
+                WeatherKitRESTProvider(
+                    environmentPrefix: "AGENTIC_WEATHERKIT"
+                )
         ) {
             self.calendar = calendar
             self.reminders = reminders

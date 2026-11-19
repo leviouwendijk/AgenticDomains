@@ -501,7 +501,9 @@ extension AgenticDomainsFlowTesting {
             "AgenticAppleServices registration remains credential-free with WeatherKit REST as the default provider"
         )
 
-        let provider = WeatherKitRESTProvider()
+        let provider = WeatherKitRESTProvider(
+            environmentPrefix: "AGENTIC_WEATHERKIT"
+        )
         var invalidCoordinateObserved = false
 
         do {

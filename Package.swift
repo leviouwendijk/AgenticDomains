@@ -333,6 +333,8 @@ let package = Package(
                 .product(name: "AgenticConfiguration", package: "Agentic"),
                 .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Primitives", package: "Primitives"),
+                .product(name: "Readers", package: "Readers"),
+                .product(name: "Writers", package: "Writers"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
                 .product(name: "Interfaces", package: "Interfaces"),
