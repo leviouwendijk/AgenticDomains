@@ -185,6 +185,7 @@ let package = Package(
                 .product(name: "AgenticConfiguration", package: "Agentic"),
                 .product(name: "Schema", package: "Schema"),
                 .product(name: "Macros", package: "Macros"),
+                .product(name: "IO", package: "IO"),
                 .product(name: "Mail", package: "Mail"),
                 .product(name: "MailConnection", package: "Mail"),
                 .product(name: "SMTP", package: "Mail"),

@@ -20,8 +20,14 @@ public extension Email {
         public let bcc: [String]?
         /// Required for a new message; a reply defaults to `Re: ` plus the original subject.
         public let subject: String?
-        /// Plain text. The identity's signature is appended.
-        public let body: String
+        /// Plain text. The identity's signature is appended. Give body, html or both.
+        public let body: String?
+        /// An HTML body; without `body`, a text version is derived from it. Inline
+        /// styles survive mail clients best; `<style>` blocks are often dropped.
+        public let html: String?
+        /// Files to attach, by path: relative to the workspace, or inside the
+        /// workspace or the exports directory. 18 MB in total at most.
+        public let attachments: [String]?
         /// The UID of the message this replies to, as listed by mail_search.
         public let reply_to_uid: Int?
         /// The mailbox holding `reply_to_uid`; INBOX when absent.
@@ -34,7 +40,9 @@ public extension Email {
             cc: [String]? = nil,
             bcc: [String]? = nil,
             subject: String? = nil,
-            body: String,
+            body: String? = nil,
+            html: String? = nil,
+            attachments: [String]? = nil,
             reply_to_uid: Int? = nil,
             reply_mailbox: String? = nil
         ) {
@@ -45,6 +53,8 @@ public extension Email {
             self.bcc = bcc
             self.subject = subject
             self.body = body
+            self.html = html
+            self.attachments = attachments
             self.reply_to_uid = reply_to_uid
             self.reply_mailbox = reply_mailbox
         }
@@ -63,9 +73,14 @@ public extension Email {
     static func compose(
         _ input: Composition,
         with authorization: Authorization,
+        in context: ToolContext,
         grantRequired: Bool = true
     ) async throws -> Composed {
         let runtime = authorization.runtime
+        guard let body = MailBody(text: input.body, html: input.html) else {
+            throw Failure.missingBody
+        }
+        let files = try attachmentFiles(input.attachments, in: context)
         try runtime.access.checkDrafting()
         let account = try runtime.account(input.account)
         if grantRequired {
@@ -111,7 +126,8 @@ public extension Email {
             throw Failure.missingSubject
         }
 
-        var message = identity.message(to: to, cc: cc, bcc: bcc, subject: subject, body: .text(input.body))
+        let attachments = try files.map { try MailAttachment.file(at: $0.url) }
+        var message = identity.message(to: to, cc: cc, bcc: bcc, subject: subject, body: body, attachments: attachments)
         message.headers += headers
         return Composed(account: account, identity: identity, message: message)
     }

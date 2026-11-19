@@ -96,6 +96,10 @@ public extension Email {
         case noRecipients
         case messageNotFound(uid: Int, mailbox: String)
         case noAttachments(uid: Int, mailbox: String)
+        case missingBody
+        case attachmentOutside(String, roots: [String])
+        case attachmentMissing(String)
+        case attachmentsTooLarge(bytes: Int, limit: Int)
         case unknownAttachment(String, known: [String])
         case accessNotProvided
         case accessRequired(level: Level, target: String)
@@ -136,6 +140,14 @@ public extension Email {
                 return "No message with UID \(uid) in \(mailbox)."
             case .noAttachments(let uid, let mailbox):
                 return "Message \(uid) in \(mailbox) has no attachments."
+            case .missingBody:
+                return "Give the message a body, html or both."
+            case .attachmentOutside(let path, let roots):
+                return "'\(path)' is outside where attachments may come from: \(roots.joined(separator: ", ")). Save or export the file there first."
+            case .attachmentMissing(let path):
+                return "No file at '\(path)'."
+            case .attachmentsTooLarge(let bytes, let limit):
+                return "The attachments total \(bytes / 1_048_576) MB; at most \(limit / 1_048_576) MB fit in one message."
             case .unknownAttachment(let name, let known):
                 return "No attachment named '\(name)'; this message has: \(known.joined(separator: ", "))."
             case .accessNotProvided:

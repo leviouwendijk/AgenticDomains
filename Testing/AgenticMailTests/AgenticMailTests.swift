@@ -78,6 +78,9 @@ enum AgenticMailTestSuite {
         Test("save-attachment-into-exports") {
             try await EmailTests.saveAttachment()
         }
+        Test("send-html-with-attachment") {
+            try await EmailTests.sendHTMLWithAttachment()
+        }
     }
 }
 
@@ -138,6 +141,48 @@ enum EmailTests {
         try Expect.equal(output.subject, "Afspraak volgende week", "Subject")
         try Expect.equal(output.body, "Kan Rex dinsdag om 10:00?", "HTML reduced to text")
         try Expect.true(await recorder.imapCommands.contains("UID FETCH 42 (UID BODY.PEEK[])"), "PEEK keeps it unread")
+    }
+
+    static func sendHTMLWithAttachment() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("mail-attach-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let pdf = MailAttachment(filename: "offerte.pdf", data: Data("%PDF-1.4".utf8))
+        let file = try pdf.save(in: root, index: 0)
+
+        let recorder = MailRecorder()
+        let context = ToolContext(services: try ToolServices()
+            .inserting(MailFixture.runtime(recorder: recorder))
+            .inserting(Email.SessionAccess())
+            .inserting(Email.Downloads(directory: root)))
+        let input = Email.Composition(
+            account: "team",
+            to: ["jan@example.org"],
+            subject: "Offerte",
+            html: "<p style=\"color:#333\">Hoi Jan,</p><p>Zie de <b>offerte</b>.</p>",
+            attachments: [file.path]
+        )
+
+        let preflight = try await Email.Tools.Send().preflight(input, in: context)
+        try Expect.contains(preflight.summary, "attaching offerte.pdf", "Approval names the attachment")
+        try Expect.true(preflight.preview.command?.hasPrefix("[HTML] Hoi Jan,") ?? false, "Preview reads the HTML as text")
+
+        _ = try await Email.Tools.Send().call(input, in: context)
+        let delivered = await recorder.delivered.joined()
+        try Expect.contains(delivered, "multipart/alternative", "HTML with a text version")
+        try Expect.contains(delivered, "Content-Type: application/pdf", "PDF type from the extension")
+        try Expect.contains(delivered, "filename=\"offerte.pdf\"", "Attachment name")
+
+        do {
+            _ = try await Email.Tools.Send().preflight(.init(account: "team", to: ["jan@example.org"], subject: "x", body: "y", attachments: ["/etc/hosts"]), in: context)
+            throw TestFlowAssertionFailure(label: "outside", message: "a file outside the workspace must be refused")
+        } catch Email.Failure.attachmentOutside {
+        }
+        do {
+            _ = try await Email.Tools.Send().preflight(.init(account: "team", to: ["jan@example.org"], subject: "x"), in: context)
+            _ = try await Email.Tools.Send().call(.init(account: "team", to: ["jan@example.org"], subject: "x"), in: context)
+            throw TestFlowAssertionFailure(label: "body", message: "a message without a body must be refused")
+        } catch Email.Failure.missingBody {
+        }
     }
 
     static func saveAttachment() async throws {

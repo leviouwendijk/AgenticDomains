@@ -25,7 +25,7 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "Compose a message (or a reply to a UID) from an account's identity, signed, and save it in the account's Drafts folder for the owner to review and send. Sends nothing."
+            "Compose a message (or a reply to a UID) from an account's identity, as text and/or HTML with file attachments, signed, and save it in the account's Drafts folder for the owner to review and send. Sends nothing."
         public static let risk: ActionRisk = .boundedmutate
 
         public init() {}
@@ -33,7 +33,7 @@ public extension Email.Tools {
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
-            let composed = try await Email.compose(input, with: authorization)
+            let composed = try await Email.compose(input, with: authorization, in: context)
             let data = MailRenderer().data(composed.message)
 
             let (folder, uid) = try await runtime.imap(composed.account).session { session in
@@ -71,7 +71,7 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "Send a message (or a reply to a UID) from an account's identity, signed, and save a copy in Sent. The owner approves each message, unless the account allows sending and this session holds a draft grant on it; refused under the drafts policy."
+            "Send a message (or a reply to a UID) from an account's identity, as text and/or HTML with file attachments, signed, and save a copy in Sent. The owner approves each message, unless the account allows sending and this session holds a draft grant on it; refused under the drafts policy."
         public static let risk: ActionRisk = .privileged
 
         public init() {}
@@ -102,11 +102,13 @@ public extension Email.Tools {
             let subject = input.subject.flatMap(Email.nonEmpty)
                 ?? input.reply_to_uid.map { "reply to UID \($0)" }
                 ?? "(no subject)"
-            let excerpt = String(input.body.prefix(600))
+            let files = try Email.attachmentFiles(input.attachments, in: context)
+            let text = input.body.flatMap(Email.nonEmpty) ?? input.html.map(ReceivedMessage.plainText(fromHTML:)) ?? ""
+            let excerpt = (input.html.flatMap(Email.nonEmpty) == nil ? "" : "[HTML] ") + String(text.prefix(600))
             return ToolPreflight(
                 tool: Self.definition.identifier,
                 risk: risk,
-                summary: "Send \"\(subject)\" from \(identity.address.address.raw) to \(recipients.isEmpty ? "the original sender" : recipients.joined(separator: ", ")) via account \(account.identifier).",
+                summary: "Send \"\(subject)\" from \(identity.address.address.raw) to \(recipients.isEmpty ? "the original sender" : recipients.joined(separator: ", ")) via account \(account.identifier)" + (files.isEmpty ? "." : ", attaching \(files.map(\.description).joined(separator: ", "))."),
                 access: .init(targets: recipients),
                 estimates: .init(write: .init(count: 1)),
                 preview: .init(command: excerpt),
@@ -126,7 +128,7 @@ public extension Email.Tools {
                 throw Email.Failure.sendingNotAllowed(account: account.identifier)
             }
 
-            let composed = try await Email.compose(input, with: authorization, grantRequired: false)
+            let composed = try await Email.compose(input, with: authorization, in: context, grantRequired: false)
             // Fixed before rendering twice, so the Sent copy is the delivered message.
             var message = composed.message
             message.messageID = "\(UUID().uuidString)@\(message.from.address.domain)"
