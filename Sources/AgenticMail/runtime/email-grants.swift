@@ -5,8 +5,9 @@ import Mail
 import MailFrame
 
 public extension Email {
-    /// What a grant allows: reading, or reading plus drafting (and, per approved
-    /// message, sending). Sending is never a standing grant.
+    /// What a grant allows: reading, or reading plus drafting. Sending is approved
+    /// per message; a draft grant only lets an account whose policy is `allowed`
+    /// send without that approval.
     enum Level: String, Sendable, Hashable, Codable, CaseIterable, Comparable {
         case read
         case draft

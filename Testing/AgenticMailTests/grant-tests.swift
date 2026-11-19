@@ -32,9 +32,21 @@ enum GrantTests {
         try await expectAccessRequired("Draft") {
             _ = try await Email.Tools.SaveDraft().call(.init(to: ["jan@example.org"], subject: "x", body: "y"), in: context)
         }
-        let send = Email.Composition(account: "team", to: ["jan@example.org"], subject: "x", body: "y")
-        try Expect.equal(try await Email.Tools.Send().preflight(send, in: context).risk, .forbidden, "Send forbidden without a grant")
+        // Without a grant, every send is the owner's to approve, even where the account allows sending.
+        let send = { (account: String) in Email.Composition(account: account, to: ["jan@example.org"], subject: "x", body: "y") }
+        try Expect.equal(try await Email.Tools.Send().preflight(send("team"), in: context).risk, .privileged, "allowed still reviewed without a grant")
+        try Expect.equal(try await Email.Tools.Send().preflight(send("work"), in: context).risk, .privileged, "confirm reviewed")
+        try Expect.equal(try await Email.Tools.Send().preflight(send("personal"), in: context).risk, .forbidden, "drafts never sends")
         try Expect.true(await recorder.imapCommands.filter { !$0.hasPrefix("CAPABILITY") && !$0.hasPrefix("AUTHENTICATE") && !$0.hasPrefix("LOGOUT") }.isEmpty, "No mailbox touched")
+
+        // Once the owner approves the message, it sends without any grant.
+        let sent = try await Email.Tools.Send().call(send("work"), in: context)
+        try Expect.equal(sent.accepted, ["jan@example.org"], "Approved send delivers without a grant")
+        do {
+            _ = try await Email.Tools.Send().call(.init(account: "work", body: "y", reply_to_uid: 42), in: context)
+            throw TestFlowAssertionFailure(label: "reply", message: "a reply must not read the original without a grant")
+        } catch Email.Failure.accessRequired {
+        }
 
         do {
             _ = try await Email.Tools.Search().call(.init(), in: ToolContext(services: try ToolServices().inserting(MailFixture.runtime(recorder: recorder))))

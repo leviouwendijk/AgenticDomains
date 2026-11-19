@@ -10,7 +10,8 @@ public extension Email.Instructions {
         giving a reason the owner can judge: selectors name an account, a group
         or *, optionally with a mailbox, a prefix/* pattern or an @role, as in
         leads, hondenmeesters:@junk or levi:INBOX/Klanten/*. Prefer read; ask
-        for draft only to write. Do not ask again for what was refused.
+        for draft only to save drafts. Sending needs no grant: the owner
+        approves each message. Do not ask again for what was refused.
 
         Reading never marks a message read: mail_search and mail_read leave
         flags as they are. mail_search takes the same selectors as targets, so

@@ -15,7 +15,7 @@ public extension Email.Tools {
             public let targets: [String]?
             /// A configured access profile to open instead of targets.
             public let profile: String?
-            /// read (the default) or draft; draft includes read and allows drafting and, per approved message, sending.
+            /// read (the default) or draft; draft includes read and allows drafting, and sending without per-message approval where the account allows sending.
             public let level: String?
             /// Why the task needs it, for the owner who approves.
             public let reason: String

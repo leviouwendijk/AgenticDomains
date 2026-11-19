@@ -58,14 +58,19 @@ public extension Email {
     }
 
     /// Resolves account and identity, fetches the original for a reply, and builds the signed message.
+    /// A draft needs a draft grant; a send is approved per message instead (`grantRequired: false`).
+    /// A reply always needs read access to the original's mailbox.
     static func compose(
         _ input: Composition,
-        with authorization: Authorization
+        with authorization: Authorization,
+        grantRequired: Bool = true
     ) async throws -> Composed {
         let runtime = authorization.runtime
         try runtime.access.checkDrafting()
         let account = try runtime.account(input.account)
-        try authorization.require(.draft, account: account)
+        if grantRequired {
+            try authorization.require(.draft, account: account)
+        }
         let identity = try self.identity(input.from, in: account, access: runtime.access)
 
         var to = try addresses(input.to)

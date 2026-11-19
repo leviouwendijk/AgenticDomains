@@ -71,7 +71,7 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "Send a message (or a reply to a UID) from an account's identity, signed, and save a copy in Sent. Obeys the account's sending policy: refused under drafts, reviewed by the owner under confirm."
+            "Send a message (or a reply to a UID) from an account's identity, signed, and save a copy in Sent. The owner approves each message, unless the account allows sending and this session holds a draft grant on it; refused under the drafts policy."
         public static let risk: ActionRisk = .privileged
 
         public init() {}
@@ -86,15 +86,17 @@ public extension Email.Tools {
             let recipients = try (Email.addresses(input.to) + Email.addresses(input.cc) + Email.addresses(input.bcc))
                 .map(\.address.raw)
 
+            // The owner approves each message; only a draft grant on an account
+            // that allows sending removes that step. Drafts-only never sends.
             let policy = runtime.access.sending(for: account)
             let risk: ActionRisk
-            switch granted ? policy : .drafts {
+            switch policy {
             case .drafts:
                 risk = .forbidden
             case .confirm:
                 risk = .privileged
             case .allowed:
-                risk = .boundedmutate
+                risk = granted ? .boundedmutate : .privileged
             }
 
             let subject = input.subject.flatMap(Email.nonEmpty)
@@ -110,9 +112,7 @@ public extension Email.Tools {
                 preview: .init(command: excerpt),
                 sideEffects: ["delivers an email that cannot be recalled", "saves a copy in Sent"],
                 policyChecks: ["account_sending_policy:\(account.sending.rawValue)", "access_profile:\(runtime.access.name)"],
-                warnings: !granted
-                    ? [Email.Failure.accessRequired(level: .draft, target: account.identifier).localizedDescription]
-                    : policy == .drafts ? [Email.Failure.sendingNotAllowed(account: account.identifier).localizedDescription] : []
+                warnings: policy == .drafts ? [Email.Failure.sendingNotAllowed(account: account.identifier).localizedDescription] : []
             )
         }
 
@@ -126,7 +126,7 @@ public extension Email.Tools {
                 throw Email.Failure.sendingNotAllowed(account: account.identifier)
             }
 
-            let composed = try await Email.compose(input, with: authorization)
+            let composed = try await Email.compose(input, with: authorization, grantRequired: false)
             // Fixed before rendering twice, so the Sent copy is the delivered message.
             var message = composed.message
             message.messageID = "\(UUID().uuidString)@\(message.from.address.domain)"
