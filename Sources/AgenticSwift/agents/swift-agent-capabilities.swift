@@ -50,7 +50,7 @@ enum SwiftAgentTools {
     ]
 
     static let guidelines: [ToolIdentifier] = [
-        Standard.Tools.SearchGuidelines.identifier,
+        Standard.Tools.FindGuidelines.identifier,
         Standard.Tools.GuidelineIndex.identifier,
         Standard.Tools.ReadGuideline.identifier,
         Standard.Tools.ReadGuidelineChapter.identifier,
