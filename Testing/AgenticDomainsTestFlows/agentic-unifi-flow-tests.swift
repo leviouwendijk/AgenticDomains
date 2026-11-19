@@ -134,7 +134,7 @@ extension AgenticDomainsFlowTesting {
             _ = try await failing.capture(site_id: site_id)
             throw UniFiPlanning.Failure.invalid_change
         } catch UniFi.Runtime.Failure.capture_failed(let detail) {
-            let report = detail.report.redacted(policy: .publicsafe)
+            let report = detail.report.redacted(policy: .public_safe)
             let text = String(describing: detail)
                 + String(describing: report)
             try Expect.equal(detail.stage, .policies, "failure preserves request stage")
