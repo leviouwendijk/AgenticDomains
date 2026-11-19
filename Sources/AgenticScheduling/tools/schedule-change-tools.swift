@@ -82,6 +82,20 @@ public extension Scheduling.Tools {
                 risk: Self.definition.risk,
                 summary: "Change \(runtime.describe(plan.event, in: plan.zone)) to \(plan.after).",
                 estimates: .init(write: .init(count: 1)),
+                preview: try await runtime.eventPreview(
+                    title: plan.result.title,
+                    interval: plan.result.interval,
+                    allDay: plan.result.isAllDay,
+                    change: .update,
+                    previous: plan.result.interval == plan.event.interval ? nil : plan.event.interval,
+                    calendar: plan.result.calendar.title,
+                    location: plan.result.location,
+                    notes: plan.change.notes,
+                    participants: plan.owners,
+                    zone: plan.zone,
+                    overlaps: plan.overlaps,
+                    details: plan.result.title == plan.event.title ? [] : [.init("was titled", plan.event.title)]
+                ),
                 sideEffects: ["Changes one event in \(plan.event.calendar.title)"],
                 warnings: plan.overlaps.map { "Overlaps \($0)" }
             )
@@ -149,6 +163,16 @@ public extension Scheduling.Tools {
                 risk: Self.definition.risk,
                 summary: "Remove \(runtime.describe(event, in: zone)).",
                 estimates: .init(write: .init(count: 1)),
+                preview: try await runtime.eventPreview(
+                    title: event.title,
+                    interval: event.interval,
+                    allDay: event.isAllDay,
+                    change: .cancel,
+                    calendar: event.calendar.title,
+                    location: event.location,
+                    participants: runtime.owners(of: event.calendar),
+                    zone: zone
+                ),
                 sideEffects: ["Removes one event from \(event.calendar.title)"]
             )
         }
@@ -169,6 +193,9 @@ private extension Scheduling.Tools.Update {
         let source: any CalendarSource
         let event: ScheduledEvent
         let change: EventChange
+        /// The event as it will read once changed.
+        let result: ScheduledEvent
+        let owners: [SchedulingParticipant]
         let zone: ScheduleTimeZone
         let after: String
         let overlaps: [String]
@@ -233,6 +260,8 @@ private extension Scheduling.Tools.Update {
             self.source = try runtime.source(named: event.source)
             self.event = event
             self.change = change
+            self.result = preview
+            self.owners = owners
             self.zone = zone
             self.after = runtime.describe(preview, in: zone)
                 + (change.location.map { " at \($0)" } ?? "")

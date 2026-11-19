@@ -4,6 +4,7 @@ import Foundation
 import IMAP
 import Mail
 import MailFrame
+import Reporting
 import Testing
 
 private enum AgenticMailTestingFailure: Error {
@@ -170,7 +171,14 @@ enum EmailTests {
 
         let preflight = try await Email.Tools.Send().preflight(input, in: context)
         try Expect.contains(preflight.summary, "attaching offerte.pdf", "Approval names the attachment")
-        try Expect.true(preflight.preview.command?.hasPrefix("[HTML] Hoi Jan,") ?? false, "Preview reads the HTML as text")
+        guard let section = preflight.preview.sections.first,
+              case .report(let card) = section.content else {
+            throw TestFlowAssertionFailure(label: "message card", message: "Send previews a message card")
+        }
+        let shown = ReportMarkdown.render(card)
+        try Expect.equal(section.title, "Message", "The approval menu names the preview")
+        try Expect.contains(shown, "Hoi Jan,", "Preview reads the HTML as text")
+        try Expect.contains(shown, "**bcc**: boekhouding@example.org", "Headers on the card")
 
         _ = try await Email.Tools.Send().call(input, in: context)
         let delivered = await recorder.delivered.joined()

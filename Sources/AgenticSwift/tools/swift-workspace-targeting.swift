@@ -1,3 +1,4 @@
+import Reporting
 import Agentic
 import Workspace
 import Executable
@@ -100,9 +101,9 @@ extension SwiftLang.Tools.ExecutableProducts {
                     execution.projectRoot.path
                 ]
             ),
-            preview: .init(
-                command: "swift package dump-package"
-            ),
+            preview: .init([
+                .command(.init("swift package dump-package")),
+            ]),
             sideEffects: [],
             policyChecks: [
                 "workspace_required",
@@ -176,9 +177,9 @@ extension SwiftLang.Tools.PackageUpdate {
                 ),
                 runtime: 300
             ),
-            preview: .init(
-                command: "swift package update"
-            ),
+            preview: .init([
+                .command(.init("swift package update")),
+            ]),
             sideEffects: [
                 "May update Package.resolved.",
                 "May fetch package dependencies over the network.",
@@ -270,9 +271,9 @@ extension SwiftLang.Tools.Resolve {
                 ),
                 runtime: 300
             ),
-            preview: .init(
-                command: "swift package resolve"
-            ),
+            preview: .init([
+                .command(.init("swift package resolve")),
+            ]),
             sideEffects: [
                 "May update Package.resolved.",
                 "May fetch package dependencies over the network.",
@@ -362,9 +363,9 @@ extension SwiftLang.Tools.Clean {
                     count: 1
                 )
             ),
-            preview: .init(
-                command: "swift package clean"
-            ),
+            preview: .init([
+                .command(.init("swift package clean")),
+            ]),
             sideEffects: [
                 "Removes SwiftPM build artifacts under .build."
             ],
@@ -539,11 +540,9 @@ extension SwiftLang.Tools.KillSwiftPM {
                     execution.projectRoot.path
                 ]
             ),
-            preview: .init(
-                command: input.dryRun == true
-                    ? "kill-swiftpm --dry-run"
-                    : "kill-swiftpm"
-            ),
+            preview: .init([
+                .command(.init(input.dryRun == true ? "kill-swiftpm --dry-run" : "kill-swiftpm")),
+            ]),
             sideEffects: input.dryRun == true
                 ? []
                 : [
@@ -916,9 +915,16 @@ extension SwiftLang.Tools.Deploy {
                 ),
                 runtime: 60
             ),
-            preview: .init(
-                command: "deploy \(input.configuration.rawValue) -> \(resolved.destination.path)"
-            ),
+            preview: .init([
+                .report(
+                    try ReportDocument(title: "Deploy", datasets: [], blocks: [
+                        .facts(.init(facts: [
+                            .init("configuration", input.configuration.rawValue),
+                            .init("destination", resolved.destination.path),
+                        ])),
+                    ])
+                ),
+            ]),
             sideEffects: [
                 "Moves built executable artifacts from .build into the deployment destination.",
                 "Replaces existing deployed products when present.",
@@ -1066,9 +1072,9 @@ extension SwiftLang.Tools.RunProduct {
                 ),
                 runtime: 300
             ),
-            preview: .init(
-                command: "swift run \(input.product)\(suffix)"
-            ),
+            preview: .init([
+                .command(.init("swift run \(input.product)\(suffix)")),
+            ]),
             sideEffects: [
                 "May build the selected executable product under .build before execution.",
                 "Executes repository-owned code with the current host filesystem, process, environment, and network permissions.",

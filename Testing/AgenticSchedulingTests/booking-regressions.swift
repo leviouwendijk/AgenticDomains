@@ -1,6 +1,7 @@
 import Agentic
 import AgenticScheduling
 import Foundation
+import Reporting
 import Testing
 
 private typealias F = SchedulingFixture
@@ -113,6 +114,16 @@ enum SchedulingBookingTests {
         let clash = Scheduling.Tools.Book.Input(title: "Call", start: "2026-11-23T09:30:00+01:00", duration_minutes: 30)
         let preflight = try await book.preflight(clash, in: context)
         try Expect.true(preflight.warnings.contains { $0.contains("Standup") }, "Approval names the overlap")
+        guard let section = preflight.preview.sections.first,
+              case .report(let card) = section.content,
+              case .event(let event)? = card.blocks.first else {
+            throw TestFlowAssertionFailure(label: "event card", message: "Book previews an event card")
+        }
+        try Expect.equal(section.title, "Event", "The approval menu names the preview")
+        try Expect.equal(event.change, .create, "A new event")
+        try Expect.equal(event.calendar, "Levi", "The calendar it goes into")
+        try Expect.true(event.warnings.contains { $0.contains("Standup") }, "The card names the overlap")
+        try Expect.true(event.context?.lanes.contains { $0.label == "New" } == true, "The day around it, with the event marked")
         let overlapping = try await book.call(clash, in: context)
         try Expect.true(overlapping.overlaps.contains { $0.contains("Standup") }, "Result names the overlap")
 
@@ -163,6 +174,12 @@ enum SchedulingBookingTests {
         )
         let preflight = try await update.preflight(moved, in: context)
         try Expect.true(preflight.summary.contains("Client visit"), "Approval names the event")
+        guard case .report(let changed)? = preflight.preview.sections.first?.content,
+              case .event(let card)? = changed.blocks.first else {
+            throw TestFlowAssertionFailure(label: "event card", message: "Update previews an event card")
+        }
+        try Expect.equal(card.change, .update, "A changed event")
+        try Expect.notNil(card.previous, "Where it was")
         let result = try await update.call(moved, in: context)
         try Expect.equal(result.start, "2026-11-23T16:30:00+01:00", "New start")
         try Expect.equal(result.end, "2026-11-23T17:30:00+01:00", "Length kept")

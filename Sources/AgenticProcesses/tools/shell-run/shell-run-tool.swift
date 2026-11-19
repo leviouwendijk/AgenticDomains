@@ -101,6 +101,14 @@ public extension Shell.Tools {
                 estimates: .init(
                     runtime: TimeInterval(run.timeoutSeconds)
                 ),
+                preview: .init([
+                    .command(
+                        .init(
+                            run.command,
+                            workingDirectory: run.workingDirectory.path
+                        )
+                    ),
+                ]),
                 mayChangeSource: true,
                 sideEffects: [
                     "spawn \(run.policy.shell) -c with the given command line",

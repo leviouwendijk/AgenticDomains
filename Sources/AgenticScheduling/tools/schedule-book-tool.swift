@@ -88,6 +88,18 @@ public extension Scheduling.Tools {
                 risk: Self.definition.risk,
                 summary: "Create '\(plan.draft.title)' on \(plan.start) – \(plan.end) in calendar \(plan.draft.calendar.title) (\(plan.source.identifier)).",
                 estimates: .init(write: .init(count: sideEffects.count)),
+                preview: try await runtime.eventPreview(
+                    title: plan.draft.title,
+                    interval: plan.draft.interval,
+                    change: .create,
+                    calendar: plan.draft.calendar.title,
+                    location: plan.draft.location,
+                    notes: plan.draft.notes,
+                    participants: plan.participants,
+                    zone: plan.zone,
+                    overlaps: plan.overlaps,
+                    details: plan.offer.map { [.init("fills offer", runtime.describe($0, in: plan.zone))] } ?? []
+                ),
                 sideEffects: sideEffects,
                 warnings: plan.overlaps.map { "Overlaps \($0)" }
             )
@@ -120,6 +132,7 @@ private extension Scheduling.Tools.Book {
     struct Plan {
         let source: any CalendarSource
         let draft: EventDraft
+        let participants: [SchedulingParticipant]
         let zone: ScheduleTimeZone
         let overlaps: [String]
         let offer: ScheduledEvent?
@@ -139,6 +152,7 @@ private extension Scheduling.Tools.Book {
             let zone = participants.first?.timeZone ?? runtime.defaults.timeZone
 
             self.source = target.source
+            self.participants = participants
             self.zone = zone
             self.draft = EventDraft(
                 title: title,

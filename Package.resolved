@@ -1,5 +1,5 @@
 {
-  "originHash" : "6b349cf63f48a13ef62d825a03e33f4ee78b1d9add344b32b5949643526d1589",
+  "originHash" : "7b0298d6a118d57437db8aa98dfb2d23e856649a534020c7aac329ac1ebc624d",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "206da7d9408b1b470261909858eb4e8a8463cb44"
+        "revision" : "be79ad702176834d5071c92c5a1828a0a0bb7c43"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e5dee9ff1eb191ce5fced4227131515aa0aafebf"
+        "revision" : "93706aba8baf5a018fa00038a2b8aeaa5f376c7a"
       }
     },
     {
@@ -250,7 +250,7 @@
       "location" : "https://github.com/leviouwendijk/Matching.git",
       "state" : {
         "branch" : "master",
-        "revision" : "f79aaa1237ef7da168e14acd15b2f185acda98c0"
+        "revision" : "0769b089c1ccf25d08e5e5a8292fca0f2d3b7eea"
       }
     },
     {
@@ -394,7 +394,7 @@
       "location" : "https://github.com/leviouwendijk/Reporting.git",
       "state" : {
         "branch" : "master",
-        "revision" : "2470ba0428352ce09dd518fd6b128da739067fa9"
+        "revision" : "ff2b35a57235509c62744c3de22540ebe092d515"
       }
     },
     {
@@ -493,7 +493,7 @@
       "location" : "https://github.com/leviouwendijk/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "42b9b7634c433b2e9d04b1cea141436c796bf9b8"
+        "revision" : "5f8c3f0105ad628c6aa08942c091f53be68cf890"
       }
     },
     {

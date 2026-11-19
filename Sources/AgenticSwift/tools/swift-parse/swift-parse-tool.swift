@@ -94,9 +94,9 @@ extension SwiftLang.Tools {
                         path
                     ]
                 ),
-                preview: .init(
-                    command: "swiftc -parse \(path)"
-                ),
+                preview: .init([
+                    .command(.init("swiftc -parse \(path)")),
+                ]),
                 sideEffects: [],
                 policyChecks: [
                     "workspace_required",

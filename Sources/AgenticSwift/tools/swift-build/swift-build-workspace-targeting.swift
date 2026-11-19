@@ -89,9 +89,9 @@ extension SwiftLang.Tools.Build {
                 ),
                 runtime: 300
             ),
-            preview: .init(
-                command: commandPreview
-            ),
+            preview: .init([
+                .command(.init(commandPreview)),
+            ]),
             sideEffects: sideEffects,
             policyChecks: policyChecks,
             warnings: [

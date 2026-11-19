@@ -199,6 +199,7 @@ let package = Package(
             dependencies: [
                 "AgenticMail",
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Reporting", package: "Reporting"),
                 .product(name: "Mail", package: "Mail"),
                 .product(name: "IMAP", package: "Mail"),
                 .product(name: "MailConnection", package: "Mail"),

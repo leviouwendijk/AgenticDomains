@@ -119,9 +119,9 @@ public extension SwiftLang.Tools {
                 estimates: .init(
                     runtime: 120
                 ),
-                preview: .init(
-                    command: "swift package dump-package (per package)"
-                ),
+                preview: .init([
+                    .command(.init("swift package dump-package  # per package")),
+                ]),
                 sideEffects: [
                     "Evaluates the root manifest and each checked-out dependency manifest through SwiftPM."
                 ],

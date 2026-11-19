@@ -113,9 +113,9 @@ public extension Web.Tools {
                     runtime: 8,
                     bytes: policy.maxFetchedBytes
                 ),
-                preview: .init(
-                    command: "GET \(url.absoluteString)"
-                ),
+                preview: .init([
+                    .command(.init("GET \(url.absoluteString)"), title: "Request"),
+                ]),
                 sideEffects: [
                     "external network read",
                 ]

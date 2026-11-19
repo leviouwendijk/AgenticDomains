@@ -151,7 +151,7 @@ public extension SwiftLang.Tools {
                     write: .init(count: draft.mutationPlan.entries.count),
                     runtime: 15
                 ),
-                preview: .init(difference: difference),
+                preview: .init(difference.map { [.difference($0)] } ?? []),
                 sideEffects: [
                     "After approval and source-freshness checks, the reviewed changes will be published or staged through Writers. No package build is performed."
                 ],

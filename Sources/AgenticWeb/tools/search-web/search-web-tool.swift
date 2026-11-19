@@ -1,3 +1,4 @@
+import Reporting
 import Agentic
 import Foundation
 import Macros
@@ -104,9 +105,13 @@ public extension Web.Tools {
                 estimates: .init(
                     runtime: 5
                 ),
-                preview: .init(
-                    command: "search query: \(query)"
-                ),
+                preview: .init([
+                    .report(
+                        try ReportDocument(title: "Search", datasets: [], blocks: [
+                            .facts(.init(facts: [.init("query", query)])),
+                        ])
+                    ),
+                ]),
                 sideEffects: [
                     "external network read",
                 ]

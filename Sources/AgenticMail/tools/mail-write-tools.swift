@@ -1,3 +1,5 @@
+import DSL
+import Reporting
 import Agentic
 import Foundation
 import IMAP
@@ -104,14 +106,24 @@ public extension Email.Tools {
                 ?? "(no subject)"
             let files = try Email.attachmentFiles(input.attachments, in: context)
             let text = input.body.flatMap(Email.nonEmpty) ?? input.html.map(ReceivedMessage.plainText(fromHTML:)) ?? ""
-            let excerpt = (input.html.flatMap(Email.nonEmpty) == nil ? "" : "[HTML] ") + String(text.prefix(600))
             return ToolPreflight(
                 tool: Self.definition.identifier,
                 risk: risk,
                 summary: "Send \"\(subject)\" from \(identity.address.address.raw) to \(recipients.isEmpty ? "the original sender" : recipients.joined(separator: ", ")) via account \(account.identifier)" + (files.isEmpty ? "." : ", attaching \(files.map(\.description).joined(separator: ", "))."),
                 access: .init(targets: recipients),
                 estimates: .init(write: .init(count: 1)),
-                preview: .init(command: excerpt),
+                preview: .init([
+                    .report(
+                        try Email.messageCard(
+                            from: identity.address.address.raw,
+                            input: input,
+                            subject: subject,
+                            text: text,
+                            attachments: files.map(\.description)
+                        ),
+                        title: "Message"
+                    ),
+                ]),
                 sideEffects: ["delivers an email that cannot be recalled", "saves a copy in Sent"],
                 policyChecks: ["account_sending_policy:\(account.sending.rawValue)", "access_profile:\(runtime.access.name)"],
                 warnings: policy == .drafts ? [Email.Failure.sendingNotAllowed(account: account.identifier).localizedDescription] : []
