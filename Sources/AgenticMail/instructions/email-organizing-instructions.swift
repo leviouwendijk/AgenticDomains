@@ -13,12 +13,24 @@ public extension Email.Instructions {
         Nothing changes mail except an applied plan. mail_plan stores one \
         change (move, flag or keyword, Gmail label) for a selection and shows \
         samples; check the samples, and when they are wrong, plan again more \
-        narrowly. mail_apply needs an organize grant on the account (ask with \
-        mail_request_access, level organize) and the owner's approval of each \
-        plan; it checks every message against the server again and skips what \
-        changed since indexing. Report what was applied and what was skipped. \
-        mail_undo reverses an applied plan. Never plan a permanent delete: \
-        removal is a move to Pruned, which the owner empties.
+        narrowly. Before making a plan the owner mentions, look it up with \
+        mail_plans (with its id to see its messages) and reuse it when it \
+        covers what is needed.
+
+        Mailboxes: name a destination with / between levels, such as \
+        Review/Suspicious or Records/2026; it is turned into the server's own \
+        form when applied (INBOX.Review.Suspicious on servers that nest \
+        everything under INBOX with dots). Name a source mailbox exactly as \
+        mail_suspicious, mail_search or mail_mailboxes reported it.
+
+        mail_apply needs an organize grant on the account (ask with \
+        mail_request_access, level organize). Its own approval prompt is \
+        where the owner says yes to the plan: when the owner asked you to \
+        apply, call mail_apply rather than asking again in text. It checks \
+        every message against the server again and skips what changed since \
+        indexing. Report what was applied and what was skipped. mail_undo \
+        reverses an applied plan. Never plan a permanent delete: removal is \
+        a move to Pruned, which the owner empties.
 
         Prefer few, large, clearly named plans over many small ones, one \
         purpose each, with a reason the owner can judge in a sentence. Never \

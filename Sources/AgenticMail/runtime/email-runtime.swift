@@ -107,6 +107,8 @@ public extension Email {
         case missingReason
         case missingTargets
         case unknownLevel(String)
+        /// A tool input that cannot work as given; the message says what to change.
+        case invalidInput(String)
 
         public var errorDescription: String? {
             switch self {
@@ -159,7 +161,9 @@ public extension Email {
             case .missingTargets:
                 return "Name targets (selectors such as leads or hondenmeesters:@junk) or a profile."
             case .unknownLevel(let level):
-                return "Unknown level '\(level)'; use read or draft."
+                return "Unknown level '\(level)'; use read, draft or organize."
+            case .invalidInput(let message):
+                return message
             case .noMailboxes(let selectors):
                 return "No mailbox matches \(selectors); list them with mail_mailboxes."
             }

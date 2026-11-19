@@ -32,7 +32,7 @@ extension Email {
         let url = (try? context.require(IndexLocation.self))?.url(account: account.identifier)
             ?? MailIndex.defaultURL(account: account.identifier)
         guard creating || MailIndex.exists(at: url) else {
-            throw Failure.missing(expected: "an index of \(account.identifier); run mail_index_sync first")
+            throw Failure.invalidInput("\(account.identifier) has no index yet; run mail_index_sync first.")
         }
         return try MailIndex(url: url)
     }
@@ -43,10 +43,7 @@ extension Email {
         _ runtime: Runtime
     ) throws {
         if runtime.access.restrictsMailboxes {
-            throw Failure.invalid(
-                file: "access profile \(runtime.access.name)",
-                message: "it limits mailboxes, and the index covers whole accounts; use mail_search instead."
-            )
+            throw Failure.invalidInput("The access profile \(runtime.access.name) limits mailboxes, and the index covers whole accounts; use mail_search instead.")
         }
     }
 

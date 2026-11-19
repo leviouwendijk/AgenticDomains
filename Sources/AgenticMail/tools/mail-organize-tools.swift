@@ -319,12 +319,12 @@ public extension Email.Tools {
             switch verdict {
             case .trust, .block:
                 guard let value = input.value.flatMap(Email.nonEmpty) else {
-                    throw Email.Failure.missing(expected: "value: the sender address or domain to \(verdict.rawValue)")
+                    throw Email.Failure.invalidInput("\(verdict.rawValue) needs value: the sender address or the domain.")
                 }
                 return MailDecision(verdict, value.contains("@") ? .sender : .domain, value, note: input.note)
             case .record, .dismiss:
                 guard let uid = input.uid else {
-                    throw Email.Failure.missing(expected: "uid: the message to \(verdict.rawValue)")
+                    throw Email.Failure.invalidInput("\(verdict.rawValue) needs uid (and mailbox, INBOX when absent): the message.")
                 }
                 let mailbox = input.mailbox ?? "INBOX"
                 let index = try Email.index(for: account, in: context)
@@ -407,6 +407,25 @@ public extension Email.Tools {
 
         public init() {}
 
+        /// Only stores a proposal in the local index; the summary says what it picks.
+        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+            let selection: String
+            if input.suspicious == true {
+                selection = "the suspects (score \(input.threshold ?? 50)+)"
+            } else if let uids = input.uids, !uids.isEmpty {
+                selection = "UIDs \(uids.map(String.init).joined(separator: ", ")) in \(input.mailbox ?? "?")"
+            } else {
+                selection = [input.sender, input.domain, input.list].compactMap { $0 }.joined(separator: ", ")
+            }
+            return ToolPreflight(
+                tool: Self.definition.identifier,
+                risk: Self.definition.risk,
+                summary: "Propose \(input.action) \(input.value) for \(selection.isEmpty ? "a selection" : selection) on \(input.account ?? "the default account") (\(input.reason)). Stored only; nothing changes until mail_apply.",
+                sideEffects: ["stores a plan in the local index"],
+                policyChecks: ["local_index_only"]
+            )
+        }
+
         public func call(_ input: Input, in context: ToolContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
@@ -422,7 +441,7 @@ public extension Email.Tools {
             case "unflag": action = .removeFlags([input.value])
             case "label": action = .addLabels([input.value])
             case "unlabel": action = .removeLabels([input.value])
-            default: throw Email.Failure.missing(expected: "action: move, flag, unflag, label or unlabel")
+            default: throw Email.Failure.invalidInput("action must be move, flag, unflag, label or unlabel, not '\(input.action)'.")
             }
             guard let reason = Email.nonEmpty(input.reason) else {
                 throw Email.Failure.missingReason
@@ -449,17 +468,17 @@ public extension Email.Tools {
                 targets = try await index.targets(try await index.suspicious(policy, filter: filter))
             } else if let uids = input.uids, !uids.isEmpty {
                 guard input.mailbox != nil else {
-                    throw Email.Failure.missing(expected: "mailbox: where the uids are")
+                    throw Email.Failure.invalidInput("uids need mailbox: the mailbox they are in, as mail_suspicious or mail_search reported it (such as INBOX or INBOX.spam).")
                 }
                 let wanted = Set(uids.map { IMAPUID(UInt32($0)) })
                 targets = try await index.targets(filter).filter { wanted.contains($0.uid) }
             } else if input.sender != nil || input.domain != nil || input.list != nil {
                 targets = try await index.targets(filter)
             } else {
-                throw Email.Failure.missing(expected: "a selection: suspicious, sender, domain, list, or uids with mailbox")
+                throw Email.Failure.invalidInput("Pick messages with one of: suspicious: true, sender, domain, list, or uids with mailbox.")
             }
             guard !targets.isEmpty else {
-                throw Email.Failure.missing(expected: "messages matching the selection; none are indexed")
+                throw Email.Failure.invalidInput("No indexed message matches the selection; run mail_index_sync if it is new, or widen the selection.")
             }
 
             let plan = MailPlan(steps: [.init(action, reason: reason, targets: targets)])
@@ -478,6 +497,81 @@ public extension Email.Tools {
                     )
                 }
             )
+        }
+    }
+
+    @Tool("mail_plans")
+    struct Plans {
+        @JSONSchema
+        public struct Input: HashableSource {
+            public let account: String?
+            /// One plan to show with its messages; the latest plans when absent.
+            public let plan: String?
+
+            public init(account: String? = nil, plan: String? = nil) {
+                self.account = account
+                self.plan = plan
+            }
+        }
+
+        @JSONSchema
+        public struct Entry: HashableResult {
+            public let plan: String
+            /// proposed, applied or undone.
+            public let state: String
+            public let summary: String
+            public let count: Int
+        }
+
+        @JSONSchema
+        public struct Output: HashableResult {
+            public let account: String
+            public let plans: [Entry]
+            /// With plan: its messages (up to 30).
+            public let messages: [Plan.Sample]?
+        }
+
+        public static let purpose =
+            "List an account's stored plans with their state (proposed, applied, undone), or show one plan's messages, to reuse a plan instead of making another."
+        public static let risk: ActionRisk = .observe
+
+        public init() {}
+
+        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+            let authorization = try await Email.authorization(in: context)
+            try Email.requireWholeAccounts(authorization.runtime)
+            let account = try authorization.runtime.account(input.account)
+            try authorization.requireWholeAccount(.read, account: account)
+            let index = try Email.index(for: account, in: context)
+
+            func entry(_ record: MailPlanRecord) -> Entry {
+                Entry(
+                    plan: record.plan.id,
+                    state: record.undoneAt != nil ? "undone" : record.appliedAt != nil ? "applied" : "proposed",
+                    summary: record.plan.summary,
+                    count: record.plan.count
+                )
+            }
+            if let id = input.plan.flatMap(Email.nonEmpty) {
+                guard let record = try await index.plan(id) else {
+                    throw Email.Failure.invalidInput("No plan \(id) for \(account.identifier); call mail_plans without plan to list them.")
+                }
+                let previews = try await index.previews(record.plan.steps.flatMap(\.targets), limit: 30)
+                return Output(
+                    account: account.identifier,
+                    plans: [entry(record)],
+                    messages: previews.map { preview in
+                        Plan.Sample(
+                            mailbox: preview.target.mailbox,
+                            uid: Int(preview.target.uid.rawValue),
+                            from: preview.fromAddress,
+                            subject: preview.subject,
+                            received: preview.receivedAt.map(Email.dayText)
+                        )
+                    }
+                )
+            }
+            return Output(account: account.identifier, plans: try await index.plans(limit: 20).map(entry), messages: nil)
         }
     }
 
@@ -547,10 +641,10 @@ public extension Email.Tools {
             try authorization.requireWholeAccount(.organize, account: account)
             let index = try Email.index(for: account, in: context)
             guard let record = try await index.plan(input.plan) else {
-                throw Email.Failure.missing(expected: "a stored plan named \(input.plan)")
+                throw Email.Failure.invalidInput("No plan \(input.plan) for this account; mail_plans lists them.")
             }
             guard record.appliedAt == nil else {
-                throw Email.Failure.invalid(file: "plan \(input.plan)", message: "already applied; mail_undo reverses it.")
+                throw Email.Failure.invalidInput("Plan \(input.plan) was already applied; mail_undo reverses it.")
             }
             return (account, index, record.plan)
         }
@@ -615,11 +709,11 @@ public extension Email.Tools {
             try authorization.requireWholeAccount(.organize, account: account)
             let index = try Email.index(for: account, in: context)
             guard let record = try await index.plan(input.plan), record.appliedAt != nil, record.undoneAt == nil else {
-                throw Email.Failure.missing(expected: "an applied plan named \(input.plan) not undone yet")
+                throw Email.Failure.invalidInput("Plan \(input.plan) is not an applied plan that can still be undone; mail_plans shows each plan's state.")
             }
             let undo = try await index.undoPlan(for: input.plan)
             guard undo.count > 0 else {
-                throw Email.Failure.invalid(file: "plan \(input.plan)", message: "changed nothing that can be reversed.")
+                throw Email.Failure.invalidInput("Plan \(input.plan) changed nothing that can be reversed.")
             }
             return (account, index, undo)
         }
@@ -649,7 +743,7 @@ extension Email {
             return fallback
         }
         guard let value = T(rawValue: text.lowercased()) else {
-            throw Failure.missing(expected: "\(field): one of \(T.allCases.map(\.rawValue).joined(separator: ", "))")
+            throw Failure.invalidInput("\(field) must be one of \(T.allCases.map(\.rawValue).joined(separator: ", ")), not '\(text)'.")
         }
         return value
     }

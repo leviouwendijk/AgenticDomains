@@ -96,6 +96,19 @@ enum OrganizeTests {
         try Expect.equal(plan.count, 1, "One message")
         try Expect.equal(plan.samples.first?.subject, "Domeinregistratie voor 2027", "Sample shown")
 
+        let listed = try await Email.Tools.Plans().call(.init(account: "work"), in: context)
+        try Expect.equal(listed.plans.map(\.plan), [plan.plan], "Stored plans")
+        try Expect.equal(listed.plans.first?.state, "proposed", "Not applied")
+        let shown = try await Email.Tools.Plans().call(.init(account: "work", plan: plan.plan), in: context)
+        try Expect.equal(shown.messages?.map(\.uid), [1], "A plan's messages")
+
+        do {
+            _ = try await Email.Tools.Plan().call(.init(account: "work", action: "move", value: "Pruned", reason: "x", uids: [1]), in: context)
+            throw TestFlowAssertionFailure(label: "uids", message: "uids without a mailbox should be refused")
+        } catch Email.Failure.invalidInput(let message) {
+            try Expect.contains(message, "need mailbox", "Says what to add")
+        }
+
         // Applying needs an organize grant, and the owner's approval of the plan.
         try await GrantTests.expectAccessRequired("apply with read") {
             _ = try await Email.Tools.Apply().preflight(.init(account: "work", plan: plan.plan), in: context)

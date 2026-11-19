@@ -107,6 +107,7 @@ extension Email {
                         Email.Tools.IndexSync.identifier,
                         Email.Tools.Clutter.identifier,
                         Email.Tools.Plan.identifier,
+                        Email.Tools.Plans.identifier,
                         Email.Tools.Apply.identifier,
                         Email.Tools.Undo.identifier,
 
