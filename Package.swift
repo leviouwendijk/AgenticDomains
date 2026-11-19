@@ -199,6 +199,7 @@ let package = Package(
                 .product(name: "SMTP", package: "Mail"),
                 .product(name: "IMAP", package: "Mail"),
                 .product(name: "MailFrame", package: "Mail"),
+                .product(name: "MailIndex", package: "Mail"),
             ]
         ),
 
@@ -212,6 +213,7 @@ let package = Package(
                 .product(name: "IMAP", package: "Mail"),
                 .product(name: "MailConnection", package: "Mail"),
                 .product(name: "MailFrame", package: "Mail"),
+                .product(name: "MailIndex", package: "Mail"),
                 .product(name: "Testing", package: "Testing"),
             ],
             path: "Testing/AgenticMailTests"

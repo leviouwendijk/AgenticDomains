@@ -79,6 +79,12 @@ enum AgenticMailTestSuite {
         Test("save-attachment-into-exports") {
             try await EmailTests.saveAttachment()
         }
+        Test("index-scan-and-plan-need-organize-to-apply") {
+            try await OrganizeTests.scanAndPlan()
+        }
+        Test("index-refuses-mailbox-limited-grant") {
+            try await OrganizeTests.mailboxLimitedGrantRefused()
+        }
         Test("send-html-with-attachment") {
             try await EmailTests.sendHTMLWithAttachment()
         }

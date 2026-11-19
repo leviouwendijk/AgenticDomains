@@ -15,7 +15,7 @@ public extension Email.Tools {
             public let targets: [String]?
             /// A configured access profile to open instead of targets.
             public let profile: String?
-            /// read (the default) or draft; draft includes read and allows drafting, and sending without per-message approval where the account allows sending.
+            /// read (the default), draft or organize. draft includes read and allows drafting, and sending without per-message approval where the account allows sending; organize includes draft and allows applying approved plans (moves, flags, labels) on the server.
             public let level: String?
             /// Why the task needs it, for the owner who approves.
             public let reason: String
@@ -37,7 +37,7 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "Ask the owner for access to mail for this session: accounts, groups or mailboxes by selector (or a configured profile), at read or draft level, with a reason. Nothing beyond account metadata can be read until a request is approved."
+            "Ask the owner for access to mail for this session: accounts, groups or mailboxes by selector (or a configured profile), at read, draft or organize level, with a reason. Nothing beyond account metadata can be read until a request is approved."
         public static let risk: ActionRisk = .privileged
 
         public init() {}
@@ -90,7 +90,7 @@ public extension Email.Tools {
             var grants: [Email.Grant] = []
             if let name = input.profile.flatMap(Email.nonEmpty) {
                 let profile = try runtime.accounts.access(named: name)
-                let profileLevel: Email.Level = profile.mayDraft ? min(level, .draft) : .read
+                let profileLevel: Email.Level = profile.mayDraft ? level : .read
                 let targets: [MailSelector.Target] = profile.accounts.map { $0.map(MailSelector.Target.name) } ?? [.all]
                 let mailboxes: [MailSelector.Mailboxes] = profile.mailboxes.map { $0.map(MailSelector.Mailboxes.pattern) } ?? [.unspecified]
                 for target in targets {
@@ -111,7 +111,7 @@ public extension Email.Tools {
                 for account in try grant.selector.accounts(in: runtime.accounts) where grant.selector.target != .all {
                     try runtime.access.check(account: account.identifier)
                 }
-                if grant.level == .draft {
+                if grant.level >= .draft {
                     try runtime.access.checkDrafting()
                 }
             }

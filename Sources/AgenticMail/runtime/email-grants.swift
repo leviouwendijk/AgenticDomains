@@ -5,12 +5,15 @@ import Mail
 import MailFrame
 
 public extension Email {
-    /// What a grant allows: reading, or reading plus drafting. Sending is approved
-    /// per message; a draft grant only lets an account whose policy is `allowed`
-    /// send without that approval.
+    /// What a grant allows: reading; reading plus drafting; or, with organize,
+    /// also proposing and applying changes on the server (moves, flags, labels;
+    /// each plan is still approved). Sending is approved per message; a draft
+    /// grant only lets an account whose policy is `allowed` send without that
+    /// approval.
     enum Level: String, Sendable, Hashable, Codable, CaseIterable, Comparable {
         case read
         case draft
+        case organize
 
         public static func < (
             lhs: Level,
@@ -94,6 +97,27 @@ public extension Email {
                     return false
                 }
                 return true
+            }
+        }
+
+        /// A grant at `level` or above on every mailbox of `account`, as the
+        /// index covers the whole account.
+        public func requireWholeAccount(
+            _ level: Level,
+            account: MailAccounts.Account
+        ) throws {
+            let covered = grants.contains { grant in
+                guard grant.level >= level, grant.selector.matches(account: account) else {
+                    return false
+                }
+                switch grant.selector.mailboxes {
+                case .unspecified: return true
+                case .pattern(let pattern): return pattern == "*"
+                case .role: return false
+                }
+            }
+            guard covered else {
+                throw Failure.accessRequired(level: level, target: "\(account.identifier) (every mailbox)")
             }
         }
 
