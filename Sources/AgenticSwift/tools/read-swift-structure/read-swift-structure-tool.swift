@@ -410,6 +410,7 @@ enum AgenticSwiftToolSupport {
 
 enum AgenticSwiftToolError: Error, Sendable, LocalizedError {
     case workspaceRequired(String)
+    case invalidInput(toolName: String, detail: String)
     case operationFailed(
         toolName: String,
         operation: String,
@@ -422,6 +423,9 @@ enum AgenticSwiftToolError: Error, Sendable, LocalizedError {
         switch self {
         case .workspaceRequired(let toolName):
             return "\(toolName) requires an attached WorkspaceContext."
+
+        case .invalidInput(let toolName, let detail):
+            return "\(toolName): \(detail)"
 
         case .operationFailed(
             let toolName,

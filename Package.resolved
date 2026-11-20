@@ -1,5 +1,5 @@
 {
-  "originHash" : "67e09703980f0566b589597fda4e77e8634af85871cb3a152593d6e4b295dc7b",
+  "originHash" : "585b0b8ec70e77c572c67852e3a1d0cf232b8ebfcd1c804a96db74171d9bc495",
   "pins" : [
     {
       "identity" : "agentic",
@@ -124,7 +124,7 @@
       "location" : "https://github.com/leviouwendijk/Executable.git",
       "state" : {
         "branch" : "master",
-        "revision" : "b069c137bec48a9111c7ac2fe0d58fbc2a42442a"
+        "revision" : "e64fcbaac9f9dec16fb557506b4946261682a0a1"
       }
     },
     {

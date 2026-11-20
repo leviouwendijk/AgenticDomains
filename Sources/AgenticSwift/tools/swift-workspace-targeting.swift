@@ -7,7 +7,7 @@ import Foundation
 import Primitives
 import Version
 
-private struct SwiftWorkspaceExecution {
+struct SwiftWorkspaceExecution {
     let workspace: WorkspaceContext
     let projectRoot: URL
 
