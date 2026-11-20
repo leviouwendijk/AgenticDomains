@@ -200,6 +200,7 @@ let package = Package(
                 .product(name: "IMAP", package: "Mail"),
                 .product(name: "MailFrame", package: "Mail"),
                 .product(name: "MailIndex", package: "Mail"),
+                .product(name: "Errors", package: "Errors"),
             ]
         ),
 
@@ -214,6 +215,7 @@ let package = Package(
                 .product(name: "MailConnection", package: "Mail"),
                 .product(name: "MailFrame", package: "Mail"),
                 .product(name: "MailIndex", package: "Mail"),
+                .product(name: "Errors", package: "Errors"),
                 .product(name: "Testing", package: "Testing"),
             ],
             path: "Testing/AgenticMailTests"

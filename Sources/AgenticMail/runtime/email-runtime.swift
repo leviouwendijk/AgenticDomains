@@ -1,4 +1,5 @@
 import Agentic
+import Errors
 import Foundation
 import IMAP
 import Mail
@@ -80,7 +81,7 @@ public extension Email {
         }
     }
 
-    enum Failure: Error, Sendable, LocalizedError {
+    enum Failure: Error, Sendable, SemanticError, ErrorNamespaced, ErrorDispositionProviding {
         case missing(expected: String)
         case invalid(file: String, message: String)
         case notProvided
@@ -110,63 +111,206 @@ public extension Email {
         /// A tool input that cannot work as given; the message says what to change.
         case invalidInput(String)
 
-        public var errorDescription: String? {
+        public static let errorNamespace = "agentic_mail"
+
+        public var errorCode: String {
+            switch self {
+            case .missing: return "configuration_missing"
+            case .invalid: return "configuration_invalid"
+            case .notProvided: return "not_provided"
+            case .noAccounts: return "no_accounts"
+            case .unknownAccount: return "unknown_account"
+            case .cannotRead: return "cannot_read"
+            case .cannotSend: return "cannot_send"
+            case .sendingNotAllowed: return "sending_not_allowed"
+            case .unknownIdentity: return "unknown_identity"
+            case .invalidAddress: return "invalid_address"
+            case .invalidDate: return "invalid_date"
+            case .missingSubject: return "missing_subject"
+            case .noRecipients: return "no_recipients"
+            case .messageNotFound: return "message_not_found"
+            case .noAttachments: return "no_attachments"
+            case .missingBody: return "missing_body"
+            case .attachmentOutside: return "attachment_outside"
+            case .attachmentMissing: return "attachment_missing"
+            case .attachmentsTooLarge: return "attachments_too_large"
+            case .unknownAttachment: return "unknown_attachment"
+            case .accessNotProvided: return "access_not_provided"
+            case .accessRequired: return "access_required"
+            case .noMailboxes: return "no_mailboxes"
+            case .missingReason: return "missing_reason"
+            case .missingTargets: return "missing_targets"
+            case .unknownLevel: return "unknown_level"
+            case .invalidInput: return "invalid_input"
+            }
+        }
+
+        public var errorPresentation: ErrorPresentation {
             switch self {
             case .missing(let expected):
-                return "Mail is not configured: no .frame file in \(expected). `email example > \(expected)/accounts.frame` writes one to start from; `email check` validates it."
+                return .init(
+                    message: "Mail is not configured: no .frame file in \(expected).",
+                    recoverySuggestion: "`email example > \(expected)/accounts.frame` writes one to start from; `email check` validates it."
+                )
             case .invalid(let file, let message):
-                return "Mail configuration \(file) is invalid: \(message)"
+                return .init(
+                    message: "Mail configuration \(file) is invalid.",
+                    reason: message,
+                    recoverySuggestion: "`email check` validates it."
+                )
             case .notProvided:
-                return "This application does not provide mail for its sessions."
+                return .init(message: "This application does not provide mail for its sessions.")
             case .noAccounts:
-                return "The mail configuration declares no accounts."
+                return .init(message: "The mail configuration declares no accounts.")
             case .unknownAccount(let name, let known):
-                return "No account '\(name)'; known accounts: \(known.joined(separator: ", "))."
+                return .init(
+                    message: "No account '\(name)'.",
+                    recoverySuggestion: "Known accounts: \(known.joined(separator: ", "))."
+                )
             case .cannotRead(let account, let reason):
-                return reason.map { "Account '\(account)' cannot be read: \($0)." } ?? "Account '\(account)' has no IMAP server, so it cannot be read."
+                return .init(
+                    message: "Account '\(account)' cannot be read.",
+                    reason: reason ?? "It has no IMAP server.",
+                    recoverySuggestion: Self.configurationSuggestion(reason)
+                )
             case .cannotSend(let account, let reason):
-                return reason.map { "Account '\(account)' cannot send: \($0)." } ?? "Account '\(account)' has no SMTP server, so it cannot send."
+                return .init(
+                    message: "Account '\(account)' cannot send.",
+                    reason: reason ?? "It has no SMTP server.",
+                    recoverySuggestion: Self.configurationSuggestion(reason)
+                )
             case .sendingNotAllowed(let account):
-                return "Account '\(account)' only allows drafts (sending = drafts). Save a draft with mail_draft; the owner sends it."
+                return .init(
+                    message: "Account '\(account)' only allows drafts (sending = drafts).",
+                    recoverySuggestion: "Save a draft with mail_draft; the owner sends it."
+                )
             case .unknownIdentity(let address, let account, let known):
-                return "Account '\(account)' does not send as \(address); its identities: \(known.joined(separator: ", "))."
+                return .init(
+                    message: "Account '\(account)' does not send as \(address).",
+                    reason: "Its identities: \(known.joined(separator: ", ")).",
+                    messageSensitivity: .potentially_sensitive,
+                    reasonSensitivity: .potentially_sensitive
+                )
             case .invalidAddress(let address):
-                return "'\(address)' is not a valid email address."
+                return .init(
+                    message: "'\(address)' is not a valid email address.",
+                    messageSensitivity: .potentially_sensitive
+                )
             case .invalidDate(let date):
-                return "'\(date)' is not a date in yyyy-MM-dd form."
+                return .init(
+                    message: "'\(date)' is not a date.",
+                    recoverySuggestion: "Write dates as yyyy-MM-dd."
+                )
             case .missingSubject:
-                return "A new message needs a subject."
+                return .init(message: "A new message needs a subject.")
             case .noRecipients:
-                return "A message needs at least one recipient in to, cc or bcc."
+                return .init(message: "A message needs at least one recipient in to, cc or bcc.")
             case .messageNotFound(let uid, let mailbox):
-                return "No message with UID \(uid) in \(mailbox)."
+                return .init(
+                    message: "No message with UID \(uid) in \(mailbox).",
+                    recoverySuggestion: "UIDs belong to one mailbox; search or list that mailbox again for current ones.",
+                    messageSensitivity: .potentially_sensitive
+                )
             case .noAttachments(let uid, let mailbox):
-                return "Message \(uid) in \(mailbox) has no attachments."
+                return .init(
+                    message: "Message \(uid) in \(mailbox) has no attachments.",
+                    messageSensitivity: .potentially_sensitive
+                )
             case .missingBody:
-                return "Give the message a body, html or both."
+                return .init(message: "Give the message a body, html or both.")
             case .attachmentOutside(let path, let roots):
-                return "'\(path)' is outside where attachments may come from: \(roots.joined(separator: ", ")). Save or export the file there first."
+                return .init(
+                    message: "'\(path)' is outside where attachments may come from.",
+                    reason: "Attachments may come from: \(roots.joined(separator: ", ")).",
+                    recoverySuggestion: "Save or export the file there first.",
+                    messageSensitivity: .potentially_sensitive,
+                    reasonSensitivity: .potentially_sensitive
+                )
             case .attachmentMissing(let path):
-                return "No file at '\(path)'."
+                return .init(
+                    message: "No file at '\(path)'.",
+                    messageSensitivity: .potentially_sensitive
+                )
             case .attachmentsTooLarge(let bytes, let limit):
-                return "The attachments total \(bytes / 1_048_576) MB; at most \(limit / 1_048_576) MB fit in one message."
+                return .init(
+                    message: "The attachments total \(bytes / 1_048_576) MB.",
+                    reason: "At most \(limit / 1_048_576) MB fit in one message."
+                )
             case .unknownAttachment(let name, let known):
-                return "No attachment named '\(name)'; this message has: \(known.joined(separator: ", "))."
+                return .init(
+                    message: "No attachment named '\(name)'.",
+                    recoverySuggestion: "This message has: \(known.joined(separator: ", "))."
+                )
             case .accessNotProvided:
-                return "This application keeps no mail access for its sessions (Email.SessionAccess), so mail cannot be read."
+                return .init(message: "This application keeps no mail access for its sessions (Email.SessionAccess), so mail cannot be read.")
             case .accessRequired(let level, let target):
-                return "No \(level.rawValue) access to \(target) in this session. Ask for it with mail_request_access (targets [\"\(target)\"], level \(level.rawValue)) and a reason."
+                return .init(
+                    message: "No \(level.rawValue) access to \(target) in this session.",
+                    recoverySuggestion: "Ask for it with mail_request_access (targets [\"\(target)\"], level \(level.rawValue)) and a reason."
+                )
             case .missingReason:
-                return "Say why the task needs this access; the owner sees the reason."
+                return .init(message: "Say why the task needs this access; the owner sees the reason.")
             case .missingTargets:
-                return "Name targets (selectors such as leads or hondenmeesters:@junk) or a profile."
+                return .init(message: "Name targets (selectors such as leads or hondenmeesters:@junk) or a profile.")
             case .unknownLevel(let level):
-                return "Unknown level '\(level)'; use read, draft or organize."
+                return .init(
+                    message: "Unknown level '\(level)'.",
+                    recoverySuggestion: "Use read, draft or organize."
+                )
             case .invalidInput(let message):
-                return message
+                return .init(message: message)
             case .noMailboxes(let selectors):
-                return "No mailbox matches \(selectors); list them with mail_mailboxes."
+                return .init(
+                    message: "No mailbox matches \(selectors).",
+                    recoverySuggestion: "List them with mail_mailboxes."
+                )
             }
+        }
+
+        public var errorDiagnosticFields: [ErrorDiagnosticField] {
+            switch self {
+            case .messageNotFound(let uid, let mailbox), .noAttachments(let uid, let mailbox):
+                return [
+                    .init(key: "uid", value: uid),
+                    .init(key: "mailbox", value: mailbox, sensitivity: .potentially_sensitive),
+                ]
+            case .accessRequired(let level, let target):
+                return [
+                    .init(key: "level", value: level.rawValue),
+                    .init(key: "target", value: target),
+                ]
+            case .attachmentsTooLarge(let bytes, let limit):
+                return [
+                    .init(key: "bytes", value: bytes),
+                    .init(key: "limit", value: limit),
+                ]
+            default:
+                return []
+            }
+        }
+
+        public var errorDisposition: ErrorDisposition? {
+            switch self {
+            case .missing, .invalid, .notProvided, .noAccounts, .cannotRead, .cannotSend, .accessNotProvided:
+                return .requires_configuration
+            case .sendingNotAllowed, .attachmentOutside, .accessRequired:
+                return .requires_access
+            case .unknownAccount, .unknownIdentity, .invalidAddress, .invalidDate, .missingSubject,
+                 .noRecipients, .messageNotFound, .noAttachments, .missingBody, .attachmentMissing,
+                 .attachmentsTooLarge, .unknownAttachment, .noMailboxes, .missingReason,
+                 .missingTargets, .unknownLevel, .invalidInput:
+                return .invalid_input
+            }
+        }
+
+        /// A server left out for a missing setting names the setting.
+        private static func configurationSuggestion(
+            _ reason: String?
+        ) -> String? {
+            guard let reason, reason.contains("environment variable") else {
+                return nil
+            }
+            return "Set that variable in the environment the host runs with."
         }
     }
 

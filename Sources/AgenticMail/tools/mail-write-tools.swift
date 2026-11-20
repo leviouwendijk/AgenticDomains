@@ -1,4 +1,5 @@
 import DSL
+import Errors
 import Reporting
 import Agentic
 import Foundation
@@ -126,7 +127,7 @@ public extension Email.Tools {
                 ]),
                 sideEffects: ["delivers an email that cannot be recalled", "saves a copy in Sent"],
                 policyChecks: ["account_sending_policy:\(account.sending.rawValue)", "access_profile:\(runtime.access.name)"],
-                warnings: policy == .drafts ? [Email.Failure.sendingNotAllowed(account: account.identifier).localizedDescription] : []
+                warnings: policy == .drafts ? [Email.Failure.sendingNotAllowed(account: account.identifier).explanation] : []
             )
         }
 
@@ -165,7 +166,7 @@ public extension Email.Tools {
                         warnings.append("No Sent folder is known (set folders.sent on the account); no copy was saved.")
                     }
                 } catch {
-                    warnings.append("Sent, but saving a copy failed: \(error.localizedDescription)")
+                    warnings.append("Sent, but saving a copy failed: \(error.explanation)")
                 }
             }
 

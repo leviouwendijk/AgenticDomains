@@ -1,5 +1,6 @@
 import Agentic
 import AgenticMail
+import Errors
 import Foundation
 import IMAP
 import Mail
@@ -370,8 +371,23 @@ enum EmailTests {
             _ = try await Email.Tools.ListAccounts().call(.init(), in: missing)
             throw TestFlowAssertionFailure(label: "missing", message: "should fail")
         } catch let failure as Email.Failure {
-            try Expect.contains(failure.localizedDescription, "no .frame file in \(empty.path)", "Says where configuration is expected")
-            try Expect.contains(failure.localizedDescription, "email example", "Points to the email CLI")
+            try Expect.contains(failure.explanation, "no .frame file in \(empty.path)", "Says where configuration is expected")
+            try Expect.contains(failure.explanation, "email example", "Points to the email CLI")
+            try Expect.equal(failure.errorIdentity.raw, "agentic_mail.configuration_missing", "Has a stable code")
+            try Expect.equal(failure.errorDisposition, .requires_configuration, "Says configuration is what's missing")
+            try Expect.contains(
+                failure.errorPresentation.recoverySuggestion ?? "",
+                "email example",
+                "The fix is the suggestion, not the message"
+            )
         }
+
+        let denied = Email.Failure.accessRequired(level: .organize, target: "leads:@junk")
+        try Expect.equal(denied.errorDisposition, .requires_access, "Missing access asks for access")
+        try Expect.contains(
+            denied.errorPresentation.recoverySuggestion ?? "",
+            "mail_request_access",
+            "Names the tool that asks for access"
+        )
     }
 }

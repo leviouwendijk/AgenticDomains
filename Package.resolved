@@ -1,5 +1,5 @@
 {
-  "originHash" : "d217a0a00aef0760761f13d660cdc47809a5249de9d1a8952e9dbb50af4394a8",
+  "originHash" : "67e09703980f0566b589597fda4e77e8634af85871cb3a152593d6e4b295dc7b",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "a60f0d17ba1a906cfbb7060681f7dc5245370402"
+        "revision" : "59c17d863ead1c72669e4ca8a4408bddd5807d99"
       }
     },
     {
@@ -106,7 +106,7 @@
       "location" : "https://github.com/leviouwendijk/Errors.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3e20b181cec40d840b9346e0806dd0bfd369d447"
+        "revision" : "2875a1c9d8cc4839ab81fc0a453aa4fc423c9d6f"
       }
     },
     {
@@ -124,7 +124,7 @@
       "location" : "https://github.com/leviouwendijk/Executable.git",
       "state" : {
         "branch" : "master",
-        "revision" : "75955eed488921506796e8a2bfcb59437555a1d3"
+        "revision" : "b069c137bec48a9111c7ac2fe0d58fbc2a42442a"
       }
     },
     {
@@ -250,7 +250,7 @@
       "location" : "https://github.com/leviouwendijk/Mail.git",
       "state" : {
         "branch" : "master",
-        "revision" : "dffc64717a884ae9b5212b64eaf375366681427c"
+        "revision" : "10825e0852ca69be7b76d075d69ab1ec869f4d2e"
       }
     },
     {
@@ -322,7 +322,7 @@
       "location" : "https://github.com/leviouwendijk/Path.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3ad6bcbfc000566cb37deff48d97adc93d2c94b3"
+        "revision" : "51d13fcd2cab1b1d420b9fadaef5d5f7a2c1191b"
       }
     },
     {
@@ -448,7 +448,7 @@
       "location" : "https://github.com/leviouwendijk/SQLite.git",
       "state" : {
         "branch" : "master",
-        "revision" : "0a871ee6bcb45375a583ff2cb9b34381325226cc"
+        "revision" : "63a7f6bbe6e1d30e3cf03624cffc6067f1a29376"
       }
     },
     {
