@@ -194,8 +194,7 @@ extension SwiftLang.Tools.Build {
     ) throws -> Executable.Build.Request {
         guard let configuration = input.configuration else {
             return try SwiftBuildCommand.projectDefaultRequest(
-                from: project,
-                updateBuiltOnSuccess: false
+                from: project
             )
         }
 
@@ -211,8 +210,7 @@ extension SwiftLang.Tools.Build {
         return Executable.Build.Request(
             project: project,
             config: .init(
-                mode: mode,
-                updateBuiltOnSuccess: false
+                mode: mode
             ),
             deploy: false,
             source: .direct(

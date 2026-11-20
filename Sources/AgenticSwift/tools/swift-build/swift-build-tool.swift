@@ -36,7 +36,7 @@ public extension SwiftLang.Tools {
             }
 
             /// Optional explicit Swift build configuration. Omit to use the project default,
-            /// including enabled build-object.pkl compile instructions.
+            /// including package.frame .build and .deploy.
             public let configuration: Configuration?
 
             public init(
@@ -99,8 +99,7 @@ private extension SwiftLang.Tools.Build {
     ) throws -> Executable.Build.Request {
         guard let configuration = input.configuration else {
             return try SwiftBuildCommand.projectDefaultRequest(
-                from: workspace.absoluteURL,
-                updateBuiltOnSuccess: false
+                from: workspace.absoluteURL
             )
         }
 
@@ -117,8 +116,7 @@ private extension SwiftLang.Tools.Build {
         return Executable.Build.Request(
             project: workspace.absoluteURL,
             config: .init(
-                mode: mode,
-                updateBuiltOnSuccess: false
+                mode: mode
             ),
             deploy: false,
             source: .direct(

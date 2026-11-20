@@ -7,41 +7,32 @@ import Macros
 
 public extension SwiftLang.Tools {
     @DomainMember(SwiftLang.self)
-    struct BuildObjectModernize: Tool {
+    struct PackageFrameInit: Tool {
         @JSONSchema
         public struct Input:
             Sendable,
             Codable,
             Hashable
         {
-            /// Write build-object.pkl.bak before modernization. Defaults to true.
-            public let backup: Bool?
-
-            public init(
-                backup: Bool? = nil
-            ) {
-                self.backup = backup
-            }
+            public init() {}
         }
 
         @JSONSchema
         public struct Output: Sendable, Codable, Hashable {
-            public let path: String
-            public let name: String
-            public let modernized: Bool
-            public let backup: String?
+            /// package.frame, when it was created; nil when it already existed.
+            public let package: String?
+            /// Tests/package.frame, when it was created; nil when it existed or there is no Tests/ package.
+            public let tests: String?
 
-            public init(path: String, name: String, modernized: Bool, backup: String?) {
-                self.path = path
-                self.name = name
-                self.modernized = modernized
-                self.backup = backup
+            public init(package: String?, tests: String?) {
+                self.package = package
+                self.tests = tests
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_build_object_modernize"
+    public static let identifier: ToolIdentifier = "swift_package_frame_init"
         public static let description =
-            "Modernize a legacy build-object.pkl through Executable.BuildObjectLifecycle."
+            "Write package.frame (and Tests/package.frame when Tests/ holds a Package.swift) with empty descriptions; existing files are kept."
         public static let risk: ActionRisk = .boundedmutate
 
         public static let definition = ToolDefinition(

@@ -2,6 +2,7 @@ import Reporting
 import Agentic
 import Workspace
 import Executable
+import Interfaces
 import Foundation
 import Primitives
 import Version
@@ -413,8 +414,7 @@ extension SwiftLang.Tools.Version {
             summary: "Inspect Swift project version state at the selected workspace location.",
             access: .init(
                 targets: [
-                    execution.projectPath("build-object.pkl").path,
-                    execution.projectPath("compiled.pkl").path,
+                    execution.projectPath(PackageFrame.fileName).path,
                 ]
             ),
             sideEffects: [],
@@ -434,24 +434,29 @@ extension SwiftLang.Tools.Version {
             context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
-        let snapshot = try await ExecutableVersion.inspect(
-            at: execution.projectRoot
+        let package = try PackageFrame.package(in: execution.projectRoot) ?? PackageConfiguration()
+        let status = try await PackageVersionStatus.inspect(
+            at: execution.projectRoot,
+            configuration: package
         )
+        let divergence = try? await GitRepo.divergence(execution.projectRoot)
 
         return Output(
-                name: snapshot.name,
-                types: snapshot.types,
-                compiled: snapshot.compiled.string(
-                    prefixStyle: .short,
-                    prefixSpace: false
-                ),
-                release: snapshot.release.string(
-                    prefixStyle: .short,
-                    prefixSpace: false
-                ),
-                ahead: snapshot.ahead,
-                behind: snapshot.behind
-            )
+            release: status.release.map(ReleaseTags.name(for:)),
+            commit: status.head?.commit,
+            dirty: status.head?.dirty,
+            deployed: status.deployed.map { entry in
+                Deployed(
+                    product: entry.product,
+                    version: entry.metadata?.version.map(ReleaseTags.name(for:)),
+                    commit: entry.metadata?.commit,
+                    dirty: entry.metadata?.dirty
+                )
+            },
+            outdated: status.behind,
+            ahead: divergence?.ahead,
+            behind: divergence?.behind
+        )
     }
 }
 
@@ -469,24 +474,20 @@ extension SwiftLang.Tools.IncrementVersion {
             tool: Self.definition.identifier,
             risk: risk,
             summary:
-                "Increment Swift release \(input.level.rawValue) version at the selected workspace location.",
+                "Release the next \(input.level.rawValue) version: tag HEAD and push the tag.",
             access: .init(
                 targets: [
-                    execution.projectPath("build-object.pkl").path
+                    execution.projectRoot.path
                 ]
             ),
-            estimates: .init(
-                write: .init(
-                    count: 1
-                )
-            ),
             sideEffects: [
-                "Updates the release version in build-object.pkl."
+                "Creates an annotated git tag on HEAD.",
+                "Pushes the tag to the upstream remote.",
             ],
             policyChecks: [
                 "workspace_required",
                 "workspace_location_selected",
-                "typed_executable_version_increment",
+                "typed_release_tag",
             ]
         )
     }
@@ -499,22 +500,15 @@ extension SwiftLang.Tools.IncrementVersion {
             context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
-        let result = try ExecutableVersion.incrementRelease(
-            at: execution.projectRoot,
-            level: input.level
+        let result = try await ReleaseTags.increment(
+            input.level,
+            at: execution.projectRoot
         )
 
         return Output(
-            before: result.before.string(
-                prefixStyle: .short,
-                prefixSpace: false
-            ),
-            after: result.after.string(
-                prefixStyle: .short,
-                prefixSpace: false
-            ),
-            level: result.level.rawValue,
-            path: result.configurationURL.path
+            before: result.from.map(ReleaseTags.name(for:)),
+            after: ReleaseTags.name(for: result.to),
+            level: input.level.rawValue
         )
     }
 }
@@ -645,8 +639,7 @@ extension SwiftLang.Tools.BuildLibrary {
             mode:
                 configuration == .debug
                     ? .debug
-                    : .release,
-            updateBuiltOnSuccess: false
+                    : .release
         )
         let result = try await BuildLibrary.buildAndExport(
             at: execution.projectRoot,
@@ -663,7 +656,7 @@ extension SwiftLang.Tools.BuildLibrary {
     }
 }
 
-extension SwiftLang.Tools.BuildObjectInit {
+extension SwiftLang.Tools.PackageFrameInit {
     public func preflight(
         _ input: Input,
         in context: ToolContext
@@ -676,11 +669,11 @@ extension SwiftLang.Tools.BuildObjectInit {
         return ToolPreflight(
             tool: Self.definition.identifier,
             risk: risk,
-            summary: "Initialize Swift build-object configuration at the selected workspace location.",
+            summary: "Write package.frame (and Tests/package.frame) at the selected workspace location.",
             access: .init(
                 targets: [
-                    execution.projectPath("build-object.pkl").path,
-                    execution.projectPath("compiled.pkl").path,
+                    execution.projectPath(PackageFrame.fileName).path,
+                    execution.projectPath("\(Tests.conventionalDirectory)/\(PackageFrame.fileName)").path,
                 ]
             ),
             estimates: .init(
@@ -691,7 +684,7 @@ extension SwiftLang.Tools.BuildObjectInit {
             policyChecks: [
                 "workspace_required",
                 "workspace_location_selected",
-                "typed_build_object_initialization",
+                "typed_package_frame_initialization",
             ]
         )
     }
@@ -704,96 +697,11 @@ extension SwiftLang.Tools.BuildObjectInit {
             context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
-
-        let result: BuildObjectLifecycle.InitializeResult
-
-        if input.empty == true {
-            result = try BuildObjectLifecycle.initializeEmpty(
-                at: execution.projectRoot
-            )
-        } else {
-            result = try BuildObjectLifecycle.initialize(
-                at: execution.projectRoot,
-                request: .init(
-                    name: input.name,
-                    types: input.types ?? ["binary"],
-                    details: input.details ?? "",
-                    author: input.author,
-                    update: input.update ?? "",
-                    createCompiled:
-                        input.createCompiled
-                            ?? true
-                )
-            )
-        }
+        let initialized = try PackageFrame.initialize(in: execution.projectRoot)
 
         return Output(
-            configuration: result.configurationURL.path,
-            compiled: result.compiledURL.path,
-            createdConfiguration: result.createdConfiguration,
-            createdCompiled: result.createdCompiled
-        )
-    }
-}
-
-extension SwiftLang.Tools.BuildObjectModernize {
-    public func preflight(
-        _ input: Input,
-        in context: ToolContext
-    ) async throws -> ToolPreflight {
-        let execution = try SwiftWorkspaceExecution.resolve(
-            context.workspace,
-            toolName: Self.definition.identifier.rawValue
-        )
-
-        return ToolPreflight(
-            tool: Self.definition.identifier,
-            risk: risk,
-            summary:
-                "Modernize legacy Swift build-object configuration at the selected workspace location.",
-            access: .init(
-                targets: input.backup == false
-                    ? [
-                        execution.projectPath("build-object.pkl").path
-                    ]
-                    : [
-                        execution.projectPath("build-object.pkl").path,
-                        execution.projectPath("build-object.pkl.bak").path,
-                    ]
-            ),
-            estimates: .init(
-                write: .init(
-                    count: input.backup == false
-                        ? 1
-                        : 2
-                )
-            ),
-            policyChecks: [
-                "workspace_required",
-                "workspace_location_selected",
-                "typed_build_object_modernization",
-            ]
-        )
-    }
-
-    public func call(
-        _ input: Input,
-        in context: ToolContext
-    ) async throws -> Output {
-        let execution = try SwiftWorkspaceExecution.resolve(
-            context.workspace,
-            toolName: Self.definition.identifier.rawValue
-        )
-        let result = try BuildObjectLifecycle.modernize(
-            at: execution.projectRoot,
-            backup: input.backup ?? true
-        )
-
-        return Output(
-            path: result.configurationURL.path,
-            name: result.name,
-            modernized: result.modernized,
-            backup: result.backupURL?.path
+            package: initialized.package?.path,
+            tests: initialized.tests?.path
         )
     }
 }
@@ -993,8 +901,7 @@ extension SwiftLang.Tools.Deploy {
         let request = Executable.Build.Request(
             project: project,
             config: .init(
-                mode: mode,
-                updateBuiltOnSuccess: false
+                mode: mode
             ),
             destination: destination,
             deploy: true,

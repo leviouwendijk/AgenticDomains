@@ -26,23 +26,23 @@ public extension SwiftLang.Tools {
 
         @JSONSchema
         public struct Output: Sendable, Codable, Hashable {
-            public let before: String
+            /// The previous release tag; nil for the first release.
+            public let before: String?
+            /// The tag created on HEAD and pushed.
             public let after: String
             public let level: String
-            public let path: String
 
-            public init(before: String, after: String, level: String, path: String) {
+            public init(before: String?, after: String, level: String) {
                 self.before = before
                 self.after = after
                 self.level = level
-                self.path = path
             }
         }
 
     public static let identifier: ToolIdentifier = "swift_increment_version"
         public static let description =
-            "Increment the build-object release version through Executable."
-        public static let risk: ActionRisk = .boundedmutate
+            "Release the next version: tag HEAD with it and push the tag. Refuses a dirty or unpushed HEAD."
+        public static let risk: ActionRisk = .privileged
 
         public static let definition = ToolDefinition(
             identifier: identifier,

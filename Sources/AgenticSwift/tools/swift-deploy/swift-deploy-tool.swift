@@ -142,8 +142,7 @@ private extension SwiftLang.Tools.Deploy {
         let request = Executable.Build.Request(
             project: workspace.absoluteURL,
             config: .init(
-                mode: mode,
-                updateBuiltOnSuccess: false
+                mode: mode
             ),
             destination: destination,
             deploy: true,
