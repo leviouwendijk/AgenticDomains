@@ -442,13 +442,13 @@ extension SwiftLang.Tools.Version {
         let divergence = try? await GitRepo.divergence(execution.projectRoot)
 
         return Output(
-            release: status.release.map(ReleaseTags.name(for:)),
+            release: status.release.map(ReleaseTag.name(for:)),
             commit: status.head?.commit,
             dirty: status.head?.dirty,
             deployed: status.deployed.map { entry in
                 Deployed(
                     product: entry.product,
-                    version: entry.metadata?.version.map(ReleaseTags.name(for:)),
+                    version: entry.metadata?.version.map(ReleaseTag.name(for:)),
                     commit: entry.metadata?.commit,
                     dirty: entry.metadata?.dirty
                 )
@@ -500,14 +500,14 @@ extension SwiftLang.Tools.IncrementVersion {
             context.workspace,
             toolName: Self.definition.identifier.rawValue
         )
-        let result = try await ReleaseTags.increment(
-            input.level,
+        let result = try await GitRepo.release(
+            .next(input.level),
             at: execution.projectRoot
         )
 
         return Output(
-            before: result.from.map(ReleaseTags.name(for:)),
-            after: ReleaseTags.name(for: result.to),
+            before: result.from.map(ReleaseTag.name(for:)),
+            after: ReleaseTag.name(for: result.to),
             level: input.level.rawValue
         )
     }
