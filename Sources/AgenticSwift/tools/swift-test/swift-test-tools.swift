@@ -1,32 +1,55 @@
 import Agentic
 import Workspace
 import Executable
+import Foundation
 import Primitives
 import Schema
 import Macros
 
-/// What to run from a test or benchmark package; at most one of the three.
+/// What to run from a test or benchmark package (at most one of all, live, group and
+/// product; none runs the primary), and how to tidy its caches around the run.
 @JSONSchema
-public struct SwiftTestSelectionInput:
+public struct SwiftTestRunInput:
     Sendable,
     Codable,
     Hashable
 {
-    /// Run every product except the interactive ones.
+    /// Run every product except the interactive and live ones.
     public let all: Bool?
+    /// Run the live products: they reach real services (network, credentials).
+    public let live: Bool?
     /// A named group from the package's package.frame.
     public let group: String?
     /// One product by name.
     public let product: String?
+    /// swift package clean in the packages it runs in, before the run.
+    public let cleanBefore: Bool?
+    /// Delete their .build and .index-build before the run (keep list applies); replaces cleanBefore.
+    public let wipeBefore: Bool?
+    /// swift package clean after a successful run.
+    public let clean: Bool?
+    /// Delete .build and .index-build after a successful run; replaces clean. Without it, a
+    /// package.frame .wipe.above still wipes caches that grew past its size.
+    public let wipe: Bool?
 
     public init(
         all: Bool? = nil,
+        live: Bool? = nil,
         group: String? = nil,
-        product: String? = nil
+        product: String? = nil,
+        cleanBefore: Bool? = nil,
+        wipeBefore: Bool? = nil,
+        clean: Bool? = nil,
+        wipe: Bool? = nil
     ) {
         self.all = all
+        self.live = live
         self.group = group
         self.product = product
+        self.cleanBefore = cleanBefore
+        self.wipeBefore = wipeBefore
+        self.clean = clean
+        self.wipe = wipe
     }
 }
 
@@ -78,25 +101,29 @@ public struct SwiftTestRunOutput:
 {
     public let isSuccess: Bool
     public let results: [SwiftTestProductResult]
+    /// What the clean and wipe steps reported (the end, when long); nil when none ran.
+    public let steps: String?
 
     public init(
         isSuccess: Bool,
-        results: [SwiftTestProductResult]
+        results: [SwiftTestProductResult],
+        steps: String? = nil
     ) {
         self.isSuccess = isSuccess
         self.results = results
+        self.steps = steps
     }
 }
 
 public extension SwiftLang.Tools {
     @Tool("swift_test")
     struct RunTests {
-        public typealias Input = SwiftTestSelectionInput
+        public typealias Input = SwiftTestRunInput
         public typealias Output = SwiftTestRunOutput
 
         public static let purpose =
             """
-            Run the test products of the workspace's Tests/ package through the Executable library, the same resolution `sbm test` uses (the sbm binary itself is not needed). Requires the package.frame convention: a nested directory with Package.swift and a package.frame declaring `let tests: Tests` (Tests/ by convention), or an unsplit project's Tests/package.frame; anything else fails with "No test package". The frame selects the primary, a group, one product or all non-interactive products; tests build in debug unless it sets .mode. Products in the root package are run with swift_run_product instead. Failures are returned as results, not errors.
+            Run the test products of the workspace's Tests/ package through the Executable library, the same resolution `sbm test` uses (the sbm binary itself is not needed). Requires the package.frame convention: a nested directory with Package.swift and a package.frame declaring `let tests: Tests` (Tests/ by convention), or an unsplit project's Tests/package.frame; anything else fails with "No test package". The frame selects the primary, a group, one product, the live products (live: true; real services, network, credentials) or all products that are neither interactive nor live; tests build in debug unless it sets .mode. cleanBefore/wipeBefore tidy the test package's caches first; clean/wipe after a successful run, the same as `sbm test --clean --wipe`. Products in the root package are run with swift_run_product instead. Failures are returned as results, not errors.
             """
 
         public static let risk: ActionRisk = .privileged
@@ -106,12 +133,12 @@ public extension SwiftLang.Tools {
 
     @Tool("swift_bench")
     struct RunBenchmarks {
-        public typealias Input = SwiftTestSelectionInput
+        public typealias Input = SwiftTestRunInput
         public typealias Output = SwiftTestRunOutput
 
         public static let purpose =
             """
-            Run the benchmark products of the workspace's Benchmarks/ package through the Executable library, the same resolution `sbm bench` uses (the sbm binary itself is not needed). Requires a nested directory with Package.swift and a package.frame declaring `let benchmarks: Benchmarks` (Benchmarks/ by convention); without one it fails with "No benchmark package". Release builds unless the frame sets .mode; same selection as swift_test.
+            Run the benchmark products of the workspace's Benchmarks/ package through the Executable library, the same resolution `sbm bench` uses (the sbm binary itself is not needed). Requires a nested directory with Package.swift and a package.frame declaring `let benchmarks: Benchmarks` (Benchmarks/ by convention); without one it fails with "No benchmark package". Release builds unless the frame sets .mode; same selection and clean/wipe steps as swift_test.
             """
 
         public static let risk: ActionRisk = .privileged
@@ -149,22 +176,23 @@ extension SwiftLang.Tools.RunBenchmarks {
 }
 
 enum SwiftTestToolSupport {
-    static func selection(_ input: SwiftTestSelectionInput, toolName: String) throws -> TestConfiguration.Selection {
-        let chosen = [input.all == true, input.group != nil, input.product != nil].filter { $0 }.count
+    static func selection(_ input: SwiftTestRunInput, toolName: String) throws -> TestConfiguration.Selection {
+        let chosen = [input.all == true, input.live == true, input.group != nil, input.product != nil].filter { $0 }.count
         guard chosen <= 1 else {
             throw AgenticSwiftToolError.invalidInput(
                 toolName: toolName,
-                detail: "Choose at most one of all, group and product."
+                detail: "Choose at most one of all, live, group and product."
             )
         }
         if input.all == true { return .all }
+        if input.live == true { return .live }
         if let group = input.group { return .group(group) }
         if let product = input.product { return .product(product) }
         return .primary
     }
 
     static func preflight(
-        _ input: SwiftTestSelectionInput,
+        _ input: SwiftTestRunInput,
         kind: Tests.Kind,
         tool: ToolIdentifier,
         risk: ActionRisk,
@@ -189,7 +217,7 @@ enum SwiftTestToolSupport {
             access: .init(targets: plan.runs.map { $0.package.appendingPathComponent(".build", isDirectory: true).path }),
             estimates: .init(write: .init(count: plan.runs.count), runtime: kind == .tests ? 600 : 1800),
             preview: .init(commands.map { .command(.init($0)) }),
-            sideEffects: [
+            sideEffects: SwiftTidySteps(input).sideEffects + [
                 "Builds the selected products under the nested package's .build before running them.",
                 "Executes repository-owned code with the current host filesystem, process, environment, and network permissions.",
                 "Execution is managed by Processes with an output limit and timeout.",
@@ -210,7 +238,7 @@ enum SwiftTestToolSupport {
     }
 
     static func run(
-        _ input: SwiftTestSelectionInput,
+        _ input: SwiftTestRunInput,
         kind: Tests.Kind,
         toolName: String,
         context: ToolContext
@@ -221,6 +249,12 @@ enum SwiftTestToolSupport {
             selection: try selection(input, toolName: toolName),
             kind: kind
         )
+        let tidy = SwiftTidySteps(input)
+        var packages: [URL] = []
+        for run in plan.runs where !packages.contains(run.package) {
+            packages.append(run.package)
+        }
+        try await tidy.before(packages)
         var results: [SwiftTestProductResult] = []
         for run in plan.runs {
             for product in run.products {
@@ -244,7 +278,11 @@ enum SwiftTestToolSupport {
                 ))
             }
         }
-        return .init(isSuccess: results.allSatisfy(\.isSuccess), results: results)
+        let isSuccess = results.allSatisfy(\.isSuccess)
+        if isSuccess {
+            try await tidy.after(packages)
+        }
+        return .init(isSuccess: isSuccess, results: results, steps: tidy.report)
     }
 
     static func projection(_ output: SwiftTestRunOutput, noun: String) -> ToolExecution.Projection {

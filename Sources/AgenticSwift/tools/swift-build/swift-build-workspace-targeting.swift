@@ -2,6 +2,7 @@ import Agentic
 import Workspace
 import Executable
 import Foundation
+import Primitives
 
 extension SwiftLang.Tools.Build {
     public func preflight(
@@ -25,7 +26,16 @@ extension SwiftLang.Tools.Build {
             ).path,
         ]
 
-        var sideEffects = [
+        let steps = buildSteps(input)
+        if steps.test {
+            targetPaths.append(project.appendingPathComponent(Tests.conventionalDirectory, isDirectory: true).path)
+        }
+
+        var sideEffects = (steps.test ? [
+            "Runs the Tests/ primary first; a failure stops the build.",
+        ] : []) + tidySteps(input).sideEffects + (steps.bench ? [
+            "Runs the Benchmarks/ primary after a successful build.",
+        ] : []) + [
             "Writes SwiftPM build artifacts under .build.",
             "SwiftPM may resolve or fetch package dependencies.",
             "Package or build-plugin code may execute with the current host permissions.",
@@ -58,7 +68,7 @@ extension SwiftLang.Tools.Build {
         }
 
         let summary: String
-        let commandPreview: String
+        var commandPreview: String
 
         if let configuration = input.configuration {
             summary =
@@ -72,6 +82,10 @@ extension SwiftLang.Tools.Build {
                 request.source.arguments.isEmpty
                     ? "sbm"
                     : "sbm \(request.source.arguments.joined(separator: " "))"
+        }
+        let flags = stepFlags(input)
+        if !flags.isEmpty {
+            commandPreview += " " + flags.joined(separator: " ")
         }
 
         return ToolPreflight(
@@ -116,6 +130,35 @@ extension SwiftLang.Tools.Build {
             input,
             project: project
         )
+        let steps = buildSteps(input)
+        let buffer = TextBuffer(limit: 32_768)
+
+        func failure(
+            exitCode: Int,
+            stdout: String,
+            stderr: String
+        ) -> AgentToolReportedFailure<Output> {
+            AgentToolReportedFailure(
+                output: Output(
+                    configuration: request.config.buildDirComponent,
+                    isSuccess: false,
+                    exitCode: exitCode,
+                    stdout: stdout,
+                    stderr: stderr,
+                    buildDirComponent: request.config.buildDirComponent,
+                    steps: Self.report(buffer)
+                )
+            )
+        }
+
+        do {
+            try await steps.before(at: project, output: buffer.sink)
+        } catch {
+            throw failure(exitCode: 1, stdout: "", stderr: error.localizedDescription)
+        }
+
+        let result: Executable.Build.BuildResult
+        let configuration: String
         do {
             let plan = try await Executable.Build.resolve(
                 request
@@ -124,50 +167,35 @@ extension SwiftLang.Tools.Build {
                 plan,
                 captureOutput: true
             )
-            let result = execution.build
-
-            let output = Output(
-                configuration:
-                    plan.request.config.buildDirComponent,
-                isSuccess:
-                    result.exitCode == 0,
-                exitCode:
-                    Int(result.exitCode),
-                stdout:
-                    String(
-                        decoding: result.stdout,
-                        as: UTF8.self
-                    ),
-                stderr:
-                    String(
-                        decoding: result.stderr,
-                        as: UTF8.self
-                    ),
-                buildDirComponent:
-                    result.buildDirComponent
-            )
-
-            return output
+            result = execution.build
+            configuration = plan.request.config.buildDirComponent
         } catch BuildError.swiftFailed(
             let exitCode,
             let stdout,
             let stderr
         ) {
-            let output = Output(
-                        configuration:
-                            request.config.buildDirComponent,
-                        isSuccess: false,
-                        exitCode: exitCode,
-                        stdout: stdout,
-                        stderr: stderr,
-                        buildDirComponent:
-                            request.config.buildDirComponent
-                    )
-
-            throw AgentToolReportedFailure(
-                output: output
-            )
+            throw failure(exitCode: exitCode, stdout: stdout, stderr: stderr)
         }
+
+        let stdout = String(decoding: result.stdout, as: UTF8.self)
+        let stderr = String(decoding: result.stderr, as: UTF8.self)
+        if result.exitCode == 0 {
+            do {
+                try await steps.after(at: project, output: buffer.sink)
+            } catch {
+                throw failure(exitCode: 1, stdout: stdout, stderr: error.localizedDescription)
+            }
+        }
+
+        return Output(
+            configuration: configuration,
+            isSuccess: result.exitCode == 0,
+            exitCode: Int(result.exitCode),
+            stdout: stdout,
+            stderr: stderr,
+            buildDirComponent: result.buildDirComponent,
+            steps: Self.report(buffer)
+        )
     }
 
     public func process(
@@ -187,6 +215,47 @@ extension SwiftLang.Tools.Build {
         )
     }
 
+
+    private func buildSteps(
+        _ input: Input
+    ) -> SwiftBuildSteps {
+        SwiftBuildSteps(
+            test: input.test == true,
+            bench: input.bench == true,
+            cleanBefore: input.cleanBefore == true,
+            wipeBefore: input.wipeBefore == true,
+            clean: input.clean == true,
+            wipe: input.wipe == true
+        )
+    }
+
+    private func tidySteps(
+        _ input: Input
+    ) -> SwiftTidySteps {
+        SwiftTidySteps(cleanBefore: input.cleanBefore, wipeBefore: input.wipeBefore, clean: input.clean, wipe: input.wipe)
+    }
+
+    /// The sbm flags the steps correspond to, for the preview.
+    private func stepFlags(
+        _ input: Input
+    ) -> [String] {
+        [
+            (input.test, "--test"),
+            (input.bench, "--bench"),
+            (input.cleanBefore, "--clean-before"),
+            (input.wipeBefore, "--wipe-before"),
+            (input.clean, "--clean"),
+            (input.wipe, "--wipe"),
+        ]
+        .filter { $0.0 == true }
+        .map(\.1)
+    }
+
+    private static func report(
+        _ buffer: TextBuffer
+    ) -> String? {
+        buffer.isEmpty ? nil : SwiftTidySteps.report(buffer)
+    }
 
     private func targetedBuildRequest(
         _ input: Input,

@@ -38,11 +38,36 @@ public extension SwiftLang.Tools {
             /// Optional explicit Swift build configuration. Omit to use the project default,
             /// including package.frame .build and .deploy.
             public let configuration: Configuration?
+            /// Run the Tests/ primary first; a failure stops the build and its deployment.
+            public let test: Bool?
+            /// Run the Benchmarks/ primary after a successful build.
+            public let bench: Bool?
+            /// swift package clean first (the package, plus Tests/ and Benchmarks/ when they run).
+            public let cleanBefore: Bool?
+            /// Delete .build and .index-build first, for a fresh build (keep list applies); replaces cleanBefore.
+            public let wipeBefore: Bool?
+            /// swift package clean after a successful build.
+            public let clean: Bool?
+            /// Delete .build and .index-build after a successful build; replaces clean. Without it, a
+            /// package.frame .wipe.above still wipes caches that grew past its size.
+            public let wipe: Bool?
 
             public init(
-                configuration: Configuration? = nil
+                configuration: Configuration? = nil,
+                test: Bool? = nil,
+                bench: Bool? = nil,
+                cleanBefore: Bool? = nil,
+                wipeBefore: Bool? = nil,
+                clean: Bool? = nil,
+                wipe: Bool? = nil
             ) {
                 self.configuration = configuration
+                self.test = test
+                self.bench = bench
+                self.cleanBefore = cleanBefore
+                self.wipeBefore = wipeBefore
+                self.clean = clean
+                self.wipe = wipe
             }
         }
 
@@ -58,6 +83,9 @@ public extension SwiftLang.Tools {
             public let stdout: String
             public let stderr: String
             public let buildDirComponent: String
+            /// What the test, benchmark, clean and wipe steps reported (the end, when long);
+            /// nil when none ran.
+            public let steps: String?
 
             public init(
                 configuration: String,
@@ -65,8 +93,11 @@ public extension SwiftLang.Tools {
                 exitCode: Int,
                 stdout: String,
                 stderr: String,
-                buildDirComponent: String
+                buildDirComponent: String,
+                steps: String? = nil
             ) {
+                self.steps =
+                    steps
                 self.configuration =
                     configuration
                 self.isSuccess =
@@ -83,7 +114,7 @@ public extension SwiftLang.Tools {
         }
 
         public static let purpose = """
-        Build the current SwiftPM workspace through Executable's typed Build.Request -> Build.resolve -> Build.execute workflow. Omit configuration to use normal sbm project defaults, including enabled build-object.pkl interception and deployment behavior. Explicit debug/release overrides do not deploy. Agentic disables built-version bookkeeping.
+        Build the current SwiftPM workspace through Executable's typed Build.Request -> Build.resolve -> Build.execute workflow. Omit configuration to use normal sbm project defaults, including package.frame .build and .deploy and deployment behavior. Explicit debug/release overrides do not deploy. Agentic disables built-version bookkeeping. The steps match sbm's flags: test runs the Tests/ primary first (a failure stops the build), bench the Benchmarks/ primary afterwards; cleanBefore/wipeBefore tidy the caches first, clean/wipe after a successful build; the steps' report is returned in steps.
         """
 
         public static let risk: ActionRisk = .privileged
