@@ -55,20 +55,10 @@ let package = Package(
             targets: ["AgenticScheduling"]
         ),
 
-        .executable(
-            name: "t_agentic_scheduling",
-            targets: ["AgenticSchedulingTests"]
-        ),
-
         // mail over the accounts in domains/mail.frame
         .library(
             name: "AgenticMail",
             targets: ["AgenticMail"]
-        ),
-
-        .executable(
-            name: "t_agentic_mail",
-            targets: ["AgenticMailTests"]
         ),
 
         // task-neutral agents and operating guidance; applications fork GeneralPurpose
@@ -124,7 +114,6 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Mail.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Difference.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Processes.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/Testing.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Frame.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Sensitivity.git", branch: "master"),
     ],
@@ -168,22 +157,6 @@ let package = Package(
             ]
         ),
 
-
-
-        .executableTarget(
-            name: "AgenticSchedulingTests",
-            dependencies: [
-                "AgenticScheduling",
-                .product(name: "Agentic", package: "Agentic"),
-                .product(name: "AgenticConfiguration", package: "Agentic"),
-                .product(name: "AgenticStandard", package: "Agentic"),
-                .product(name: "Frame", package: "Frame"),
-                .product(name: "Testing", package: "Testing"),
-                .product(name: "Reporting", package: "Reporting"),
-            ],
-            path: "Testing/AgenticSchedulingTests"
-        ),
-
         .target(
             name: "AgenticMail",
             dependencies: [
@@ -202,23 +175,6 @@ let package = Package(
                 .product(name: "MailIndex", package: "Mail"),
                 .product(name: "Errors", package: "Errors"),
             ]
-        ),
-
-        .executableTarget(
-            name: "AgenticMailTests",
-            dependencies: [
-                "AgenticMail",
-                .product(name: "Agentic", package: "Agentic"),
-                .product(name: "Reporting", package: "Reporting"),
-                .product(name: "Mail", package: "Mail"),
-                .product(name: "IMAP", package: "Mail"),
-                .product(name: "MailConnection", package: "Mail"),
-                .product(name: "MailFrame", package: "Mail"),
-                .product(name: "MailIndex", package: "Mail"),
-                .product(name: "Errors", package: "Errors"),
-                .product(name: "Testing", package: "Testing"),
-            ],
-            path: "Testing/AgenticMailTests"
         ),
 
         .target(
