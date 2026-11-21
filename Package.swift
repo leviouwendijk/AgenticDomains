@@ -138,6 +138,7 @@ let package = Package(
         .target(
             name: "AgenticScheduling",
             dependencies: [
+                .product(name: "Errors", package: "Errors"),
                 .product(name: "AgenticFrame", package: "Agentic"),
                 .product(name: "AgenticContext", package: "Agentic"),
                 .product(name: "AgenticConfiguration", package: "Agentic"),

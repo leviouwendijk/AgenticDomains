@@ -1,3 +1,4 @@
+import Errors
 import Foundation
 import Frame
 import Primitives
@@ -28,12 +29,26 @@ public struct SchedulingConfiguration: Sendable {
 
     /// Parses and reads a document's source text.
     public init(source: String, filePath: String? = nil) throws {
-        try self.init(
-            document: Frame.parse(source, filePath: filePath, environment: SchedulingFrame.environment)
-        )
+        let document: Frame.Document
+        do {
+            document = try Frame.parse(source, filePath: filePath, environment: SchedulingFrame.environment)
+        } catch {
+            throw SchedulingConfigurationError(error)
+        }
+        try self.init(document: document)
     }
 
     public init(document: Frame.Document) throws {
+        do {
+            try self.init(decoding: document)
+        } catch let error as SchedulingConfigurationError {
+            throw error
+        } catch {
+            throw SchedulingConfigurationError(error)
+        }
+    }
+
+    private init(decoding document: Frame.Document) throws {
         let settings: SchedulingFrame.Settings? = try document.binding(named: SchedulingFrame.settingsBinding).map { _ in
             try document.decode(SchedulingFrame.Settings.self, binding: SchedulingFrame.settingsBinding)
         }
@@ -208,5 +223,21 @@ public struct SchedulingConfiguration: Sendable {
 
     private static func describe(_ policy: CalendarPolicy) -> String {
         "\(policy.role.rawValue)" + (policy.allDayRole.map { ", all-day \($0.rawValue)" } ?? "") + ", overrun \(policy.overrun.raw) min" + (policy.identifier.map { ", identifier \($0)" } ?? "")
+    }
+}
+
+/// A scheduling configuration that does not read, with the reason. Frame
+/// keeps the reason out of its plain description because it may quote the
+/// source; this file is the owner's own, so the reason is what they need.
+public struct SchedulingConfigurationError: Error, LocalizedError, Sendable {
+    public let message: String
+
+    public var errorDescription: String? { message }
+
+    init(_ error: any Error) {
+        let summary = error.summary(for: .trusted)
+        message = [summary.message, summary.reason]
+            .compactMap { $0 }
+            .joined(separator: " ")
     }
 }
