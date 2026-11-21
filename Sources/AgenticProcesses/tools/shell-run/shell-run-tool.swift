@@ -75,7 +75,7 @@ public extension Shell.Tools {
 
         public static let purpose =
             """
-            Run one shell command line in the current Agentic workspace directory and return its exit status, stdout and stderr. For programs; to read, list or search files use \(SystemIO.Tools.ReadFiles.identifier.rawValue), \(SystemIO.Tools.ScanFilepaths.identifier.rawValue) or \(SystemIO.Tools.SearchSources.identifier.rawValue), which usually need no review and take several files in one call. Long output keeps only its tail. Always requires review unless the host allowlists the exact program for a plain, metacharacter-free invocation.
+            Run one shell command line in the current Agentic workspace directory and return its exit status, stdout and stderr. For programs; to read, list or search files use \(SystemIO.Tools.Read.identifier.rawValue), \(SystemIO.Tools.Find.identifier.rawValue) or \(SystemIO.Tools.Search.identifier.rawValue), which usually need no review and take several files in one call. Long output keeps only its tail. Always requires review unless the host allowlists the exact program for a plain, metacharacter-free invocation.
             """
 
         public static let risk: ActionRisk = .privileged

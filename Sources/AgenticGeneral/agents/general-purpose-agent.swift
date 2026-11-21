@@ -11,9 +11,9 @@ import AgenticTasks
 import Schema
 
 public extension General.Agents {
-    /// An unspecialized Agent: little is visible up front, and the installed
-    /// domains it may use are discovered on demand. Applications fork it and
-    /// add their own domains.
+    /// An unspecialized Agent: the core file and shell tools are visible up
+    /// front, and the rest of the installed domains are discovered on demand.
+    /// Applications fork it and add their own domains.
     @Agent
     enum GeneralPurpose {
         public typealias Input = String
@@ -40,7 +40,14 @@ public extension General.Agents {
             )
                 + .agents(Worker.self),
             visible: .tools(
-                Standard.Tools.ClarifyWithUser.self
+                Standard.Tools.ClarifyWithUser.self,
+
+                SystemIO.Tools.Search.self,
+                SystemIO.Tools.Find.self,
+                SystemIO.Tools.Read.self,
+                SystemIO.Tools.Mutate.self,
+
+                Shell.Tools.Run.self
             )
                 + .agents(Worker.self)
         )

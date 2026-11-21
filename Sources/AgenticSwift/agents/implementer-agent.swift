@@ -110,7 +110,7 @@ public extension SwiftLang.Agents {
             SwiftAgentTools.standard
             + SwiftAgentTools.read
             + [
-                SystemIO.Tools.MutateFiles.identifier,
+                SystemIO.Tools.Mutate.identifier,
 
                 Tasks.Tools.GetTask.identifier,
                 Tasks.Tools.RecordAttempt.identifier,

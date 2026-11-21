@@ -136,11 +136,9 @@ public extension Development.Agents {
 
         private static let readTools: [ToolIdentifier] = [
 
-            SystemIO.Tools.SearchSources.identifier,
-            SystemIO.Tools.SearchFilepaths.identifier,
-            SystemIO.Tools.ScanFilepaths.identifier,
-            SystemIO.Tools.ReadSelection.identifier,
-            SystemIO.Tools.ReadFiles.identifier,
+            SystemIO.Tools.Search.identifier,
+            SystemIO.Tools.Find.identifier,
+            SystemIO.Tools.Read.identifier,
 
             SwiftLang.Tools.ReadSymbol.identifier,
             SwiftLang.Tools.ReadStructure.identifier,

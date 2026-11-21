@@ -42,7 +42,7 @@ public extension Development.Agents {
                 2. Search narrowly for the relevant implementation.
                 3. Read only the source needed to change it correctly.
                 4. Identify directly affected call sites and dependencies.
-                5. Make one coherent \(SystemIO.Tools.MutateFiles.identifier.rawValue) \
+                5. Make one coherent \(SystemIO.Tools.Mutate.identifier.rawValue) \
                 pass covering the required changes, inside the write scope only.
                 6. Report and stop.
 
@@ -83,12 +83,10 @@ public extension Development.Agents {
                 tools: .init(
                     members: [
 
-                        SystemIO.Tools.SearchSources.identifier,
-                        SystemIO.Tools.SearchFilepaths.identifier,
-                        SystemIO.Tools.ScanFilepaths.identifier,
-                        SystemIO.Tools.ReadSelection.identifier,
-                        SystemIO.Tools.ReadFiles.identifier,
-                        SystemIO.Tools.MutateFiles.identifier,
+                        SystemIO.Tools.Search.identifier,
+                        SystemIO.Tools.Find.identifier,
+                        SystemIO.Tools.Read.identifier,
+                        SystemIO.Tools.Mutate.identifier,
 
                         SwiftLang.Tools.Parse.identifier,
 

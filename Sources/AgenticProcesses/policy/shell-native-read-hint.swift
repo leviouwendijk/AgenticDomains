@@ -74,13 +74,12 @@ public extension Shell.NativeReadHint.Use {
     var identifiers: [ToolIdentifier] {
         switch self {
         case .read:
-            return [SystemIO.Tools.ReadFiles.identifier]
+            return [SystemIO.Tools.Read.identifier]
         case .search:
-            return [SystemIO.Tools.SearchSources.identifier]
+            return [SystemIO.Tools.Search.identifier]
         case .list:
             return [
-                SystemIO.Tools.ScanFilepaths.identifier,
-                SystemIO.Tools.SearchFilepaths.identifier,
+                SystemIO.Tools.Find.identifier,
             ]
         }
     }

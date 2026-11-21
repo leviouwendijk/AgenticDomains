@@ -34,14 +34,12 @@ public extension Development.Instructions {
         INSPECTION
 
         Search before reading, with these tools rather than the shell:
-            \(SystemIO.Tools.SearchSources.identifier.rawValue): query (literal) or pattern (regex); hits show their lines
-            \(SystemIO.Tools.SearchFilepaths.identifier.rawValue)
-            \(SystemIO.Tools.ScanFilepaths.identifier.rawValue)
+            \(SystemIO.Tools.Search.identifier.rawValue): query (literal) or pattern (regex); hits show their lines
+            \(SystemIO.Tools.Find.identifier.rawValue): list a directory, or match path names with query
         Often the hit's lines answer the question. Otherwise read the
         narrowest range that does with
-        \(SystemIO.Tools.ReadSelection.identifier.rawValue); read several
-        files or windows in one call with
-        \(SystemIO.Tools.ReadFiles.identifier.rawValue) and its reads.
+        \(SystemIO.Tools.Read.identifier.rawValue): a line window or
+        selections; several files or windows in one call with its reads.
         Do not reread material just to confirm it.
         """
     }

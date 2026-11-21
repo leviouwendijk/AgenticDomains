@@ -26,7 +26,7 @@ public extension Shell.NativeReadHint {
         }
     }
 
-    /// Native calls that do what `command` does: one `read_files` call for
+    /// Native calls that do what `command` does: one `read` call for
     /// all reads, one call per search or listing. Empty unless every read,
     /// search and listing in the command translates faithfully.
     static func equivalents(
@@ -48,18 +48,18 @@ public extension Shell.NativeReadHint {
     }
 }
 
-private typealias ReadFiles = SystemIO.Tools.ReadFiles
-private typealias SearchSources = SystemIO.Tools.SearchSources
-private typealias ScanFilepaths = SystemIO.Tools.ScanFilepaths
+private typealias ReadTool = SystemIO.Tools.Read
+private typealias SearchTool = SystemIO.Tools.Search
+private typealias FindTool = SystemIO.Tools.Find
 
 /// Translates pipelines one by one. Any part without a faithful native form
 /// makes `add` return false.
 private struct Translation {
     var directory: String?
-    var reads: [ReadFiles.Window] = []
+    var reads: [ReadTool.Window] = []
     var numbered = false
-    var searches: [SearchSources.Input] = []
-    var listings: [ScanFilepaths.Input] = []
+    var searches: [SearchTool.Input] = []
+    var listings: [FindTool.Input] = []
 
     mutating func add(
         _ stages: [Shell.NativeReadHint.Words]
@@ -80,7 +80,7 @@ private struct Translation {
             start = end
         }
 
-        return reads.count <= ReadFiles.maximumReads
+        return reads.count <= ReadTool.maximumReads
     }
 
     var equivalents: [Shell.NativeReadHint.Equivalent] {
@@ -91,16 +91,16 @@ private struct Translation {
         }
         equivalents += searches.compactMap {
             Self.equivalent(
-                SearchSources.identifier,
+                SearchTool.identifier,
                 $0,
-                defaults: SearchSources.Input()
+                defaults: SearchTool.Input()
             )
         }
         equivalents += listings.compactMap {
             Self.equivalent(
-                ScanFilepaths.identifier,
+                FindTool.identifier,
                 $0,
-                defaults: ScanFilepaths.Input()
+                defaults: FindTool.Input()
             )
         }
 
@@ -150,7 +150,7 @@ private extension Translation {
     }
 
     /// A workspace-relative path for `raw`, joined to the current `cd`;
-    /// "" for the root. Nil for anything read_files could not take as is.
+    /// "" for the root. Nil for anything read could not take as is.
     func path(
         _ raw: String
     ) -> String? {
@@ -294,7 +294,7 @@ private extension Translation {
     static func window(
         _ path: String,
         _ cut: Cut
-    ) -> ReadFiles.Window {
+    ) -> ReadTool.Window {
         switch cut {
         case .none:
             return .init(path: path)
@@ -382,7 +382,7 @@ private extension Translation {
             return nil
         }
 
-        let input: ReadFiles.Input
+        let input: ReadTool.Input
         if reads.count == 1, let window = reads.first {
             input = .init(
                 path: window.path,
@@ -398,8 +398,8 @@ private extension Translation {
             )
         }
 
-        guard var object = Self.compact(input, defaults: ReadFiles.Input()),
-              let window = Self.object(ReadFiles.Window(path: ""))
+        guard var object = Self.compact(input, defaults: ReadTool.Input()),
+              let window = Self.object(ReadTool.Window(path: ""))
         else {
             return nil
         }
@@ -413,7 +413,7 @@ private extension Translation {
             }
         }
 
-        return Self.equivalent(ReadFiles.identifier, object)
+        return Self.equivalent(ReadTool.identifier, object)
     }
 }
 
@@ -644,7 +644,7 @@ private extension Translation {
             maximum = parsed.count
         }
 
-        let listing: ScanFilepaths.Input?
+        let listing: FindTool.Input?
         switch program {
         case "ls":
             listing = ls(arguments, maximum: maximum)
@@ -666,7 +666,7 @@ private extension Translation {
     func ls(
         _ arguments: [String],
         maximum: Int?
-    ) -> ScanFilepaths.Input? {
+    ) -> FindTool.Input? {
         var hidden = false
         var recursive = false
         var paths: [String] = []
@@ -695,7 +695,7 @@ private extension Translation {
         }
         return .init(
             path: base.isEmpty ? nil : base,
-            recursive: recursive,
+            recursive: recursive ? true : nil,
             includeHidden: hidden,
             maxEntries: maximum
         )
@@ -704,7 +704,7 @@ private extension Translation {
     func find(
         _ arguments: [String],
         maximum: Int?
-    ) -> ScanFilepaths.Input? {
+    ) -> FindTool.Input? {
         var rest = arguments[...]
         var root = "."
 
@@ -752,11 +752,11 @@ private extension Translation {
         }
         return .init(
             path: base.isEmpty ? nil : base,
-            includeFiles: files,
-            includeDirectories: directories,
             recursive: true,
             maxdepth: depth,
             includeHidden: true,
+            includeFiles: files,
+            includeDirectories: directories,
             maxEntries: maximum
         )
     }
@@ -764,7 +764,7 @@ private extension Translation {
     func tree(
         _ arguments: [String],
         maximum: Int?
-    ) -> ScanFilepaths.Input? {
+    ) -> FindTool.Input? {
         guard arguments.count <= 1,
               !(arguments.first?.hasPrefix("-") ?? false),
               let base = path(arguments.first ?? ".")

@@ -24,14 +24,8 @@ public extension Development.Agents {
                 .instruction(Development.Instructions.Workflow.definition),
             ]),
             available: .agents(Worker.self),
+            // Source and shell tools come visible from GeneralPurpose.
             visible: .tools(
-                SystemIO.Tools.SearchSources.self,
-                SystemIO.Tools.SearchFilepaths.self,
-                SystemIO.Tools.ScanFilepaths.self,
-                SystemIO.Tools.ReadSelection.self,
-                SystemIO.Tools.ReadFiles.self,
-                SystemIO.Tools.MutateFiles.self,
-
                 Git.Tools.RepositoryState.self
             )
                 + .agents(Worker.self),

@@ -146,10 +146,9 @@ public extension Development.Agents {
 
         private static let reviewTools: [ToolIdentifier] = [
 
-            SystemIO.Tools.SearchSources.identifier,
-            SystemIO.Tools.SearchFilepaths.identifier,
-            SystemIO.Tools.ReadSelection.identifier,
-            SystemIO.Tools.ReadFiles.identifier,
+            SystemIO.Tools.Search.identifier,
+            SystemIO.Tools.Find.identifier,
+            SystemIO.Tools.Read.identifier,
 
             Git.Tools.Diff.identifier,
             Git.Tools.RepositoryState.identifier,

@@ -166,11 +166,9 @@ public extension Development.Agents {
                         Standard.Tools.CreateReport.identifier,
                         Standard.Tools.CreateCallTree.identifier,
 
-                        SystemIO.Tools.SearchSources.identifier,
-                        SystemIO.Tools.SearchFilepaths.identifier,
-                        SystemIO.Tools.ScanFilepaths.identifier,
-                        SystemIO.Tools.ReadSelection.identifier,
-                        SystemIO.Tools.ReadFiles.identifier,
+                        SystemIO.Tools.Search.identifier,
+                        SystemIO.Tools.Find.identifier,
+                        SystemIO.Tools.Read.identifier,
 
                         Git.Tools.RepositoryState.identifier,
                         Git.Tools.Diff.identifier,

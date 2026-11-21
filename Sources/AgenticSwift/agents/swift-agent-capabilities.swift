@@ -14,14 +14,11 @@ enum SwiftAgentTools {
     ]
 
     static let read: [ToolIdentifier] = [
-        SystemIO.Tools.ReadFiles.identifier,
-        SystemIO.Tools.ReadSelection.identifier,
+        SystemIO.Tools.Read.identifier,
 
-        SystemIO.Tools.ScanFilepaths.identifier,
-        SystemIO.Tools.SearchFilepaths.identifier,
+        SystemIO.Tools.Find.identifier,
 
-        SystemIO.Tools.SearchSources.identifier,
-        SystemIO.Tools.LoadSearchContext.identifier,
+        SystemIO.Tools.Search.identifier,
         SystemIO.Tools.ProveSearchResults.identifier,
     ]
 

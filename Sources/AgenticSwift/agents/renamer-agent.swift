@@ -66,7 +66,7 @@ public extension SwiftLang.Agents {
         Index synchronization is bounded and does not prove exhaustive reference coverage. If indexed references or known affected paths are omitted, stop and report incomplete coverage; never submit rename_swift.
         Examine the proposed cross-file changes before calling rename_swift with that exact proposalID.
         Let the existing authorization, source freshness checks, review, and Writers publication flow decide whether changes may be applied. Compilation is not required to publish a rename.
-        Never use mutate_files, direct write APIs, or shell commands to perform or repair a rename.
+        Never use mutate, direct write APIs, or shell commands to perform or repair a rename.
         A proposal is not a completed rename; report actual publication status and any failures. If indexing times out, coverage fails, or publication fails, stop and report the actual diagnostic. Never repeat the same proposal without a substantive change.
         """
 
@@ -77,13 +77,10 @@ public extension SwiftLang.Agents {
                         Standard.Tools.ClarifyWithUser.identifier,
                         Tasks.Tools.GetTask.identifier,
 
-                        SystemIO.Tools.ReadFiles.identifier,
+                        SystemIO.Tools.Read.identifier,
 
-                        SystemIO.Tools.ReadSelection.identifier,
-                        SystemIO.Tools.ScanFilepaths.identifier,
-                        SystemIO.Tools.SearchFilepaths.identifier,
-                        SystemIO.Tools.SearchSources.identifier,
-                        SystemIO.Tools.LoadSearchContext.identifier,
+                        SystemIO.Tools.Find.identifier,
+                        SystemIO.Tools.Search.identifier,
                         SystemIO.Tools.ProveSearchResults.identifier,
 
                         SwiftLang.Tools.ListSymbols.identifier,
@@ -107,13 +104,10 @@ public extension SwiftLang.Agents {
                         Standard.Tools.ClarifyWithUser.identifier,
                         Tasks.Tools.GetTask.identifier,
 
-                        SystemIO.Tools.ReadFiles.identifier,
+                        SystemIO.Tools.Read.identifier,
 
-                        SystemIO.Tools.ReadSelection.identifier,
-                        SystemIO.Tools.ScanFilepaths.identifier,
-                        SystemIO.Tools.SearchFilepaths.identifier,
-                        SystemIO.Tools.SearchSources.identifier,
-                        SystemIO.Tools.LoadSearchContext.identifier,
+                        SystemIO.Tools.Find.identifier,
+                        SystemIO.Tools.Search.identifier,
                         SystemIO.Tools.ProveSearchResults.identifier,
 
                         SwiftLang.Tools.ListSymbols.identifier,

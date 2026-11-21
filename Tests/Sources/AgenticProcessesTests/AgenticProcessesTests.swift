@@ -59,9 +59,9 @@ enum AgenticProcessesTestSuite {
 /// passing test means the hint is a valid call, not a lookalike string.
 enum NativeReadEquivalentTests {
     typealias Hint = Shell.NativeReadHint
-    typealias ReadFiles = SystemIO.Tools.ReadFiles
-    typealias SearchSources = SystemIO.Tools.SearchSources
-    typealias ScanFilepaths = SystemIO.Tools.ScanFilepaths
+    typealias ReadTool = SystemIO.Tools.Read
+    typealias SearchTool = SystemIO.Tools.Search
+    typealias FindTool = SystemIO.Tools.Find
 
     static func single<Input: Decodable>(
         _ command: String,
@@ -74,47 +74,47 @@ enum NativeReadEquivalentTests {
     }
 
     static func reads() throws {
-        let headed = try single("cat a.swift | head -100", ReadFiles.identifier, as: ReadFiles.Input.self)
+        let headed = try single("cat a.swift | head -100", ReadTool.identifier, as: ReadTool.Input.self)
         try Expect.equal(headed.path, "a.swift", "path")
         try Expect.equal(headed.maxLines, 100, "maxLines from head")
 
-        let ranged = try single("nl -ba a.swift | sed -n '145,360p'", ReadFiles.identifier, as: ReadFiles.Input.self)
+        let ranged = try single("nl -ba a.swift | sed -n '145,360p'", ReadTool.identifier, as: ReadTool.Input.self)
         try Expect.equal(ranged.startLine, 145, "startLine from sed")
         try Expect.equal(ranged.endLine, 360, "endLine from sed")
         try Expect.true(ranged.includeLineNumbers, "nl numbers lines")
 
         let several = try single(
             "cd Sources && cat a.swift; cat b.swift; sed -n '1,90p' c.swift",
-            ReadFiles.identifier,
-            as: ReadFiles.Input.self
+            ReadTool.identifier,
+            as: ReadTool.Input.self
         )
         try Expect.equal(several.reads.map(\.path), ["Sources/a.swift", "Sources/b.swift", "Sources/c.swift"], "one batched call, joined to cd")
         try Expect.equal(several.reads.map(\.endLine), [nil, nil, 90], "only the sed read is windowed")
     }
 
     static func searches() throws {
-        let alternation = try single("rg -n 'wrap|tabWidth' Sources | head -65", SearchSources.identifier, as: SearchSources.Input.self)
+        let alternation = try single("rg -n 'wrap|tabWidth' Sources | head -65", SearchTool.identifier, as: SearchTool.Input.self)
         try Expect.equal(alternation.pattern, "wrap|tabWidth", "rg regex as pattern")
         try Expect.equal(alternation.includes, ["Sources/**"], "directory as include")
         try Expect.true(alternation.caseSensitive, "rg is case-sensitive")
 
-        let basic = try single("grep -rn 'oldLine\\|newLine' Sources/ --include=*.swift", SearchSources.identifier, as: SearchSources.Input.self)
+        let basic = try single("grep -rn 'oldLine\\|newLine' Sources/ --include=*.swift", SearchTool.identifier, as: SearchTool.Input.self)
         try Expect.equal(basic.pattern, "oldLine|newLine", "basic alternation translated")
         try Expect.equal(basic.includes, ["Sources/**/*.swift"], "include glob under the path")
 
-        let literal = try single("grep -rni x . 2>/dev/null | grep -v .build | head", SearchSources.identifier, as: SearchSources.Input.self)
+        let literal = try single("grep -rni x . 2>/dev/null | grep -v .build | head", SearchTool.identifier, as: SearchTool.Input.self)
         try Expect.equal(literal.query, "x", "plain text as query")
         try Expect.false(literal.caseSensitive, "-i")
     }
 
     static func listings() throws {
-        let found = try single("cd Sources && find . -type f -maxdepth 2 | head", ScanFilepaths.identifier, as: ScanFilepaths.Input.self)
+        let found = try single("cd Sources && find . -type f -maxdepth 2 | head", FindTool.identifier, as: FindTool.Input.self)
         try Expect.equal(found.path, "Sources", "cd as path")
         try Expect.false(found.includeDirectories, "-type f")
         try Expect.equal(found.maxdepth, 2, "-maxdepth")
         try Expect.equal(found.maxEntries, 10, "head as maxEntries")
 
-        let listed = try single("ls -la", ScanFilepaths.identifier, as: ScanFilepaths.Input.self)
+        let listed = try single("ls -la", FindTool.identifier, as: FindTool.Input.self)
         try Expect.true(listed.path == nil, "root")
         try Expect.true(listed.includeHidden, "-a")
     }
