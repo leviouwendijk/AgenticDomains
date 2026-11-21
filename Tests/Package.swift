@@ -20,6 +20,11 @@ let package = Package(
             targets: ["AgenticMailTests"]
         ),
 
+        .executable(
+            name: "t_agentic_processes",
+            targets: ["AgenticProcessesTests"]
+        ),
+
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
@@ -59,6 +64,15 @@ let package = Package(
                 .product(name: "MailFrame", package: "Mail"),
                 .product(name: "MailIndex", package: "Mail"),
                 .product(name: "Errors", package: "Errors"),
+                .product(name: "Testing", package: "Testing"),
+            ]
+        ),
+
+        .executableTarget(
+            name: "AgenticProcessesTests",
+            dependencies: [
+                .product(name: "AgenticProcesses", package: "AgenticDomains"),
+                .product(name: "Agentic", package: "Agentic"),
                 .product(name: "Testing", package: "Testing"),
             ]
         ),

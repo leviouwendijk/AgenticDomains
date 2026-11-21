@@ -1,4 +1,5 @@
 import Agentic
+import AgenticIO
 import Foundation
 import Processes
 import Schema
@@ -38,6 +39,8 @@ public struct ShellRunToolOutput:
     public let stdout: String
     public let stderr: String
     public let truncated: Bool
+    /// The native tools that do what this read-only command did.
+    public let hint: String?
 
     public init(
         command: String,
@@ -47,7 +50,8 @@ public struct ShellRunToolOutput:
         succeeded: Bool,
         stdout: String,
         stderr: String,
-        truncated: Bool
+        truncated: Bool,
+        hint: String? = nil
     ) {
         self.command = command
         self.workingDirectory = workingDirectory
@@ -57,6 +61,7 @@ public struct ShellRunToolOutput:
         self.stdout = stdout
         self.stderr = stderr
         self.truncated = truncated
+        self.hint = hint
     }
 }
 
@@ -70,7 +75,7 @@ public extension Shell.Tools {
 
         public static let purpose =
             """
-            Run one shell command line in the current Agentic workspace directory and return its exit status, stdout and stderr. Long output keeps only its tail. Always requires review unless the host allowlists the exact program for a plain, metacharacter-free invocation.
+            Run one shell command line in the current Agentic workspace directory and return its exit status, stdout and stderr. For programs; to read, list or search files use \(SystemIO.Tools.ReadFiles.identifier.rawValue), \(SystemIO.Tools.ScanFilepaths.identifier.rawValue) or \(SystemIO.Tools.SearchSources.identifier.rawValue), which usually need no review and take several files in one call. Long output keeps only its tail. Always requires review unless the host allowlists the exact program for a plain, metacharacter-free invocation.
             """
 
         public static let risk: ActionRisk = .privileged
@@ -88,6 +93,14 @@ public extension Shell.Tools {
             let risk = run.policy.risk(
                 for: run.command
             )
+            var warnings = risk == .privileged
+                ? [
+                    "Arbitrary shell execution is not sandboxed by this tool.",
+                ]
+                : []
+            if let hint = Shell.NativeReadHint.hint(for: run.command) {
+                warnings.append(hint)
+            }
 
             return .init(
                 tool: Self.definition.identifier,
@@ -125,11 +138,7 @@ public extension Shell.Tools {
                         : "unrestricted_shell_privileged",
                     "isolated_process_group",
                 ],
-                warnings: risk == .privileged
-                    ? [
-                        "Arbitrary shell execution is not sandboxed by this tool.",
-                    ]
-                    : []
+                warnings: warnings
             )
         }
 
@@ -171,7 +180,10 @@ public extension Shell.Tools {
                 succeeded: result.isSuccess,
                 stdout: stdout.text,
                 stderr: stderr.text,
-                truncated: stdout.truncated || stderr.truncated
+                truncated: stdout.truncated || stderr.truncated,
+                hint: Shell.NativeReadHint.hint(
+                    for: run.command
+                )
             )
         }
     }

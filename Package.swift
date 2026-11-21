@@ -329,6 +329,7 @@ let package = Package(
             name: "AgenticProcesses",
             dependencies: [
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticIO", package: "AgenticIO"),
                 .product(name: "Workspace", package: "Workspace"),
                 .product(name: "Processes", package: "Processes"),
                 .product(name: "Schema", package: "Schema"),
