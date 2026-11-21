@@ -8,7 +8,7 @@ public enum ReadSwiftSymbolToolError: Error, Sendable, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .missingLookup:
-            return "read_swift_symbol requires either 'id' or 'displayName'."
+            return "swift_tool_read_symbol requires either 'id' or 'displayName'."
 
         case .symbolNotFound(let path, let lookup):
             return "No Swift symbol matched \(lookup) in \(path)."

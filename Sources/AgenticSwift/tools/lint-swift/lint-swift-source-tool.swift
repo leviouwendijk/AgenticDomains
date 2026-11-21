@@ -4,7 +4,7 @@ import Schema
 import Workspace
 
 public extension SwiftLang.Tools {
-    @Tool("lint_swift_source")
+    @Tool("lint_source")
     struct LintSource {
         @JSONSchema
         public struct Input:

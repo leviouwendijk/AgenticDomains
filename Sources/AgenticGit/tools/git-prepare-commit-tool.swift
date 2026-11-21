@@ -41,7 +41,7 @@ public extension GitPrepareCommitToolInput {
 
         guard !normalized.isEmpty else {
             throw GitManagerError.unsafeSync(
-                "git_prepare_commit requires at least one explicit repository-relative path."
+                "git_tool_prepare_commit requires at least one explicit repository-relative path."
             )
         }
 
@@ -55,7 +55,7 @@ public extension GitPrepareCommitToolInput {
                   !components.contains("..")
             else {
                 throw GitManagerError.unsafeSync(
-                    "git_prepare_commit paths must be repository-relative and cannot contain parent traversal: \(path)"
+                    "git_tool_prepare_commit paths must be repository-relative and cannot contain parent traversal: \(path)"
                 )
             }
 
@@ -91,7 +91,7 @@ public struct GitPrepareCommitToolOutput:
 }
 
 public extension Git.Tools {
-    @Tool("git_prepare_commit")
+    @Tool("prepare_commit")
     struct PrepareCommit {
     public typealias Input = GitPrepareCommitToolInput
     public typealias Output = GitPrepareCommitToolOutput

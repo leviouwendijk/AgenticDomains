@@ -1,4 +1,4 @@
 import Agentic
 
-@Domain
+@Domain("git")
 public enum Git {}

@@ -104,7 +104,7 @@ public extension GitDiffToolInput {
 }
 
 public extension Git.Tools {
-    @Tool("git_diff")
+    @Tool("diff")
     struct Diff {
     public typealias Input = GitDiffToolInput
     public typealias Output = GitManagerDiffResult

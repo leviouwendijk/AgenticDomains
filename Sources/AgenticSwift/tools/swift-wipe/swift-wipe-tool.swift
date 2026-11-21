@@ -8,7 +8,7 @@ import Macros
 
 /// Delete SwiftPM build caches in the workspace, as `sbm wipe` does.
 public extension SwiftLang.Tools {
-    @Tool("swift_wipe")
+    @Tool("wipe")
     struct WipeCaches {
         @JSONSchema
         public struct Input:

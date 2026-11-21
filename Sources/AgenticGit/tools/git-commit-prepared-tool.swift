@@ -63,7 +63,7 @@ public struct GitCommitPreparedToolOutput:
 }
 
 public extension Git.Tools {
-    @Tool("git_commit_prepared")
+    @Tool("commit_prepared")
     struct CommitPrepared {
         public typealias Input = GitCommitPreparedToolInput
         public typealias Output = GitCommitPreparedToolOutput

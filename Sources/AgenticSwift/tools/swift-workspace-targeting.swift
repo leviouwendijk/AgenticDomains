@@ -52,7 +52,7 @@ struct SwiftWorkspaceExecution {
               !components.contains("..")
         else {
             throw AgenticSwiftToolError.operationFailed(
-                toolName: "swift_app_bundle",
+                toolName: "swift_tool_app_bundle",
                 operation: "resolve project-relative file path",
                 exitCode: nil,
                 signal: nil,
@@ -70,7 +70,7 @@ struct SwiftWorkspaceExecution {
 
         guard candidate.pathComponents.starts(with: rootComponents) else {
             throw AgenticSwiftToolError.operationFailed(
-                toolName: "swift_app_bundle",
+                toolName: "swift_tool_app_bundle",
                 operation: "resolve project-relative file path",
                 exitCode: nil,
                 signal: nil,

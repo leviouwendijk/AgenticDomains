@@ -56,8 +56,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier =
-            "swift_package_resolve"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("package_resolve")
 
         public static let description =
             """

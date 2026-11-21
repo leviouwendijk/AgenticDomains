@@ -23,7 +23,7 @@ public extension Email.Agents {
                 """
                 Resolve relative dates ("this week", "since Monday") from \
                 \(Standard.Tools.CurrentDatetime.identifier.rawValue) into \
-                yyyy-MM-dd for mail_search. When several accounts could hold \
+                yyyy-MM-dd for mail_tool_search. When several accounts could hold \
                 what the user means and the request does not say, search the \
                 default account first and say which you searched.
                 """

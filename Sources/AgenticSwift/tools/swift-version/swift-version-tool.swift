@@ -73,7 +73,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_version"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("version")
         public static let description =
             "Inspect a package.frame project's release (git tag), HEAD, and what each deployed product was built from."
         public static let risk: ActionRisk = .observe

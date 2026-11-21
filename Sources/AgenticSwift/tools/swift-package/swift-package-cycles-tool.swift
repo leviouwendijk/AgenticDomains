@@ -62,9 +62,9 @@ public extension SwiftLang.Tools {
             }
         }
 
-        public static let identifier: ToolIdentifier = "swift_package_cycles"
+        public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("package_cycles")
         public static let description =
-            "Detect package-level dependency cycles for the selected Swift package through Executable.SwiftPackageCycles. Evaluates each manifest on its own with swift package dump-package (the root package and every checkout under .build/checkouts) and walks the graph itself, so it still works when a cycle makes SwiftPM crash while walking the graph (for example inspect_package_graph failing with exit 138)."
+            "Detect package-level dependency cycles for the selected Swift package through Executable.SwiftPackageCycles. Evaluates each manifest on its own with swift package dump-package (the root package and every checkout under .build/checkouts) and walks the graph itself, so it still works when a cycle makes SwiftPM crash while walking the graph (for example swift_tool_inspect_package_graph failing with exit 138)."
         public static let risk: ActionRisk = .observe
 
         public static let definition = ToolDefinition(

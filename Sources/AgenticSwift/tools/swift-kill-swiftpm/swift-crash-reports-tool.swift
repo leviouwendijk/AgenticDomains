@@ -92,7 +92,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-        public static let identifier: ToolIdentifier = "swift_crash_reports"
+        public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("crash_reports")
         public static let description =
             "Read the most recent macOS crash reports for Swift toolchain processes (swift-package, swift-build, swift-frontend) through Executable.SwiftCrashReports: signal, exception message, recursion depth, and leading crashed-thread frames. Use after a Swift tool exits on a signal such as exit 138 (SIGBUS) or 139 (SIGSEGV)."
         public static let risk: ActionRisk = .observe

@@ -4,7 +4,7 @@ import Macros
 import Schema
 
 public extension Scheduling.Tools {
-    @Tool("schedule_busy")
+    @Tool("busy")
     struct Busy {
         @JSONSchema
         public struct Input: HashableSource {

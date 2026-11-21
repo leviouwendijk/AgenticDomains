@@ -8,17 +8,17 @@ import Schema
 import Path
 
 public extension SwiftLang.Tools {
-    @Tool("read_swift_symbol")
+    @Tool("read_symbol")
     struct ReadSymbol: Tool {
     @JSONSchema
     public struct Input: Sendable, Codable, Hashable {
         /// Swift source file path relative to the current Agentic workspace.
         public let path: String
 
-        /// Exact symbol identifier returned by list_swift_symbols. Supply id or displayName.
+        /// Exact symbol identifier returned by swift_tool_list_symbols. Supply id or displayName.
         public let id: String?
 
-        /// Exact symbol display name returned by list_swift_symbols. Supply displayName or id.
+        /// Exact symbol display name returned by swift_tool_list_symbols. Supply displayName or id.
         public let displayName: String?
 
         /// Optional parent type used when disambiguating displayName.

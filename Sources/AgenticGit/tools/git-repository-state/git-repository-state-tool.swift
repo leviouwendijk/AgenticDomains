@@ -6,7 +6,7 @@ import Schema
 import Macros
 
 public extension Git.Tools {
-    @Tool("git_repository_state")
+    @Tool("repository_state")
     struct RepositoryState {
         public typealias Input = AgenticGitEmptyToolInput
         public typealias Output = GitManagerRepositoryState

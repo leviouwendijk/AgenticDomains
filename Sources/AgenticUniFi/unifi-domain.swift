@@ -1,4 +1,4 @@
 import Agentic
 
-@Domain
+@Domain("unifi")
 public enum UniFi {}

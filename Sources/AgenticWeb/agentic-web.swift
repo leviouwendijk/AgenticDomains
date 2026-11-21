@@ -1,4 +1,4 @@
 import Agentic
 
-@Domain
+@Domain("web")
 public enum Web {}

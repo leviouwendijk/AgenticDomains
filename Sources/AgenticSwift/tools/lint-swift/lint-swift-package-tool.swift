@@ -5,7 +5,7 @@ import Workspace
 import SwiftSemantics
 
 public extension SwiftLang.Tools {
-    @Tool("lint_swift_package")
+    @Tool("lint_package")
     struct LintPackage {
         @JSONSchema
         public struct Input:

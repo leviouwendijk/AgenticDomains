@@ -45,7 +45,7 @@ public extension SwiftLang.Tools.RunProduct.Input {
 }
 
 public extension SwiftLang.Tools {
-    @Tool("swift_run_product")
+    @Tool("run_product")
     struct RunProduct {
         @JSONSchema
         public struct Input:

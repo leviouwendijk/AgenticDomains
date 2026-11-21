@@ -36,11 +36,11 @@ public enum SwiftRenameToolError: Error, Sendable {
 }
 
 public extension SwiftLang.Tools {
-    @Tool("rename_swift")
+    @Tool("rename")
     struct RenameSwift {
         @JSONSchema
         public struct Input: Codable, Sendable, Hashable {
-            /// Opaque handle returned by propose_swift_rename; arbitrary edits are not accepted.
+            /// Opaque handle returned by swift_tool_propose_rename; arbitrary edits are not accepted.
             public let proposalID: UUID
 
             public init(proposalID: UUID) {

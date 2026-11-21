@@ -5,7 +5,7 @@ import Primitives
 import Schema
 
 public extension SwiftLang.Tools {
-    @Tool("list_swift_symbols")
+    @Tool("list_symbols")
     struct ListSymbols: Tool {
     @JSONSchema
     public struct Input: Sendable, Codable, Hashable {

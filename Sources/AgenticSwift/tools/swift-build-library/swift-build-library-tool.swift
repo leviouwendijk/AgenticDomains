@@ -42,7 +42,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_build_library"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("build_library")
         public static let description =
             "Build library products with module interfaces through Executable.BuildLibrary."
         public static let risk: ActionRisk = .privileged

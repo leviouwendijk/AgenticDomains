@@ -3,7 +3,7 @@ import Macros
 import Schema
 
 public extension Scheduling.Tools {
-    @Tool("schedule_calendars")
+    @Tool("calendars")
     struct ListCalendars {
         @JSONSchema
         public struct Input: HashableSource {

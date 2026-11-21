@@ -116,14 +116,14 @@ public struct SwiftTestRunOutput:
 }
 
 public extension SwiftLang.Tools {
-    @Tool("swift_test")
+    @Tool("test")
     struct RunTests {
         public typealias Input = SwiftTestRunInput
         public typealias Output = SwiftTestRunOutput
 
         public static let purpose =
             """
-            Run the test products of the workspace's Tests/ package through the Executable library, the same resolution `sbm test` uses (the sbm binary itself is not needed). Requires the package.frame convention: a nested directory with Package.swift and a package.frame declaring `let tests: Tests` (Tests/ by convention), or an unsplit project's Tests/package.frame; anything else fails with "No test package". The frame selects the primary, a group, one product, the live products (live: true; real services, network, credentials) or all products that are neither interactive nor live; tests build in debug unless it sets .mode. cleanBefore/wipeBefore tidy the test package's caches first; clean/wipe after a successful run, the same as `sbm test --clean --wipe`. Products in the root package are run with swift_run_product instead. Failures are returned as results, not errors.
+            Run the test products of the workspace's Tests/ package through the Executable library, the same resolution `sbm test` uses (the sbm binary itself is not needed). Requires the package.frame convention: a nested directory with Package.swift and a package.frame declaring `let tests: Tests` (Tests/ by convention), or an unsplit project's Tests/package.frame; anything else fails with "No test package". The frame selects the primary, a group, one product, the live products (live: true; real services, network, credentials) or all products that are neither interactive nor live; tests build in debug unless it sets .mode. cleanBefore/wipeBefore tidy the test package's caches first; clean/wipe after a successful run, the same as `sbm test --clean --wipe`. Products in the root package are run with swift_tool_run_product instead. Failures are returned as results, not errors.
             """
 
         public static let risk: ActionRisk = .privileged
@@ -131,14 +131,14 @@ public extension SwiftLang.Tools {
         public init() {}
     }
 
-    @Tool("swift_bench")
+    @Tool("bench")
     struct RunBenchmarks {
         public typealias Input = SwiftTestRunInput
         public typealias Output = SwiftTestRunOutput
 
         public static let purpose =
             """
-            Run the benchmark products of the workspace's Benchmarks/ package through the Executable library, the same resolution `sbm bench` uses (the sbm binary itself is not needed). Requires a nested directory with Package.swift and a package.frame declaring `let benchmarks: Benchmarks` (Benchmarks/ by convention); without one it fails with "No benchmark package". Release builds unless the frame sets .mode; same selection and clean/wipe steps as swift_test.
+            Run the benchmark products of the workspace's Benchmarks/ package through the Executable library, the same resolution `sbm bench` uses (the sbm binary itself is not needed). Requires a nested directory with Package.swift and a package.frame declaring `let benchmarks: Benchmarks` (Benchmarks/ by convention); without one it fails with "No benchmark package". Release builds unless the frame sets .mode; same selection and clean/wipe steps as swift_tool_test.
             """
 
         public static let risk: ActionRisk = .privileged

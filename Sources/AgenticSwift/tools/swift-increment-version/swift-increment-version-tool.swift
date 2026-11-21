@@ -39,7 +39,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_increment_version"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("increment_version")
         public static let description =
             "Release the next version: tag HEAD with it and push the tag. Refuses a dirty or unpushed HEAD."
         public static let risk: ActionRisk = .privileged

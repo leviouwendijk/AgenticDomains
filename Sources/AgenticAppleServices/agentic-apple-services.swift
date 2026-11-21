@@ -1,4 +1,4 @@
 import Agentic
 
-@Domain
+@Domain("apple", aliases: ["appleservices"])
 public enum AppleServices {}

@@ -1,4 +1,4 @@
 import Agentic
 
-@Domain
+@Domain("business")
 public enum Business {}

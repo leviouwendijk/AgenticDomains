@@ -6,7 +6,7 @@ import Schema
 import SwiftSemantics
 
 public extension SwiftLang.Tools {
-    @Tool("propose_swift_rename")
+    @Tool("propose_rename")
     struct ProposeRename {
         @JSONSchema
         public struct Input: Codable, Sendable, Hashable {
@@ -15,7 +15,7 @@ public extension SwiftLang.Tools {
             /// Explicit one-based UTF-16 location (legacy selection mode).
             public let line: Int?
             public let utf16Column: Int?
-            /// Exact hierarchical names returned by inspect_swift_document_symbols.
+            /// Exact hierarchical names returned by swift_tool_inspect_document_symbols.
             /// Overloads or duplicate paths are rejected rather than guessed.
             public let symbolPath: [String]?
             /// Optional USR to verify the compiler-resolved symbol identity.
@@ -49,7 +49,7 @@ public extension SwiftLang.Tools {
 
         @JSONSchema
         public struct Output: Codable, Sendable, Hashable {
-            /// Opaque, short-lived reference; only this identifier is accepted by rename_swift.
+            /// Opaque, short-lived reference; only this identifier is accepted by swift_tool_rename.
             public let proposalID: UUID
             /// Compiler-produced preview for inspection only, not for replay.
             public let proposal: SwiftSemanticRenameResult

@@ -12,11 +12,11 @@ import Agentic
 /// Passwords never reach a tool's input or output.
 ///
 /// Mailbox work goes through a local index of each account (the same files as
-/// `email index`) and plans: `mail_index_sync`, `mail_clutter`,
-/// `mail_suspicious`, `mail_decide` and `mail_plan` never change the server;
-/// `mail_apply` and `mail_undo` do, with an organize grant and the owner's
+/// `email index`) and plans: `mail_tool_index_sync`, `mail_tool_clutter`,
+/// `mail_tool_suspicious`, `mail_tool_decide` and `mail_tool_plan` never change the server;
+/// `mail_tool_apply` and `mail_tool_undo` do, with an organize grant and the owner's
 /// approval of each plan. Three agents share that loop with different aims:
 /// the Organizer (structure by content), the Cleaner (prune to `Pruned`) and
 /// the Scanner (fraud and phishing).
-@Domain
+@Domain("mail", aliases: ["email"])
 public enum Email {}

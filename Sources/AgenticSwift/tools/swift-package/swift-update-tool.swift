@@ -6,7 +6,7 @@ import Executable
 import Primitives
 
 public extension SwiftLang.Tools {
-    @Tool("swift_package_update")
+    @Tool("package_update")
     struct PackageUpdate {
         @JSONSchema
         public struct Input:

@@ -4,7 +4,7 @@ import Macros
 import Schema
 
 public extension Scheduling.Tools {
-    @Tool("schedule_find_slots")
+    @Tool("find_slots")
     struct FindSlots {
         @JSONSchema
         public struct Input: HashableSource {
@@ -98,7 +98,7 @@ public extension Scheduling.Tools {
         }
     }
 
-    @Tool("schedule_evaluate")
+    @Tool("evaluate")
     struct Evaluate {
         @JSONSchema
         public struct Input: HashableSource {

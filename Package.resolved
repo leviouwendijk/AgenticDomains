@@ -1,5 +1,5 @@
 {
-  "originHash" : "585b0b8ec70e77c572c67852e3a1d0cf232b8ebfcd1c804a96db74171d9bc495",
+  "originHash" : "a9a4d14eccbf4efa69090e84eb25bd73ca0b0668f2765036bd60fe2a3f06022d",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/leviouwendijk/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "6abe34f4970fd75808e1900e7804466d1529cc35"
+        "revision" : "6afecce4f7517cdfc19bd3f965fee232a706e996"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/leviouwendijk/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e9687ff9be88afcba9ba19cce719cc65d6789258"
+        "revision" : "acc1428e88bbe8e65b2c459cf65f39a70bc2709b"
       }
     },
     {
@@ -52,7 +52,7 @@
       "location" : "https://github.com/leviouwendijk/Atomos.git",
       "state" : {
         "branch" : "master",
-        "revision" : "d82fd2ccb56f9fafbb079435c4d70ff5207bfe8c"
+        "revision" : "857fa1b7d1975fe17d52e21c154f92ba5e696be3"
       }
     },
     {
@@ -70,7 +70,7 @@
       "location" : "https://github.com/leviouwendijk/Concatenation.git",
       "state" : {
         "branch" : "master",
-        "revision" : "58bccd02e5b4b0b28be65b7360cc202e5f57f45d"
+        "revision" : "e2eabdd376e3e44ebcce4e8e0afed02d223986d3"
       }
     },
     {
@@ -106,7 +106,7 @@
       "location" : "https://github.com/leviouwendijk/Errors.git",
       "state" : {
         "branch" : "master",
-        "revision" : "66b044f9dbd2213b290d004aa9b19ab391ccf42e"
+        "revision" : "af4592f7389c1d43ef8d20155cd6da973b7e88b6"
       }
     },
     {
@@ -124,7 +124,7 @@
       "location" : "https://github.com/leviouwendijk/Executable.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3a166c1995269de158fff0481b97039942818d2b"
+        "revision" : "07ccf3065bd72d6c67352fed427d8a5e626a5f18"
       }
     },
     {
@@ -214,7 +214,7 @@
       "location" : "https://github.com/leviouwendijk/IO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "e7b8b41721cad2458d8bbd01f8d4a5f38dcd44ef"
+        "revision" : "4b512aca41c5a14c7381f7aa540d8c3b339b1f36"
       }
     },
     {
@@ -250,7 +250,7 @@
       "location" : "https://github.com/leviouwendijk/Mail.git",
       "state" : {
         "branch" : "master",
-        "revision" : "b8a275fbc0b105432ce4aef37e7170256921e5ab"
+        "revision" : "059e7389e4c439ced26c7b8e3d049a79fec06c2d"
       }
     },
     {
@@ -259,7 +259,7 @@
       "location" : "https://github.com/leviouwendijk/Matching.git",
       "state" : {
         "branch" : "master",
-        "revision" : "21f42b5f67c76dfb48d0d6a73e9171dad7c09a96"
+        "revision" : "3db5dd4af391017c3593642b1def87112168516f"
       }
     },
     {
@@ -349,7 +349,7 @@
       "location" : "https://github.com/leviouwendijk/Primitives.git",
       "state" : {
         "branch" : "master",
-        "revision" : "1e381664d669a5769f3e634ddada47ade4305db1"
+        "revision" : "1e9c7defa2037e0b74be9e95d8e987442323d372"
       }
     },
     {
@@ -421,7 +421,7 @@
       "location" : "https://github.com/leviouwendijk/Search.git",
       "state" : {
         "branch" : "master",
-        "revision" : "250c0d21a67ae5fdd42719592ca77121c2dd9743"
+        "revision" : "accb67567bd4586f924b68bc4dc870e0543ee370"
       }
     },
     {
@@ -439,7 +439,7 @@
       "location" : "https://github.com/leviouwendijk/Sensitivity.git",
       "state" : {
         "branch" : "master",
-        "revision" : "67a91fbbdb0eeed41cbe9cde6ab0ca7874ef5837"
+        "revision" : "f68fea54e1fa6edcb5af82bbc77d7d1f23de96ca"
       }
     },
     {
@@ -583,7 +583,7 @@
       "location" : "https://github.com/leviouwendijk/Workspace.git",
       "state" : {
         "branch" : "master",
-        "revision" : "1e24058fbbf774d8d98577ae5d01a3b332a62586"
+        "revision" : "9d74c0c634d88ae5bf93b6f4415532394f89f0cd"
       }
     },
     {
@@ -592,7 +592,7 @@
       "location" : "https://github.com/leviouwendijk/Writers.git",
       "state" : {
         "branch" : "master",
-        "revision" : "0b035b4ce663740e1b7cf08ed120f86dff51f5ad"
+        "revision" : "1f36c58525c798b1aecac4b4546129605716bfda"
       }
     },
     {

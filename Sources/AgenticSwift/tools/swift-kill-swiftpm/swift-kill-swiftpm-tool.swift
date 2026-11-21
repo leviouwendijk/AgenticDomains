@@ -53,7 +53,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_kill_swiftpm"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("kill_swiftpm")
         public static let description =
             "Inspect and terminate Swift/SwiftPM process trees through Executable.SwiftPMProcesses."
         public static let risk: ActionRisk = .privileged

@@ -28,7 +28,7 @@ public extension AppleServices.Tools {
             public init(identifier: String) { self.identifier = identifier }
         }
         public typealias Output = MusicPlaybackSnapshot
-        public static let purpose = "Play an exact library persistent ID selected from music_search in macOS Music.app. Never pick a fuzzy candidate automatically."
+        public static let purpose = "Play an exact library persistent ID selected from apple_tool_music_search in macOS Music.app. Never pick a fuzzy candidate automatically."
         public static let risk: ActionRisk = .boundedmutate
         private let provider: any AppleMusicProvider
         public init(provider: any AppleMusicProvider = ScriptingBridgeMusicProvider()) {
@@ -142,7 +142,7 @@ public extension AppleServices.Tools {
             public init(identifier: String) { self.identifier = identifier }
         }
         public typealias Output = MusicCatalogPlayReceipt
-        public static let purpose = "Play an exact song from music_catalog_search through MusicKit ApplicationMusicPlayer. Playback belongs to the host app, not Music.app."
+        public static let purpose = "Play an exact song from apple_tool_music_catalog_search through MusicKit ApplicationMusicPlayer. Playback belongs to the host app, not Music.app."
         public static let risk: ActionRisk = .boundedmutate
         public init() {}
         public func call(_ input: Input, in _: ToolContext) async throws -> Output {

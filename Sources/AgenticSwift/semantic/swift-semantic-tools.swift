@@ -210,7 +210,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("find_swift_definition")
+    @Tool("find_definition")
     struct FindDefinition {
     @JSONSchema
     public struct Input:
@@ -338,7 +338,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("find_swift_references")
+    @Tool("find_references")
     struct FindReferences {
     @JSONSchema
     public struct Input:
@@ -468,7 +468,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("find_swift_implementations")
+    @Tool("find_implementations")
     struct FindImplementations {
     @JSONSchema
     public struct Input:
@@ -596,7 +596,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("inspect_swift_diagnostics")
+    @Tool("inspect_diagnostics")
     struct InspectDiagnostics {
     @JSONSchema
     public struct Input:
@@ -705,7 +705,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("search_swift_symbols")
+    @Tool("search_symbols")
     struct SearchSymbols {
     @JSONSchema
     public struct Input:
@@ -806,7 +806,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("inspect_swift_symbol")
+    @Tool("inspect_symbol")
     struct InspectSymbol {
     @JSONSchema
     public struct Input:
@@ -924,7 +924,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("inspect_swift_hover")
+    @Tool("inspect_hover")
     struct InspectHover {
     @JSONSchema
     public struct Input:
@@ -1034,7 +1034,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("inspect_swift_document_symbols")
+    @Tool("inspect_document_symbols")
     struct InspectDocumentSymbols {
     @JSONSchema
     public struct Input:
@@ -1143,7 +1143,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("inspect_swift_callers")
+    @Tool("inspect_callers")
     struct InspectCallers {
     @JSONSchema
     public struct Input:
@@ -1274,7 +1274,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("inspect_swift_callees")
+    @Tool("inspect_callees")
     struct InspectCallees {
     @JSONSchema
     public struct Input:
@@ -1405,7 +1405,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("inspect_swift_supertypes")
+    @Tool("inspect_supertypes")
     struct InspectSupertypes {
     @JSONSchema
     public struct Input:
@@ -1533,7 +1533,7 @@ public extension SwiftLang.Tools {
     }
 }
 
-    @Tool("inspect_swift_subtypes")
+    @Tool("inspect_subtypes")
     struct InspectSubtypes {
     @JSONSchema
     public struct Input:

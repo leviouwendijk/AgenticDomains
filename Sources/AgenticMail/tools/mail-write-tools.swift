@@ -10,7 +10,7 @@ import Macros
 import Schema
 
 public extension Email.Tools {
-    @Tool("mail_draft")
+    @Tool("draft")
     struct SaveDraft {
         public typealias Input = Email.Composition
 
@@ -57,7 +57,7 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_send")
+    @Tool("send")
     struct Send {
         public typealias Input = Email.Composition
 

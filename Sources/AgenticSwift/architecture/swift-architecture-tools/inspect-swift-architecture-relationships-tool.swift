@@ -5,7 +5,7 @@ import Workspace
 import Documentation
 
 public extension SwiftLang.Tools {
-    @Tool("inspect_swift_architecture_relationships")
+    @Tool("inspect_architecture_relationships")
     struct InspectArchitectureRelationships {
         @JSONSchema
         public struct Input:

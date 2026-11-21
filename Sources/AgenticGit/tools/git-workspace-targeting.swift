@@ -197,7 +197,7 @@ private extension GitPrepareCommitToolInput {
 
         guard !normalized.isEmpty else {
             throw GitManagerError.unsafeSync(
-                "git_prepare_commit requires at least one explicit repository-relative path."
+                "git_tool_prepare_commit requires at least one explicit repository-relative path."
             )
         }
 
@@ -214,7 +214,7 @@ private extension GitPrepareCommitToolInput {
             with: workspaceComponents
         ) else {
             throw GitManagerError.unsafeSync(
-                "git_prepare_commit selected repository root is outside the attached Agentic workspace."
+                "git_tool_prepare_commit selected repository root is outside the attached Agentic workspace."
             )
         }
 
@@ -236,7 +236,7 @@ private extension GitPrepareCommitToolInput {
                   !components.contains("..")
             else {
                 throw GitManagerError.unsafeSync(
-                    "git_prepare_commit paths must be repository-relative and cannot contain parent traversal: \(path)"
+                    "git_tool_prepare_commit paths must be repository-relative and cannot contain parent traversal: \(path)"
                 )
             }
 
@@ -349,7 +349,7 @@ extension Git.Tools.CommitPrepared {
 
         guard !paths.isEmpty else {
             throw GitManagerError.unsafeSync(
-                "git_commit_prepared requires staged changes. Run git_prepare_commit first."
+                "git_tool_commit_prepared requires staged changes. Run git_tool_prepare_commit first."
             )
         }
 
@@ -394,7 +394,7 @@ extension Git.Tools.CommitPrepared {
 
         guard !paths.isEmpty else {
             throw GitManagerError.unsafeSync(
-                "git_commit_prepared requires staged changes. Run git_prepare_commit first."
+                "git_tool_commit_prepared requires staged changes. Run git_tool_prepare_commit first."
             )
         }
 
@@ -458,13 +458,13 @@ private func targetedGitPullContext(
 
     guard !state.hasTrackedChanges else {
         throw GitManagerError.unsafeSync(
-            "git_pull requires a clean tracked working tree. Commit, stash, or otherwise resolve tracked changes first."
+            "git_tool_pull requires a clean tracked working tree. Commit, stash, or otherwise resolve tracked changes first."
         )
     }
 
     guard !state.hasUntracked else {
         throw GitManagerError.unsafeSync(
-            "git_pull requires a clean repository with no untracked files. Resolve or remove untracked files first."
+            "git_tool_pull requires a clean repository with no untracked files. Resolve or remove untracked files first."
         )
     }
 
@@ -472,7 +472,7 @@ private func targetedGitPullContext(
           !currentBranch.isEmpty
     else {
         throw GitManagerError.unsafeSync(
-            "git_pull requires a current local branch and does not operate from detached HEAD."
+            "git_tool_pull requires a current local branch and does not operate from detached HEAD."
         )
     }
 
@@ -482,7 +482,7 @@ private func targetedGitPullContext(
           !upstreamBranch.isEmpty
     else {
         throw GitManagerError.unsafeSync(
-            "git_pull requires an actually configured upstream for the current branch. It does not fall back to origin/HEAD or another default destination."
+            "git_tool_pull requires an actually configured upstream for the current branch. It does not fall back to origin/HEAD or another default destination."
         )
     }
 

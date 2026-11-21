@@ -7,7 +7,7 @@ import Macros
 import Schema
 
 public extension Email.Tools {
-    @Tool("mail_save_attachment")
+    @Tool("save_attachment")
     struct SaveAttachment {
         @JSONSchema
         public struct Input: HashableSource {
@@ -15,9 +15,9 @@ public extension Email.Tools {
             public let account: String?
             /// The mailbox holding the message; INBOX when absent.
             public let mailbox: String?
-            /// The message's UID from mail_search.
+            /// The message's UID from mail_tool_search.
             public let uid: Int
-            /// Which attachments, by filename as mail_read lists them; all when absent.
+            /// Which attachments, by filename as mail_tool_read lists them; all when absent.
             public let filenames: [String]?
 
             public init(account: String? = nil, mailbox: String? = nil, uid: Int, filenames: [String]? = nil) {

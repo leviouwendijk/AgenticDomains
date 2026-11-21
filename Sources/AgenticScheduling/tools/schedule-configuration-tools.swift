@@ -4,7 +4,7 @@ import Macros
 import Schema
 
 public extension Scheduling.Tools {
-    @Tool("schedule_configuration")
+    @Tool("configuration")
     struct ReadConfiguration {
         @JSONSchema
         public struct Input: HashableSource {
@@ -49,7 +49,7 @@ public extension Scheduling.Tools {
         }
     }
 
-    @Tool("schedule_check_configuration")
+    @Tool("check_configuration")
     struct CheckConfiguration {
         @JSONSchema
         public struct Input: HashableSource {
@@ -78,7 +78,7 @@ public extension Scheduling.Tools {
         }
 
         public static let purpose =
-            "Check a \(SchedulingFrame.fileName) text without saving it: syntax, every field against the Scheduling schema, what scheduling makes of it (such as a calendar declared twice), and whether each calendar it names exists in the calendar sources. Run it until it is valid before schedule_save_configuration."
+            "Check a \(SchedulingFrame.fileName) text without saving it: syntax, every field against the Scheduling schema, what scheduling makes of it (such as a calendar declared twice), and whether each calendar it names exists in the calendar sources. Run it until it is valid before schedule_tool_save_configuration."
         public static let risk: ActionRisk = .observe
 
         public init() {}
@@ -98,7 +98,7 @@ public extension Scheduling.Tools {
         }
     }
 
-    @Tool("schedule_save_configuration")
+    @Tool("save_configuration")
     struct SaveConfiguration {
         @JSONSchema
         public struct Input: HashableSource {
@@ -127,7 +127,7 @@ public extension Scheduling.Tools {
         }
 
         public static let purpose =
-            "Save the team's \(SchedulingFrame.fileName), replacing the current one (which is archived). Checks it first exactly as schedule_check_configuration does and refuses an invalid file. Scheduling uses the saved file at once. Only after the user has seen what will be saved."
+            "Save the team's \(SchedulingFrame.fileName), replacing the current one (which is archived). Checks it first exactly as schedule_tool_check_configuration does and refuses an invalid file. Scheduling uses the saved file at once. Only after the user has seen what will be saved."
         public static let risk: ActionRisk = .privileged
 
         public init() {}

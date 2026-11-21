@@ -46,7 +46,7 @@ public extension Email {
 
     /// The grants of one session. The host inserts a fresh one into each
     /// session's services; without it, mail reads nothing. Grants only ever
-    /// come from approved `mail_request_access` calls or from the host.
+    /// come from approved `mail_tool_request_access` calls or from the host.
     actor SessionAccess {
         public private(set) var grants: [Grant]
 

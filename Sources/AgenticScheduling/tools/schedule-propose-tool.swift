@@ -7,7 +7,7 @@ public extension Scheduling.Tools {
     /// The scheduling answer as the user sees it. The agent names its
     /// recommendation and alternatives; every time is evaluated again here,
     /// so what the user reads is what the tools computed.
-    @Tool("schedule_propose")
+    @Tool("propose")
     struct Propose {
         @JSONSchema
         public struct Option: HashableSource {

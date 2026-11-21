@@ -51,7 +51,7 @@ public struct GitPullToolOutput:
 }
 
 public extension Git.Tools {
-    @Tool("git_pull")
+    @Tool("pull")
     struct Pull {
         public typealias Input = GitPullToolInput
         public typealias Output = GitPullToolOutput
@@ -103,13 +103,13 @@ private extension Git.Tools.Pull {
 
         guard !state.hasTrackedChanges else {
             throw GitManagerError.unsafeSync(
-                "git_pull requires a clean tracked working tree. Commit, stash, or otherwise resolve tracked changes first."
+                "git_tool_pull requires a clean tracked working tree. Commit, stash, or otherwise resolve tracked changes first."
             )
         }
 
         guard !state.hasUntracked else {
             throw GitManagerError.unsafeSync(
-                "git_pull requires a clean repository with no untracked files. Resolve or remove untracked files first."
+                "git_tool_pull requires a clean repository with no untracked files. Resolve or remove untracked files first."
             )
         }
 
@@ -117,7 +117,7 @@ private extension Git.Tools.Pull {
               !currentBranch.isEmpty
         else {
             throw GitManagerError.unsafeSync(
-                "git_pull requires a current local branch and does not operate from detached HEAD."
+                "git_tool_pull requires a current local branch and does not operate from detached HEAD."
             )
         }
 
@@ -127,7 +127,7 @@ private extension Git.Tools.Pull {
               !upstreamBranch.isEmpty
         else {
             throw GitManagerError.unsafeSync(
-                "git_pull requires an actually configured upstream for the current branch. It does not fall back to origin/HEAD or another default destination."
+                "git_tool_pull requires an actually configured upstream for the current branch. It does not fall back to origin/HEAD or another default destination."
             )
         }
 

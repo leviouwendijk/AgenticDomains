@@ -25,7 +25,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_clean"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("clean")
         public static let description =
             "Clean the current SwiftPM workspace through Executable.Build.clean."
         public static let risk: ActionRisk = .privileged

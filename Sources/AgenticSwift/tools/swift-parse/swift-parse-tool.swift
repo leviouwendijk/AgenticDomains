@@ -7,7 +7,7 @@ import Schema
 import Macros
 
 extension SwiftLang.Tools {
-    @Tool("swift_parse")
+    @Tool("parse")
     public struct Parse: Tool {
         @JSONSchema
         public struct Input:

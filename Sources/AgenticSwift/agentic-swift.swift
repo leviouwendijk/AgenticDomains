@@ -1,4 +1,4 @@
 import Agentic
 
-@Domain
+@Domain("swift", aliases: ["sbm", "swiftlang"])
 public enum SwiftLang {}

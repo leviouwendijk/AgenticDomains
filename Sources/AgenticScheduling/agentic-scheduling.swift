@@ -7,5 +7,5 @@ import Agentic
 /// intent into typed requirements and judge the scored candidates. Sources,
 /// participants, places and travel are supplied by the application through
 /// `Scheduling.Runtime` in the session's tool services.
-@Domain
+@Domain("schedule", aliases: ["scheduling"])
 public enum Scheduling {}

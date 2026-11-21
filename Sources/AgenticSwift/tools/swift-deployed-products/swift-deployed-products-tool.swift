@@ -66,7 +66,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_deployed_products"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("deployed_products")
         public static let description =
             "List deployed Swift binaries through Executable.DeployedList."
         public static let risk: ActionRisk = .observe

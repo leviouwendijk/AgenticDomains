@@ -5,7 +5,7 @@ import Workspace
 import Documentation
 
 public extension SwiftLang.Tools {
-    @Tool("inspect_swift_architecture_symbol")
+    @Tool("inspect_architecture_symbol")
     struct InspectArchitectureSymbol {
         @JSONSchema
         public struct Input:

@@ -386,7 +386,7 @@ enum EmailTests {
         try Expect.equal(denied.errorDisposition, .requires_access, "Missing access asks for access")
         try Expect.contains(
             denied.errorPresentation.recoverySuggestion ?? "",
-            "mail_request_access",
+            "mail_tool_request_access",
             "Names the tool that asks for access"
         )
     }

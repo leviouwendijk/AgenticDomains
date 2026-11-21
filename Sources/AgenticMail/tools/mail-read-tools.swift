@@ -7,7 +7,7 @@ import Macros
 import Schema
 
 public extension Email.Tools {
-    @Tool("mail_accounts")
+    @Tool("accounts")
     struct ListAccounts {
         @JSONSchema
         public struct Input: HashableSource {
@@ -91,7 +91,7 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_mailboxes")
+    @Tool("mailboxes")
     struct ListMailboxes {
         @JSONSchema
         public struct Input: HashableSource {
@@ -159,7 +159,7 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_search")
+    @Tool("search")
     struct Search {
         @JSONSchema
         public struct Input: HashableSource {
@@ -238,7 +238,7 @@ public extension Email.Tools {
         public struct MessageSummary: HashableResult {
             public let account: String
             public let mailbox: String
-            /// Pass with account and mailbox to mail_read, or as reply_to_uid.
+            /// Pass with account and mailbox to mail_tool_read, or as reply_to_uid.
             public let uid: Int
             public let date: String?
             public let from: [String]
@@ -383,7 +383,7 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_read")
+    @Tool("read")
     struct Read {
         @JSONSchema
         public struct Input: HashableSource {
@@ -391,7 +391,7 @@ public extension Email.Tools {
             public let account: String?
             /// The mailbox holding the message; INBOX when absent.
             public let mailbox: String?
-            /// The message's UID from mail_search.
+            /// The message's UID from mail_tool_search.
             public let uid: Int
             /// Longest body to return; 20000 characters when absent.
             public let max_characters: Int?

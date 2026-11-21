@@ -12,7 +12,7 @@ import Schema
 /// The index is a read model of the server; nothing changes mail except an
 /// applied plan, which checks every message against the server first.
 public extension Email.Tools {
-    @Tool("mail_index_sync")
+    @Tool("index_sync")
     struct IndexSync {
         @JSONSchema
         public struct Input: HashableSource {
@@ -38,7 +38,7 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "Bring an account's local index up to date from the server: new messages, flag changes and removals, never bodies. Read-only toward the server. Needed before mail_clutter, mail_suspicious and mail_plan."
+            "Bring an account's local index up to date from the server: new messages, flag changes and removals, never bodies. Read-only toward the server. Needed before mail_tool_clutter, mail_tool_suspicious and mail_tool_plan."
         public static let risk: ActionRisk = .observe
 
         public init() {}
@@ -67,7 +67,7 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_clutter")
+    @Tool("clutter")
     struct Clutter {
         @JSONSchema
         public struct Input: HashableSource {
@@ -161,7 +161,7 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_suspicious")
+    @Tool("suspicious")
     struct Suspicious {
         @JSONSchema
         public struct Input: HashableSource {
@@ -248,7 +248,7 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_decide")
+    @Tool("decide")
     struct Decide {
         @JSONSchema
         public struct Input: HashableSource {
@@ -336,7 +336,7 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_plan")
+    @Tool("plan")
     struct Plan {
         @JSONSchema
         public struct Input: HashableSource {
@@ -348,7 +348,7 @@ public extension Email.Tools {
             public let value: String
             /// Why, as the owner will read it when approving.
             public let reason: String
-            /// Pick the suspects mail_suspicious would list.
+            /// Pick the suspects mail_tool_suspicious would list.
             public let suspicious: Bool?
             /// With suspicious: the lowest score; and vendor domains known to be real.
             public let threshold: Int?
@@ -394,7 +394,7 @@ public extension Email.Tools {
 
         @JSONSchema
         public struct Output: HashableResult {
-            /// Pass to mail_apply once the plan is right.
+            /// Pass to mail_tool_apply once the plan is right.
             public let plan: String
             public let summary: String
             public let count: Int
@@ -402,7 +402,7 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "Propose one server change (move to a mailbox, add or remove a flag or keyword, Gmail label) for messages picked from the index: suspects, a sender, domain or list, or UIDs, narrowed by mailbox, age or unread. Stores the plan and shows samples; changes nothing until mail_apply."
+            "Propose one server change (move to a mailbox, add or remove a flag or keyword, Gmail label) for messages picked from the index: suspects, a sender, domain or list, or UIDs, narrowed by mailbox, age or unread. Stores the plan and shows samples; changes nothing until mail_tool_apply."
         public static let risk: ActionRisk = .boundedmutate
 
         public init() {}
@@ -420,7 +420,7 @@ public extension Email.Tools {
             return ToolPreflight(
                 tool: Self.definition.identifier,
                 risk: Self.definition.risk,
-                summary: "Propose \(input.action) \(input.value) for \(selection.isEmpty ? "a selection" : selection) on \(input.account ?? "the default account") (\(input.reason)). Stored only; nothing changes until mail_apply.",
+                summary: "Propose \(input.action) \(input.value) for \(selection.isEmpty ? "a selection" : selection) on \(input.account ?? "the default account") (\(input.reason)). Stored only; nothing changes until mail_tool_apply.",
                 sideEffects: ["stores a plan in the local index"],
                 policyChecks: ["local_index_only"]
             )
@@ -468,7 +468,7 @@ public extension Email.Tools {
                 targets = try await index.targets(try await index.suspicious(policy, filter: filter))
             } else if let uids = input.uids, !uids.isEmpty {
                 guard input.mailbox != nil else {
-                    throw Email.Failure.invalidInput("uids need mailbox: the mailbox they are in, as mail_suspicious or mail_search reported it (such as INBOX or INBOX.spam).")
+                    throw Email.Failure.invalidInput("uids need mailbox: the mailbox they are in, as mail_tool_suspicious or mail_tool_search reported it (such as INBOX or INBOX.spam).")
                 }
                 let wanted = Set(uids.map { IMAPUID(UInt32($0)) })
                 targets = try await index.targets(filter).filter { wanted.contains($0.uid) }
@@ -478,7 +478,7 @@ public extension Email.Tools {
                 throw Email.Failure.invalidInput("Pick messages with one of: suspicious: true, sender, domain, list, or uids with mailbox.")
             }
             guard !targets.isEmpty else {
-                throw Email.Failure.invalidInput("No indexed message matches the selection; run mail_index_sync if it is new, or widen the selection.")
+                throw Email.Failure.invalidInput("No indexed message matches the selection; run mail_tool_index_sync if it is new, or widen the selection.")
             }
 
             let plan = MailPlan(steps: [.init(action, reason: reason, targets: targets)])
@@ -500,7 +500,7 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_plans")
+    @Tool("plans")
     struct Plans {
         @JSONSchema
         public struct Input: HashableSource {
@@ -554,7 +554,7 @@ public extension Email.Tools {
             }
             if let id = input.plan.flatMap(Email.nonEmpty) {
                 guard let record = try await index.plan(id) else {
-                    throw Email.Failure.invalidInput("No plan \(id) for \(account.identifier); call mail_plans without plan to list them.")
+                    throw Email.Failure.invalidInput("No plan \(id) for \(account.identifier); call mail_tool_plans without plan to list them.")
                 }
                 let previews = try await index.previews(record.plan.steps.flatMap(\.targets), limit: 30)
                 return Output(
@@ -575,12 +575,12 @@ public extension Email.Tools {
         }
     }
 
-    @Tool("mail_apply")
+    @Tool("apply")
     struct Apply {
         @JSONSchema
         public struct Input: HashableSource {
             public let account: String?
-            /// The plan from mail_plan.
+            /// The plan from mail_tool_plan.
             public let plan: String
 
             public init(account: String? = nil, plan: String) {
@@ -599,7 +599,7 @@ public extension Email.Tools {
         }
 
         public static let purpose =
-            "Apply a stored plan on the server after the owner approves it: every message is checked again (mailbox numbering, Message-ID) and skipped when it changed; results are journaled for mail_undo and the index re-synced. Never deletes. Needs an organize grant on the account."
+            "Apply a stored plan on the server after the owner approves it: every message is checked again (mailbox numbering, Message-ID) and skipped when it changed; results are journaled for mail_tool_undo and the index re-synced. Never deletes. Needs an organize grant on the account."
         public static let risk: ActionRisk = .privileged
 
         public init() {}
@@ -615,7 +615,7 @@ public extension Email.Tools {
                 preview: .init([
                     .report(try Email.planCard(plan, account: account.identifier, previews: try await index.previews(plan.steps.flatMap(\.targets), limit: 15)), title: "Plan"),
                 ]),
-                sideEffects: ["moves, flags or labels messages on the mail server, visible in every mail client", "reversible with mail_undo"],
+                sideEffects: ["moves, flags or labels messages on the mail server, visible in every mail client", "reversible with mail_tool_undo"],
                 policyChecks: ["organize_grant", "access_profile:\(try Email.runtime(in: context).access.name)"]
             )
         }
@@ -641,16 +641,16 @@ public extension Email.Tools {
             try authorization.requireWholeAccount(.organize, account: account)
             let index = try Email.index(for: account, in: context)
             guard let record = try await index.plan(input.plan) else {
-                throw Email.Failure.invalidInput("No plan \(input.plan) for this account; mail_plans lists them.")
+                throw Email.Failure.invalidInput("No plan \(input.plan) for this account; mail_tool_plans lists them.")
             }
             guard record.appliedAt == nil else {
-                throw Email.Failure.invalidInput("Plan \(input.plan) was already applied; mail_undo reverses it.")
+                throw Email.Failure.invalidInput("Plan \(input.plan) was already applied; mail_tool_undo reverses it.")
             }
             return (account, index, record.plan)
         }
     }
 
-    @Tool("mail_undo")
+    @Tool("undo")
     struct Undo {
         @JSONSchema
         public struct Input: HashableSource {
@@ -667,7 +667,7 @@ public extension Email.Tools {
         public typealias Output = Apply.Output
 
         public static let purpose =
-            "Reverse an applied plan from its journal after the owner approves: moved messages go back, flags and labels come off, each checked like mail_apply. Needs an organize grant on the account."
+            "Reverse an applied plan from its journal after the owner approves: moved messages go back, flags and labels come off, each checked like mail_tool_apply. Needs an organize grant on the account."
         public static let risk: ActionRisk = .privileged
 
         public init() {}
@@ -709,7 +709,7 @@ public extension Email.Tools {
             try authorization.requireWholeAccount(.organize, account: account)
             let index = try Email.index(for: account, in: context)
             guard let record = try await index.plan(input.plan), record.appliedAt != nil, record.undoneAt == nil else {
-                throw Email.Failure.invalidInput("Plan \(input.plan) is not an applied plan that can still be undone; mail_plans shows each plan's state.")
+                throw Email.Failure.invalidInput("Plan \(input.plan) is not an applied plan that can still be undone; mail_tool_plans shows each plan's state.")
             }
             let undo = try await index.undoPlan(for: input.plan)
             guard undo.count > 0 else {

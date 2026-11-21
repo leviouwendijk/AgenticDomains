@@ -5,5 +5,5 @@ import Agentic
 /// found, discover capabilities on demand, report from evidence.
 ///
 /// Applications fork `General.Agents.GeneralPurpose` and add their domains.
-@Domain
+@Domain("general")
 public enum General {}

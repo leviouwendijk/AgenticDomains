@@ -7,7 +7,7 @@ public extension Scheduling.Tools {
     /// Writes one appointment into a calendar. The user approves it from its
     /// preflight, which names the calendar, what the appointment would
     /// overlap and the offered slot it fills.
-    @Tool("schedule_book")
+    @Tool("book")
     struct Book {
         @JSONSchema
         public struct Input: HashableSource {

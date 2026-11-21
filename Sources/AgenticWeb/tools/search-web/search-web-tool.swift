@@ -6,7 +6,7 @@ import Schema
 import Workspace
 
 public extension Web.Tools {
-    @Tool("search_web")
+    @Tool("search")
     struct Search {
         @JSONSchema
         public struct Input:

@@ -37,7 +37,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_remove_deployed"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("remove_deployed")
         public static let description =
             "Remove one deployed Swift binary and its metadata through Executable.Remove."
         public static let risk: ActionRisk = .privileged

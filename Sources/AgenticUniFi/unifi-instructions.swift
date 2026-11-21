@@ -5,7 +5,7 @@ public extension UniFi.Instructions {
     enum ReadOnly: Instruction {
         public static let content = """
         Use only registered UniFi read tools for inspection. When no site ID is
-        supplied, discover accessible sites with unifi_list_sites. If exactly one
+        supplied, discover accessible sites with unifi_tool_list_sites. If exactly one
         site exists, use its UUID. If multiple sites exist, request explicit
         selection by ordinal or UUID before accessing site-specific data.
         Never guess a site; a zero-site result is not a valid default.
@@ -28,7 +28,7 @@ public extension UniFi.Instructions {
     enum Mutation: Instruction {
         public static let content = """
         A proposed plan is not permission to execute. The only controller-writing
-        tool is unifi_apply_policy_telemetry, classified privileged and limited to
+        tool is unifi_tool_apply_policy_telemetry, classified privileged and limited to
         one prepared USER_DEFINED policy's logging/reporting flags. It is disabled
         unless a trusted host injects a TelemetryWriter and its own approver.
         Obtain explicit human approval over the exact tool preflight; re-read the

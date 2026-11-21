@@ -7,7 +7,7 @@ import Schema
 import Macros
 
 public extension Git.Tools {
-    @Tool("git_worktree_list")
+    @Tool("worktree_list")
     struct WorktreeList {
         public typealias Input = AgenticGitEmptyToolInput
         public typealias Output = [GitManagerWorktreeRecord]
@@ -136,7 +136,7 @@ public struct GitWorktreeCreateToolOutput:
 }
 
 public extension Git.Tools {
-    @Tool("git_worktree_create")
+    @Tool("worktree_create")
     struct WorktreeCreate {
         public typealias Input = GitWorktreeCreateToolInput
         public typealias Output = GitWorktreeCreateToolOutput
@@ -251,7 +251,7 @@ public struct GitWorktreeRemoveToolInput:
     Codable,
     Hashable
 {
-    /// Exact path returned by git_worktree_create or git_worktree_list for an Agentic-managed task worktree.
+    /// Exact path returned by git_tool_worktree_create or git_tool_worktree_list for an Agentic-managed task worktree.
     public let path: String
 
     public init(
@@ -280,7 +280,7 @@ public struct GitWorktreeRemoveToolOutput:
 }
 
 public extension Git.Tools {
-    @Tool("git_worktree_remove")
+    @Tool("worktree_remove")
     struct WorktreeRemove {
         public typealias Input = GitWorktreeRemoveToolInput
         public typealias Output = GitWorktreeRemoveToolOutput

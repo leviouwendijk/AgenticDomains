@@ -30,7 +30,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_package_frame_init"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("package_frame_init")
         public static let description =
             "Write package.frame (and Tests/package.frame when Tests/ holds a Package.swift) with empty descriptions; existing files are kept."
         public static let risk: ActionRisk = .boundedmutate

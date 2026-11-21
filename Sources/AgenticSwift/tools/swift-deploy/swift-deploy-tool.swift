@@ -86,8 +86,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier =
-            "swift_deploy"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("deploy")
 
         public static let description =
             """

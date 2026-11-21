@@ -29,7 +29,7 @@ public enum AgendaReading:
 }
 
 public extension Scheduling.Tools {
-    @Tool("schedule_agenda")
+    @Tool("agenda")
     struct Agenda {
         @JSONSchema
         public struct Input: HashableSource {

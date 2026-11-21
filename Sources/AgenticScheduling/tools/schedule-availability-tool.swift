@@ -36,7 +36,7 @@ public extension Scheduling.Tools {
     /// per stretch of start times (or per day, or per given start), one
     /// column per participant with what they have around it, and a mark
     /// for whether it fits. Everything in it is computed here.
-    @Tool("schedule_availability")
+    @Tool("availability")
     struct Availability {
         @JSONSchema
         public struct Input: HashableSource {
@@ -44,7 +44,7 @@ public extension Scheduling.Tools {
             public let window_start: String
             /// Latest possible end, ISO 8601 with offset.
             public let window_end: String
-            /// The appointment's requirements, as for `schedule_find_slots`.
+            /// The appointment's requirements, as for `schedule_tool_find_slots`.
             /// Reserved time and split trips are always checked as
             /// escalations (⚠), whatever `allow_reserved` and
             /// `allow_split_travel` say.

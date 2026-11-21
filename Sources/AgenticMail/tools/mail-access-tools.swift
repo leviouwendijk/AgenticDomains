@@ -6,7 +6,7 @@ import Macros
 import Schema
 
 public extension Email.Tools {
-    @Tool("mail_request_access")
+    @Tool("request_access")
     struct RequestAccess {
         @JSONSchema
         public struct Input: HashableSource {

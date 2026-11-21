@@ -6,7 +6,7 @@ import Schema
 import Macros
 
 public extension Git.Tools {
-    @Tool("git_reconciliation_plan")
+    @Tool("reconciliation_plan")
     struct ReconciliationPlan {
         public typealias Input = AgenticGitEmptyToolInput
         public typealias Output = GitManagerReconciliationResult

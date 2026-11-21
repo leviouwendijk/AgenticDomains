@@ -15,10 +15,10 @@ public struct GitIntegrationPromoteToolInput:
     Codable,
     Hashable
 {
-    /// Exact receipt returned by git_integration_prepare.
+    /// Exact receipt returned by git_tool_integration_prepare.
     public let executionReceipt: String
 
-    /// Local target branch to advance to the exact prepared integration HEAD. Must exactly match the target ref reviewed by git_integration_plan.
+    /// Local target branch to advance to the exact prepared integration HEAD. Must exactly match the target ref reviewed by git_tool_integration_plan.
     public let targetBranch: String
 
     public init(
@@ -31,7 +31,7 @@ public struct GitIntegrationPromoteToolInput:
 }
 
 public extension Git.Tools {
-    @Tool("git_integration_promote")
+    @Tool("integration_promote")
     struct IntegrationPromote {
         public typealias Input = GitIntegrationPromoteToolInput
         public typealias Output = GitManagerIntegrationPromotion
@@ -146,7 +146,7 @@ private extension Git.Tools.IntegrationPromote {
 
         guard input.targetBranch == execution.plan.target.ref else {
             throw GitManagerError.unsafeSync(
-                "git_integration_promote targetBranch must exactly match the target ref reviewed in the integration plan: \(execution.plan.target.ref)"
+                "git_tool_integration_promote targetBranch must exactly match the target ref reviewed in the integration plan: \(execution.plan.target.ref)"
             )
         }
 
@@ -175,7 +175,7 @@ public struct GitIntegrationCleanupToolInput:
     Codable,
     Hashable
 {
-    /// Exact receipt returned by git_integration_prepare.
+    /// Exact receipt returned by git_tool_integration_prepare.
     public let executionReceipt: String
 
     /// Explicitly discard an unpromoted or conflicted disposable integration. Defaults to false.
@@ -216,7 +216,7 @@ public struct GitIntegrationCleanupToolOutput:
 }
 
 public extension Git.Tools {
-    @Tool("git_integration_cleanup")
+    @Tool("integration_cleanup")
     struct IntegrationCleanup {
         public typealias Input = GitIntegrationCleanupToolInput
         public typealias Output = GitIntegrationCleanupToolOutput

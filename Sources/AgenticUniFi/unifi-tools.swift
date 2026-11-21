@@ -4,7 +4,7 @@ import Macros
 import Schema
 
 public extension UniFi.Tools {
-    @Tool("unifi_list_sites")
+    @Tool("list_sites")
     struct ListSites {
         @JSONSchema
         public struct Input: Sendable, Codable, Hashable {
@@ -24,7 +24,7 @@ public extension UniFi.Tools {
         }
     }
 
-    @Tool("unifi_capture_snapshot")
+    @Tool("capture_snapshot")
     struct CaptureSnapshot {
         @JSONSchema
         public struct Input: Sendable, Codable, Hashable {
@@ -48,7 +48,7 @@ public extension UniFi.Tools {
         }
     }
 
-    @Tool("unifi_list_networks")
+    @Tool("list_networks")
     struct ListNetworks {
         @JSONSchema
         public struct Input: Sendable, Codable, Hashable {
@@ -63,7 +63,7 @@ public extension UniFi.Tools {
         }
     }
 
-    @Tool("unifi_list_zones")
+    @Tool("list_zones")
     struct ListZones {
         @JSONSchema
         public struct Input: Sendable, Codable, Hashable {
@@ -78,7 +78,7 @@ public extension UniFi.Tools {
         }
     }
 
-    @Tool("unifi_list_policies")
+    @Tool("list_policies")
     struct ListPolicies {
         public typealias Input = UniFi.PolicyQuery
         public typealias Output = UniFi.PolicyPage
@@ -90,7 +90,7 @@ public extension UniFi.Tools {
         }
     }
 
-    @Tool("unifi_inspect_network")
+    @Tool("inspect_network")
     struct InspectNetwork {
         @JSONSchema
         public struct Input: Sendable, Codable, Hashable {
@@ -106,7 +106,7 @@ public extension UniFi.Tools {
         }
     }
 
-    @Tool("unifi_inspect_policy")
+    @Tool("inspect_policy")
     struct InspectPolicy {
         @JSONSchema
         public struct Input: Sendable, Codable, Hashable {
@@ -122,7 +122,7 @@ public extension UniFi.Tools {
         }
     }
 
-    @Tool("unifi_inspect_traffic_path")
+    @Tool("inspect_traffic_path")
     struct InspectTrafficPath {
         public typealias Input = UniFi.TrafficPathQuery
         public typealias Output = UniFi.TrafficPathInspection
@@ -136,7 +136,7 @@ public extension UniFi.Tools {
 
     /// Deliberately privileged: auto_bounded_mutate otherwise skips human review.
     /// The trusted host must also inject TelemetryWriter with its own approver.
-    @Tool("unifi_apply_policy_telemetry")
+    @Tool("apply_policy_telemetry")
     struct ApplyPolicyTelemetry {
         public typealias Input = UniFi.ApplyTelemetryRequest
         public typealias Output = UniFi.ApplyTelemetryResult
@@ -174,7 +174,7 @@ public extension UniFi.Tools {
         }
     }
 
-    @Tool("unifi_plan_changes")
+    @Tool("plan_changes")
     struct PlanChanges {
         public typealias Input = UniFi.PlanRequest
         public typealias Output = UniFi.PlanPreview
@@ -191,7 +191,7 @@ public extension UniFi.Tools {
         }
     }
 
-    @Tool("unifi_inspect_plan")
+    @Tool("inspect_plan")
     struct InspectPlan {
         @JSONSchema
         public struct Input: Sendable, Codable, Hashable {

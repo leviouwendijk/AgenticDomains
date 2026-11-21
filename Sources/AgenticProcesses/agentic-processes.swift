@@ -1,4 +1,4 @@
 import Agentic
 
-@Domain
+@Domain("shell")
 public enum Shell {}

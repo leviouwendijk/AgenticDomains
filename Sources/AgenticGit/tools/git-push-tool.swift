@@ -97,19 +97,19 @@ public extension GitPushToolInput {
 
         case (.some, .none), (.none, .some):
             throw GitManagerError.unsafeSync(
-                "git_push requires both remote and branch when selecting an explicit destination. Omit both to use the configured upstream."
+                "git_tool_push requires both remote and branch when selecting an explicit destination. Omit both to use the configured upstream."
             )
 
         case let (.some(remote), .some(branch)):
             guard validRemote(remote) else {
                 throw GitManagerError.unsafeSync(
-                    "Invalid explicit Git remote for git_push: \(remote)"
+                    "Invalid explicit Git remote for git_tool_push: \(remote)"
                 )
             }
 
             guard validBranch(branch) else {
                 throw GitManagerError.unsafeSync(
-                    "Invalid explicit Git branch for git_push: \(branch)"
+                    "Invalid explicit Git branch for git_tool_push: \(branch)"
                 )
             }
 
@@ -209,7 +209,7 @@ public struct GitPushToolOutput:
 }
 
 public extension Git.Tools {
-    @Tool("git_push")
+    @Tool("push")
     struct Push {
     public typealias Input = GitPushToolInput
     public typealias Output = GitPushToolOutput

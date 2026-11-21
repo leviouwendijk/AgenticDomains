@@ -8,7 +8,7 @@ import Primitives
 import Schema
 
 public extension SwiftLang.Tools {
-    @Tool("read_swift_structure")
+    @Tool("read_structure")
     struct ReadStructure: Tool {
     @JSONSchema
     public struct Input: Sendable, Codable, Hashable {

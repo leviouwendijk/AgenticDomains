@@ -65,7 +65,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier: ToolIdentifier = "swift_app_bundle"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("app_bundle")
         public static let description =
             "Create or refresh a .app bundle around already-built Swift artifacts through Executable.AppBundleCreation."
         public static let risk: ActionRisk = .boundedmutate

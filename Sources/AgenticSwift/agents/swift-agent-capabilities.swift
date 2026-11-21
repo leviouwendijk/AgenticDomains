@@ -53,7 +53,7 @@ enum SwiftAgentTools {
         Standard.Tools.ReadGuidelineChapter.identifier,
     ]
 
-    /// Domains available but hidden; reachable through list_capabilities and search_capabilities.
+    /// Domains available but hidden; reachable through standard_tool_list_capabilities and standard_tool_search_capabilities.
     static let discoverableDomains: [any Domain.Type] = [
         Math.self,
         Assertions.self,

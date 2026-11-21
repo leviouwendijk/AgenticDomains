@@ -182,7 +182,7 @@ public extension Email {
             case .sendingNotAllowed(let account):
                 return .init(
                     message: "Account '\(account)' only allows drafts (sending = drafts).",
-                    recoverySuggestion: "Save a draft with mail_draft; the owner sends it."
+                    recoverySuggestion: "Save a draft with mail_tool_draft; the owner sends it."
                 )
             case .unknownIdentity(let address, let account, let known):
                 return .init(
@@ -246,7 +246,7 @@ public extension Email {
             case .accessRequired(let level, let target):
                 return .init(
                     message: "No \(level.rawValue) access to \(target) in this session.",
-                    recoverySuggestion: "Ask for it with mail_request_access (targets [\"\(target)\"], level \(level.rawValue)) and a reason."
+                    recoverySuggestion: "Ask for it with mail_tool_request_access (targets [\"\(target)\"], level \(level.rawValue)) and a reason."
                 )
             case .missingReason:
                 return .init(message: "Say why the task needs this access; the owner sees the reason.")
@@ -262,7 +262,7 @@ public extension Email {
             case .noMailboxes(let selectors):
                 return .init(
                     message: "No mailbox matches \(selectors).",
-                    recoverySuggestion: "List them with mail_mailboxes."
+                    recoverySuggestion: "List them with mail_tool_mailboxes."
                 )
             }
         }

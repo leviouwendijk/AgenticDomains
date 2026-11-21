@@ -5,7 +5,7 @@ import Schema
 import Workspace
 
 public extension Web.Tools {
-    @Tool("open_web_result")
+    @Tool("open_result")
     struct OpenResult {
         @JSONSchema
         public struct Input:
@@ -13,10 +13,10 @@ public extension Web.Tools {
             Codable,
             Hashable
         {
-            /// Search record identifier returned by search_web.
+            /// Search record identifier returned by web_tool_search.
             public let searchID: String
 
-            /// Result identifier returned by search_web.
+            /// Result identifier returned by web_tool_search.
             public let resultID: String
 
             /// Optional maximum number of returned text characters.

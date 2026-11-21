@@ -7,5 +7,5 @@ import Agentic
 ///
 /// Agents declare only a route purpose; the application binds models.
 /// Language tooling (Swift today) is available, not assumed.
-@Domain
+@Domain("development", aliases: ["dev"])
 public enum Development {}

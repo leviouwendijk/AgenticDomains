@@ -6,14 +6,14 @@ import Schema
 public extension Scheduling.Tools {
     /// Changes one existing event: its time, length, title, location, notes
     /// or calendar. Only that occurrence of a recurring event changes.
-    @Tool("schedule_update")
+    @Tool("update")
     struct Update {
         @JSONSchema
         public struct Input: HashableSource {
             /// The event's current start, ISO 8601 with offset, as
-            /// `schedule_agenda` lists it.
+            /// `schedule_tool_agenda` lists it.
             public let event_start: String
-            /// The event's current title, as `schedule_agenda` lists it.
+            /// The event's current title, as `schedule_tool_agenda` lists it.
             public let event_title: String
             /// The event's current calendar, when the title and start alone
             /// match several events.
@@ -138,14 +138,14 @@ public extension Scheduling.Tools {
 
     /// Removes one existing event. Only that occurrence of a recurring event
     /// goes.
-    @Tool("schedule_remove")
+    @Tool("remove")
     struct Remove {
         @JSONSchema
         public struct Input: HashableSource {
             /// The event's start, ISO 8601 with offset, as
-            /// `schedule_agenda` lists it.
+            /// `schedule_tool_agenda` lists it.
             public let event_start: String
-            /// The event's title, as `schedule_agenda` lists it.
+            /// The event's title, as `schedule_tool_agenda` lists it.
             public let event_title: String
             /// The event's calendar, when the title and start alone match
             /// several events.

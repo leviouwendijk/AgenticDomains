@@ -4,7 +4,7 @@ import Schema
 import Workspace
 
 public extension SwiftLang.Tools {
-    @Tool("lint_swift_files")
+    @Tool("lint_files")
     struct LintFiles {
         @JSONSchema
         public struct Input:
@@ -77,7 +77,7 @@ public extension SwiftLang.Tools {
                     exitCode: nil,
                     signal: nil,
                     detail:
-                        "lint_swift_files requires between 1 and \(Self.maximumPathCount) explicit project-relative Swift source paths."
+                        "swift_tool_lint_files requires between 1 and \(Self.maximumPathCount) explicit project-relative Swift source paths."
                 )
             }
 

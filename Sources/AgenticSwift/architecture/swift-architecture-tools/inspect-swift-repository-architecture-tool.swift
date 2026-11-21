@@ -5,7 +5,7 @@ import Workspace
 import Documentation
 
 public extension SwiftLang.Tools {
-    @Tool("inspect_swift_repository_architecture")
+    @Tool("inspect_repository_architecture")
     struct InspectRepositoryArchitecture {
         @JSONSchema
         public struct Input:

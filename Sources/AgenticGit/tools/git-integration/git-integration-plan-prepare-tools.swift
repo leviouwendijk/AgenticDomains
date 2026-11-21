@@ -52,7 +52,7 @@ public struct GitIntegrationPlanToolOutput:
 }
 
 public extension Git.Tools {
-    @Tool("git_integration_plan")
+    @Tool("integration_plan")
     struct IntegrationPlan {
         public typealias Input = GitIntegrationPlanToolInput
         public typealias Output = GitIntegrationPlanToolOutput
@@ -167,7 +167,7 @@ public struct GitIntegrationPrepareToolInput:
     Codable,
     Hashable
 {
-    /// Exact receipt returned by git_integration_plan.
+    /// Exact receipt returned by git_tool_integration_plan.
     public let planReceipt: String
 
     /// Stable semantic identity for this integration attempt.
@@ -201,7 +201,7 @@ public struct GitIntegrationPrepareToolOutput:
 }
 
 public extension Git.Tools {
-    @Tool("git_integration_prepare")
+    @Tool("integration_prepare")
     struct IntegrationPrepare {
         public typealias Input = GitIntegrationPrepareToolInput
         public typealias Output = GitIntegrationPrepareToolOutput

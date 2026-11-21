@@ -12,7 +12,7 @@ public extension SwiftLang.Instructions {
         1. Use `\(SwiftLang.Tools.ListSymbols.identifier.rawValue)` to map symbols in a file before reading large source ranges.
         2. Use `\(SwiftLang.Tools.ReadSymbol.identifier.rawValue)` when an exact type, function, initializer, property, enum case, or extension is needed.
         3. Use `\(SwiftLang.Tools.ReadStructure.identifier.rawValue)` for enclosing scopes, imports, declarations, members, and type-level selections.
-        4. Fall back to `read` only when the structural tools cannot answer the question.
+        4. Fall back to `io_tool_read` only when the structural tools cannot answer the question.
         5. Preserve source line ranges in your explanation when they matter for review or patching.
         """
     }
@@ -25,7 +25,7 @@ public extension SwiftLang.Instructions {
         Editing workflow:
         1. Identify the smallest relevant symbol or enclosing scope.
         2. Read only the relevant symbol/body/range unless broader context is needed.
-        3. Prefer one coherent `mutate` pass for related file changes.
+        3. Prefer one coherent `io_tool_mutate` pass for related file changes.
         4. Use `create_text`, `replace_text`, `edit_text`, or `delete` entries rather than separate write/edit tools.
         5. For `edit_text`, use contiguous operations with clear replacement boundaries.
         6. Preserve access control, Sendable/Codable/Hashable conformances, naming style, and existing file organization.

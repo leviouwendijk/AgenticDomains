@@ -7,7 +7,7 @@ import Macros
 import Schema
 
 public extension Email {
-    /// What `mail_draft` and `mail_send` take: a new message, or a reply to one.
+    /// What `mail_tool_draft` and `mail_tool_send` take: a new message, or a reply to one.
     @JSONSchema
     struct Composition: HashableSource {
         /// The account's binding name; the default account when absent.
@@ -28,7 +28,7 @@ public extension Email {
         /// Files to attach, by path: relative to the workspace, or inside the
         /// workspace or the exports directory. 18 MB in total at most.
         public let attachments: [String]?
-        /// The UID of the message this replies to, as listed by mail_search.
+        /// The UID of the message this replies to, as listed by mail_tool_search.
         public let reply_to_uid: Int?
         /// The mailbox holding `reply_to_uid`; INBOX when absent.
         public let reply_mailbox: String?

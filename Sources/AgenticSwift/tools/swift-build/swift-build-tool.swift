@@ -8,7 +8,7 @@ import Macros
 
 /// Configure a Swift package build invocation.
 public extension SwiftLang.Tools {
-    @Tool("swift_build")
+    @Tool("build")
     struct Build {
         @JSONSchema
         public struct Input:

@@ -52,9 +52,7 @@ public extension SwiftLang.Tools {
             }
         }
 
-    public static let identifier:
-            ToolIdentifier =
-                "swift_executable_products"
+    public static let identifier: ToolIdentifier = SwiftLang.definition.toolIdentifier("executable_products")
 
         public static let description =
             """

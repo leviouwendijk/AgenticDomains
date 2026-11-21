@@ -68,7 +68,7 @@ public struct ShellRunToolOutput:
 public extension Shell.Tools {
     /// Definition risk is the ceiling; preflight may only lower it to boundedmutate
     /// through the trusted host's Shell.CommandPolicy, never to observe.
-    @Tool("shell_run")
+    @Tool("run")
     struct Run {
         public typealias Input = ShellRunToolInput
         public typealias Output = ShellRunToolOutput
