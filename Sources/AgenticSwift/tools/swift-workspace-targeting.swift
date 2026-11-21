@@ -871,7 +871,12 @@ extension SwiftLang.Tools.Deploy {
             to: resolved.destination,
             products: resolved.plan.selectedProductNames,
             perProductDestinations:
-                resolved.plan.perProductDestinations
+                resolved.plan.perProductDestinations,
+            identity: await Self.builtIdentity(
+                project: execution.projectRoot,
+                mode: resolved.plan.request.config.mode,
+                products: resolved.plan.selectedProductNames
+            )
         )
 
         return Output(
@@ -879,6 +884,23 @@ extension SwiftLang.Tools.Deploy {
                 destination: resolved.destination.path,
                 products: resolved.plan.selectedProductNames
             )
+    }
+
+    /// What the products were built from: their build record in .build/<mode>/, or HEAD when
+    /// no build recorded them (then the deployed metadata may be newer than the binary).
+    private static func builtIdentity(
+        project: URL,
+        mode: Executable.Build.Config.Mode,
+        products: [String]
+    ) async -> BuildIdentity? {
+        let records = BuildRecord.directory(project: project, mode: mode)
+        for product in products {
+            if let metadata = (try? ProductMetadata.read(product: product, in: records)) ?? nil,
+               let commit = metadata.commit {
+                return BuildIdentity(version: metadata.version, commit: commit, dirty: metadata.dirty)
+            }
+        }
+        return await BuildIdentity.current(at: project)
     }
 
     private func targetedDeployResolution(

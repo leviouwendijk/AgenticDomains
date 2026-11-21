@@ -35,9 +35,18 @@ public extension SwiftLang.Tools {
                 }
             }
 
-            /// Optional explicit Swift build configuration. Omit to use the project default,
-            /// including package.frame .build and .deploy.
+            /// Build mode for this run (sbm -d / --release). Omit for package.frame's .mode.
+            /// Like every field here, it overrides only itself: the rest of package.frame applies.
             public let configuration: Configuration?
+            /// Build only these executable products (sbm --products); replaces package.frame's
+            /// selection. They deploy only when package.frame's .deploy lists them all, or with deploy.
+            public let products: [String]?
+            /// true deploys the selected products (sbm --deploy); false keeps them in .build
+            /// (sbm -l). Omit to deploy exactly when package.frame's .deploy says so.
+            public let deploy: Bool?
+            /// Build from these fields alone, without package.frame (sbm --ignore-frame): no signing
+            /// and no deploy unless asked.
+            public let ignoreFrame: Bool?
             /// Run the Tests/ primary first; a failure stops the build and its deployment.
             public let test: Bool?
             /// Run the Benchmarks/ primary after a successful build.
@@ -54,6 +63,9 @@ public extension SwiftLang.Tools {
 
             public init(
                 configuration: Configuration? = nil,
+                products: [String]? = nil,
+                deploy: Bool? = nil,
+                ignoreFrame: Bool? = nil,
                 test: Bool? = nil,
                 bench: Bool? = nil,
                 cleanBefore: Bool? = nil,
@@ -62,6 +74,9 @@ public extension SwiftLang.Tools {
                 wipe: Bool? = nil
             ) {
                 self.configuration = configuration
+                self.products = products
+                self.deploy = deploy
+                self.ignoreFrame = ignoreFrame
                 self.test = test
                 self.bench = bench
                 self.cleanBefore = cleanBefore
@@ -114,50 +129,11 @@ public extension SwiftLang.Tools {
         }
 
         public static let purpose = """
-        Build the current SwiftPM workspace through Executable's typed Build.Request -> Build.resolve -> Build.execute workflow. Omit configuration to use normal sbm project defaults, including package.frame .build and .deploy and deployment behavior. Explicit debug/release overrides do not deploy. Agentic disables built-version bookkeeping. The steps match sbm's flags: test runs the Tests/ primary first (a failure stops the build), bench the Benchmarks/ primary afterwards; cleanBefore/wipeBefore tidy the caches first, clean/wipe after a successful build; the steps' report is returned in steps.
+        Build the current SwiftPM workspace the way sbm does: package.frame (.mode, .build, .sign, .deploy) with the given fields overriding it one by one (configuration = -d/--release, products = --products, deploy = --deploy/-l, ignoreFrame = --ignore-frame). Nothing deploys unless package.frame's .deploy or deploy: true says so; the preflight shows the equivalent sbm command and whether it deploys. The steps match sbm's flags: test runs the Tests/ primary first (a failure stops the build), bench the Benchmarks/ primary afterwards; cleanBefore/wipeBefore tidy the caches first, clean/wipe after a successful build; the steps' report is returned in steps.
         """
 
         public static let risk: ActionRisk = .privileged
 
         public init() {}
-    }
-}
-
-private extension SwiftLang.Tools.Build {
-    func buildRequest(
-        _ input: SwiftLang.Tools.Build.Input,
-        workspace: WorkspaceContext
-    ) throws -> Executable.Build.Request {
-        guard let configuration = input.configuration else {
-            return try SwiftBuildCommand.projectDefaultRequest(
-                from: workspace.absoluteURL
-            )
-        }
-
-        let mode:
-            Executable.Build.Config.Mode =
-                switch configuration {
-                case .debug:
-                    .debug
-
-                case .release:
-                    .release
-                }
-
-        return Executable.Build.Request(
-            project: workspace.absoluteURL,
-            config: .init(
-                mode: mode
-            ),
-            deploy: false,
-            source: .direct(
-                arguments:
-                    configuration == .debug
-                        ? [
-                            "--debug",
-                        ]
-                        : []
-            )
-        )
     }
 }

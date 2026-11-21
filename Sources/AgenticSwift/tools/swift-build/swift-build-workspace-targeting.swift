@@ -39,17 +39,23 @@ extension SwiftLang.Tools.Build {
             "Writes SwiftPM build artifacts under .build.",
             "SwiftPM may resolve or fetch package dependencies.",
             "Package or build-plugin code may execute with the current host permissions.",
-            "Executable built-version snapshot bookkeeping is disabled for this invocation.",
+            "Writes build records (<product>.metadata) beside the products in .build.",
         ]
 
         var policyChecks = [
             "workspace_required",
             "workspace_location_selected",
             "typed_swift_build",
-            "built_version_snapshot_disabled",
             "typed_build_request_resolution_execution",
             "human_review_required",
         ]
+
+        if let signing = request.signing.defaultConfiguration {
+            sideEffects.append(
+                "Code-signs the built products with \(signing.identity.argumentValue)"
+                + (signing.missing == .fail ? "." : " (\(signing.missing == .adHoc ? "ad-hoc" : "unsigned") when this machine lacks it).")
+            )
+        }
 
         if request.deploy {
             targetPaths.append(
@@ -67,26 +73,11 @@ extension SwiftLang.Tools.Build {
             )
         }
 
-        let summary: String
-        var commandPreview: String
-
-        if let configuration = input.configuration {
-            summary =
-                "Build the selected Swift package in explicit \(configuration.rawValue) configuration without deployment."
-            commandPreview =
-                "swift build -c \(configuration.rawValue)"
-        } else {
-            summary =
-                "Run the selected project's normal \(request.config.buildDirComponent) build workflow from \(request.source.description)."
-            commandPreview =
-                request.source.arguments.isEmpty
-                    ? "sbm"
-                    : "sbm \(request.source.arguments.joined(separator: " "))"
-        }
-        let flags = stepFlags(input)
-        if !flags.isEmpty {
-            commandPreview += " " + flags.joined(separator: " ")
-        }
+        let summary =
+            "Build \(project.lastPathComponent) in \(request.config.buildDirComponent) from \(request.source.description)"
+            + (request.deploy ? ", deploying to \(request.destination.path)." : ", without deploying.")
+        let commandPreview = (["sbm"] + Self.sbmFlags(input) + stepFlags(input))
+            .joined(separator: " ")
 
         return ToolPreflight(
             tool: Self.definition.identifier,
@@ -257,39 +248,38 @@ extension SwiftLang.Tools.Build {
         buffer.isEmpty ? nil : SwiftTidySteps.report(buffer)
     }
 
+    /// The request sbm would build for these flags: package.frame with them merged over it.
     private func targetedBuildRequest(
         _ input: Input,
         project: URL
     ) throws -> Executable.Build.Request {
-        guard let configuration = input.configuration else {
-            return try SwiftBuildCommand.projectDefaultRequest(
-                from: project
-            )
-        }
-
-        let mode: Executable.Build.Config.Mode =
-            switch configuration {
-            case .debug:
-                .debug
-
-            case .release:
-                .release
-            }
-
-        return Executable.Build.Request(
-            project: project,
-            config: .init(
-                mode: mode
-            ),
-            deploy: false,
-            source: .direct(
-                arguments:
-                    configuration == .debug
-                        ? [
-                            "--debug",
-                        ]
-                        : []
-            )
+        try SwiftBuildCommand.request(
+            arguments: Self.sbmFlags(input),
+            defaultProject: project
         )
+    }
+
+    /// The sbm build flags the input stands for.
+    static func sbmFlags(
+        _ input: Input
+    ) -> [String] {
+        var flags: [String] = []
+        switch input.configuration {
+        case .debug: flags.append("--debug")
+        case .release: flags.append("--release")
+        case nil: break
+        }
+        for product in input.products ?? [] {
+            flags += ["--products", product]
+        }
+        switch input.deploy {
+        case .some(true): flags.append("--deploy")
+        case .some(false): flags.append("--local")
+        case .none: break
+        }
+        if input.ignoreFrame == true {
+            flags.append("--ignore-frame")
+        }
+        return flags
     }
 }
