@@ -28,6 +28,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/leviouwendijk/Agentic.git", branch: "master"),
+        .package(url: "https://github.com/leviouwendijk/AgenticIO.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Errors.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Reporting.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Mail.git", branch: "master"),
@@ -73,6 +74,7 @@ let package = Package(
             dependencies: [
                 .product(name: "AgenticProcesses", package: "AgenticDomains"),
                 .product(name: "Agentic", package: "Agentic"),
+                .product(name: "AgenticIO", package: "AgenticIO"),
                 .product(name: "Testing", package: "Testing"),
             ]
         ),

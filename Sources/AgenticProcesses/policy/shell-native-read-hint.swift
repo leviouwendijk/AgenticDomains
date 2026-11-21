@@ -32,8 +32,14 @@ public extension Shell {
                 .filter(uses.contains)
                 .map(\.tools)
                 .joined(separator: "; ")
+            let hint = "This command only reads files. Native tools do this without a shell, usually without review, and batch: \(tools)."
+            let calls = equivalents(of: command)
+                .map { "`\($0.call)`" }
+                .joined(separator: "; ")
 
-            return "This command only reads files. Native tools do this without a shell, usually without review, and batch: \(tools)."
+            return calls.isEmpty
+                ? hint
+                : hint + " Equivalent: \(calls)."
         }
 
         /// What the command line uses files for; empty when any stage may do
@@ -41,11 +47,7 @@ public extension Shell {
         public static func uses(
             of command: String
         ) -> Set<Use> {
-            let line = command
-                .replacingOccurrences(of: "2>&1", with: " ")
-                .replacingOccurrences(of: "2>/dev/null", with: " ")
-
-            guard let stages = stages(of: line) else {
+            guard let stages = stages(of: normalized(command)) else {
                 return []
             }
 
@@ -99,7 +101,16 @@ public extension Shell.NativeReadHint.Use {
     }
 }
 
-private extension Shell.NativeReadHint {
+extension Shell.NativeReadHint {
+    /// The command line without stream plumbing that reads nothing.
+    static func normalized(
+        _ command: String
+    ) -> String {
+        command
+            .replacingOccurrences(of: "2>&1", with: " ")
+            .replacingOccurrences(of: "2>/dev/null", with: " ")
+    }
+
     enum Stage {
         case use(Use)
         case neutral
