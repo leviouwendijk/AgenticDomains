@@ -56,10 +56,10 @@ public extension General.Instructions {
         CAPABILITIES
 
         Few tools are visible at first; many more are installed. Find one
-        with \(Standard.Tools.SearchCapabilities.identifier.rawValue) or
-        \(Standard.Tools.ListCapabilities.identifier.rawValue), read its
-        contract with \(Standard.Tools.InspectCapability.identifier.rawValue),
-        and call it through \(Standard.Tools.CallCapability.identifier.rawValue)
+        with \(Capabilities.Tools.Search.identifier.rawValue) or
+        \(Capabilities.Tools.Search.identifier.rawValue), read its
+        contract with \(Capabilities.Tools.Inspect.identifier.rawValue),
+        and call it through \(Capabilities.Tools.Call.identifier.rawValue)
         when the inspection says so. Prefer a deterministic tool over
         reasoning your way to an answer it could give.
         """
