@@ -86,7 +86,7 @@ let package = Package(
         .package(url: "https://github.com/leviouwendijk/Path.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Position.git", branch: "master"),
         .package(url: "https://github.com/swift-langs/Parsers.git", branch: "master"),
-        // .package(url: "https://github.com/leviouwendijk/Accounting.git", branch: "master"),
+        // .package(url: "https://github.com/depaix-labs/Accounting.git", branch: "master"),
 
         // .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Writers.git", branch: "master"),
