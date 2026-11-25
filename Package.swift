@@ -80,8 +80,8 @@ let package = Package(
         .package(url: "https://github.com/swift-agentic/AgenticIO.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Workspace.git", branch: "master"),
 
-        .package(url: "https://github.com/leviouwendijk/SwiftSemantics.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/Documentation.git", branch: "master"),
+        .package(url: "https://github.com/swift-tooling/SwiftSemantics.git", branch: "master"),
+        .package(url: "https://github.com/swift-tooling/Documentation.git", branch: "master"),
 
         .package(url: "https://github.com/leviouwendijk/Path.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Position.git", branch: "master"),
@@ -100,7 +100,7 @@ let package = Package(
         // .package(url: "https://github.com/leviouwendijk/Matching.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Ranking.git", branch: "master"),
         // .package(url: "https://github.com/leviouwendijk/Fuzzy.git", branch: "master"),
-        .package(url: "https://github.com/leviouwendijk/Executable.git", branch: "master"),
+        .package(url: "https://github.com/swift-tooling/Executable.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Version.git", branch: "master"),
         .package(url: "https://github.com/leviouwendijk/Primitives.git", branch: "master"),
         .package(url: "https://github.com/swift-sdk/Apple.git", branch: "master"),
