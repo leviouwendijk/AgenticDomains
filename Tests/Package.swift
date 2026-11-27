@@ -25,6 +25,11 @@ let package = Package(
             targets: ["AgenticProcessesTests"]
         ),
 
+        .executable(
+            name: "t_agentic_loa",
+            targets: ["AgenticLoaTests"]
+        ),
+
     ],
     dependencies: [
         .package(url: "https://github.com/swift-agentic/Agentic.git", branch: "master"),
@@ -34,9 +39,24 @@ let package = Package(
         .package(url: "https://github.com/swift-sdk/Mail.git", branch: "master"),
         .package(url: "https://github.com/swift-tooling/Testing.git", branch: "master"),
         .package(url: "https://github.com/lco-langs/Frame.git", branch: "master"),
+        .package(url: "https://github.com/loa-lang/loa.git", branch: "master"),
+        .package(url: "https://github.com/swift-lco/Surface.git", branch: "master"),
+        .package(url: "https://github.com/swift-lco/Primitives.git", branch: "master"),
         .package(path: ".."),
     ],
     targets: [
+        .executableTarget(
+            name: "AgenticLoaTests",
+            dependencies: [
+                .product(name: "AgenticLoa", package: "AgenticDomains"),
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Loa", package: "loa"),
+                .product(name: "Surface", package: "Surface"),
+                .product(name: "Primitives", package: "Primitives"),
+                .product(name: "Testing", package: "Testing"),
+            ]
+        ),
+
 
 
 

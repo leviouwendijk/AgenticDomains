@@ -74,9 +74,16 @@ let package = Package(
             targets: ["AgenticDevelopment"]
         ),
 
+        // Loa: the model writes one program instead of a series of tool calls
+        .library(
+            name: "AgenticLoa",
+            targets: ["AgenticLoa"]
+        ),
+
     ],
     dependencies: [
         .package(url: "https://github.com/swift-agentic/Agentic.git", branch: "master"),
+        .package(url: "https://github.com/swift-lco/Surface.git", branch: "master"),
         .package(url: "https://github.com/swift-agentic/AgenticIO.git", branch: "master"),
         .package(url: "https://github.com/swift-lco/Workspace.git", branch: "master"),
 
@@ -103,6 +110,7 @@ let package = Package(
         .package(url: "https://github.com/swift-tooling/Executable.git", branch: "master"),
         .package(url: "https://github.com/swift-lco/Version.git", branch: "master"),
         .package(url: "https://github.com/swift-lco/Primitives.git", branch: "master"),
+        .package(url: "https://github.com/loa-lang/loa.git", branch: "master"),
         .package(url: "https://github.com/swift-sdk/Apple.git", branch: "master"),
         .package(url: "https://github.com/swift-lco/Schema.git", branch: "master"),
         .package(url: "https://github.com/swift-lco/Macros.git", branch: "master"),
@@ -118,6 +126,18 @@ let package = Package(
         .package(url: "https://github.com/swift-lco/Sensitivity.git", branch: "master"),
     ],
     targets: [
+        .target(
+            name: "AgenticLoa",
+            dependencies: [
+                .product(name: "Agentic", package: "Agentic"),
+                .product(name: "Loa", package: "loa"),
+                .product(name: "Primitives", package: "Primitives"),
+                .product(name: "Schema", package: "Schema"),
+                .product(name: "Macros", package: "Macros"),
+                .product(name: "Surface", package: "Surface"),
+            ]
+        ),
+
         .target(
             name: "AgenticDomains",
             dependencies: [
@@ -286,6 +306,7 @@ let package = Package(
         .target(
             name: "AgenticAppleServices",
             dependencies: [
+                .product(name: "Surface", package: "Surface"),
                 "AgenticScheduling",
                 .product(name: "Apple", package: "Apple"),
                 .product(name: "Agentic", package: "Agentic"),
