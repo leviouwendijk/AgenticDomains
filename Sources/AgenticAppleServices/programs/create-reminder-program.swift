@@ -1,6 +1,7 @@
 import Agentic
 import Apple
 import Foundation
+import Surface
 
 public extension AppleServices.Programs {
     @Program
@@ -70,13 +71,13 @@ public extension AppleServices.Programs {
                         prompt: "Allow Agentic to request Reminders access from macOS?",
                         reason: "Creating this reminder requires full Reminders access. Continuing will ask macOS to display its system permission prompt.",
                         input: .confirmation(
-                            ConfirmationUserInput(
+                            SurfaceConfirmation(
                                 defaultValue: false,
                                 confirmLabel: "Request access",
                                 cancelLabel: "Do not request"
                             )
                         ),
-                        presentation: UserInputPresentation(
+                        presentation: SurfaceQuestion.Presentation(
                             title: "Reminders access",
                             preferredControl: .confirmation
                         ),
