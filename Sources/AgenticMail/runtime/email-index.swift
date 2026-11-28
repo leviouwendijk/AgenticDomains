@@ -6,7 +6,7 @@ import MailIndex
 import Reporting
 
 public extension Email {
-    /// Where account indexes live. Insert one into `ToolServices` to point the
+    /// Where account indexes live. Insert one into `CapabilityServices` to point the
     /// tools elsewhere; without one they use `~/.local/share/mail/index`, the
     /// same files as `email index`.
     struct IndexLocation: Sendable {
@@ -26,7 +26,7 @@ extension Email {
     /// The account's index; it exists once `mail_tool_index_sync` (or `email index`) ran.
     static func index(
         for account: MailAccounts.Account,
-        in context: ToolContext,
+        in context: CapabilityContext,
         creating: Bool = false
     ) throws -> MailIndex {
         let url = (try? context.require(IndexLocation.self))?.url(account: account.identifier)

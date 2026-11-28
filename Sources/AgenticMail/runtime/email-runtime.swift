@@ -320,7 +320,7 @@ public extension Email {
     /// `~/.config/roots.frame` changes. An
     /// inserted `Scope` limits it to that access profile.
     static func runtime(
-        in context: ToolContext
+        in context: CapabilityContext
     ) throws -> Runtime {
         let scope = try? context.require(Scope.self)
         if let runtime = try? context.require(Runtime.self) {

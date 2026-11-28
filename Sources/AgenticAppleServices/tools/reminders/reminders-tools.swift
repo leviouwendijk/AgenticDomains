@@ -32,7 +32,7 @@ public extension AppleServices.Tools {
 
         public func call(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> Output {
             _ = input
             return await provider.authorizationStatus()
@@ -66,7 +66,7 @@ public extension AppleServices.Tools {
 
         public func call(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> Output {
             _ = input
             return try await provider.requestFullAccess()
@@ -92,7 +92,7 @@ public extension AppleServices.Tools {
 
         public func preflight(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> ToolPreflight {
             let destination =
                 input.listTitle ?? "default reminders list"
@@ -106,7 +106,7 @@ public extension AppleServices.Tools {
 
         public func call(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> Output {
             try await provider.createReminder(
                 input
@@ -175,7 +175,7 @@ public extension AppleServices.Tools {
 
         public func call(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> Output {
             try await provider.reminders(
                 limit: input.limit

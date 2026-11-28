@@ -96,15 +96,15 @@ enum EmailTests {
     /// A session granted draft access to everything, for tests of the tools themselves.
     static func context(
         _ recorder: MailRecorder
-    ) throws -> ToolContext {
+    ) throws -> CapabilityContext {
         try context(recorder, grants: [Email.Grant(try MailSelector(parsing: "*"), level: .draft, reason: "test")])
     }
 
     static func context(
         _ recorder: MailRecorder,
         grants: [Email.Grant]
-    ) throws -> ToolContext {
-        ToolContext(services: try ToolServices()
+    ) throws -> CapabilityContext {
+        CapabilityContext(services: try CapabilityServices()
             .inserting(MailFixture.runtime(recorder: recorder))
             .inserting(Email.SessionAccess(grants: grants)))
     }
@@ -163,7 +163,7 @@ enum EmailTests {
         let file = try pdf.save(in: root, index: 0)
 
         let recorder = MailRecorder()
-        let context = ToolContext(services: try ToolServices()
+        let context = CapabilityContext(services: try CapabilityServices()
             .inserting(MailFixture.runtime(recorder: recorder))
             .inserting(Email.SessionAccess())
             .inserting(Email.Downloads(directory: root)))
@@ -213,7 +213,7 @@ enum EmailTests {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("mail-downloads-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
         let recorder = MailRecorder()
-        let context = ToolContext(services: try ToolServices()
+        let context = CapabilityContext(services: try CapabilityServices()
             .inserting(MailFixture.runtime(recorder: recorder))
             .inserting(Email.SessionAccess(grants: [Email.Grant(try MailSelector(parsing: "*"), level: .read, reason: "test")]))
             .inserting(Email.Downloads(directory: root)))
@@ -308,7 +308,7 @@ enum EmailTests {
 
     static func scoped() async throws {
         let recorder = MailRecorder()
-        let context = ToolContext(services: try ToolServices()
+        let context = CapabilityContext(services: try CapabilityServices()
             .inserting(MailFixture.runtime(recorder: recorder))
             .inserting(Email.Scope("clientDesk"))
             .inserting(Email.SessionAccess(grants: [Email.Grant(try MailSelector(parsing: "*:*"), level: .draft, reason: "test")])))
@@ -364,7 +364,7 @@ enum EmailTests {
 
     static func unconfigured() async throws {
         let empty = FileManager.default.temporaryDirectory.appendingPathComponent("agentic-mail-\(UUID().uuidString)")
-        let missing = ToolContext(services: try ToolServices().inserting(
+        let missing = CapabilityContext(services: try CapabilityServices().inserting(
             MailConfigurationStore(directory: empty)
         ))
         do {

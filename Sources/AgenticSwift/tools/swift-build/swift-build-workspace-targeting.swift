@@ -7,7 +7,7 @@ import Primitives
 extension SwiftLang.Tools.Build {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
             context.workspace,
@@ -110,7 +110,7 @@ extension SwiftLang.Tools.Build {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
             context.workspace,

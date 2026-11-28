@@ -43,7 +43,7 @@ public extension Email.Tools {
         public init() {}
 
         /// Always reviewed: the owner sees exactly which accounts and mailboxes would open, and why.
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let runtime = try Email.runtime(in: context)
             let grants = try Self.grants(input, runtime: runtime)
             let accounts = try grants.flatMap { try $0.selector.accounts(in: runtime.accounts).map(\.identifier) }
@@ -59,7 +59,7 @@ public extension Email.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Email.runtime(in: context)
             guard let access = try? context.require(Email.SessionAccess.self) else {
                 throw Email.Failure.accessNotProvided

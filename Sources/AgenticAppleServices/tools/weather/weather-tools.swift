@@ -41,7 +41,7 @@ public extension AppleServices.Tools {
 
         public func call(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> Output {
             try await provider.currentWeather(
                 at: .init(
@@ -98,7 +98,7 @@ public extension AppleServices.Tools {
 
         public func call(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> Output {
             try await provider.forecast(
                 at: .init(

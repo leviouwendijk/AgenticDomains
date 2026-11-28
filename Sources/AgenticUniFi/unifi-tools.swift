@@ -18,7 +18,7 @@ public extension UniFi.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try context.require(UniFi.Runtime.self)
             return try await runtime.sites()
         }
@@ -42,7 +42,7 @@ public extension UniFi.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try context.require(UniFi.Runtime.self)
             return try await runtime.capture(site_id: input.site_id)
         }
@@ -58,7 +58,7 @@ public extension UniFi.Tools {
         public static let purpose = "List VLANs and privacy-screened display labels from a captured snapshot."
         public static let risk: ActionRisk = .observe
         public init() {}
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             try await context.require(UniFi.Runtime.self).networks(snapshot_id: input.snapshot_id)
         }
     }
@@ -73,7 +73,7 @@ public extension UniFi.Tools {
         public static let purpose = "List firewall zones, privacy-screened display labels, membership IDs and missing references from a captured snapshot."
         public static let risk: ActionRisk = .observe
         public init() {}
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             try await context.require(UniFi.Runtime.self).zones(snapshot_id: input.snapshot_id)
         }
     }
@@ -85,7 +85,7 @@ public extension UniFi.Tools {
         public static let purpose = "Page firewall policy summaries from a snapshot; optional zone, enabled and action filters, sorted by observed index."
         public static let risk: ActionRisk = .observe
         public init() {}
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             try await context.require(UniFi.Runtime.self).policies(input)
         }
     }
@@ -101,7 +101,7 @@ public extension UniFi.Tools {
         public static let purpose = "Inspect one captured network's VLAN, safe label and reported firewall-zone membership."
         public static let risk: ActionRisk = .observe
         public init() {}
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             try await context.require(UniFi.Runtime.self).network(snapshot_id: input.snapshot_id, network_id: input.network_id)
         }
     }
@@ -117,7 +117,7 @@ public extension UniFi.Tools {
         public static let purpose = "Inspect one captured rule's zone labels, protocol, optional TCP/UDP port and network selectors, and stated parsing gaps; never show address filters or descriptions."
         public static let risk: ActionRisk = .observe
         public init() {}
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             try await context.require(UniFi.Runtime.self).policy(snapshot_id: input.snapshot_id, policy_id: input.policy_id)
         }
     }
@@ -129,7 +129,7 @@ public extension UniFi.Tools {
         public static let purpose = "Find candidate zone-pair firewall rules for two captured networks; NOT a packet simulator or proof of allow/deny, and does NOT evaluate the requested port or protocol."
         public static let risk: ActionRisk = .observe
         public init() {}
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             try await context.require(UniFi.Runtime.self).inspect_path(input)
         }
     }
@@ -145,7 +145,7 @@ public extension UniFi.Tools {
         public static let risk: ActionRisk = .privileged
         public init() {}
 
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let summary = try await context.require(UniFi.Runtime.self).telemetry_review(plan_id: input.plan_id)
             return ToolPreflight(
                 tool: Self.definition.identifier,
@@ -169,7 +169,7 @@ public extension UniFi.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             try await context.require(UniFi.Runtime.self).apply_telemetry(input)
         }
     }
@@ -185,7 +185,7 @@ public extension UniFi.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try context.require(UniFi.Runtime.self)
             return try await runtime.prepare(input)
         }
@@ -209,7 +209,7 @@ public extension UniFi.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try context.require(UniFi.Runtime.self)
             return try await runtime.inspect(plan_id: input.plan_id)
         }

@@ -85,7 +85,7 @@ struct SwiftWorkspaceExecution {
 extension SwiftLang.Tools.ExecutableProducts {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = input
         let execution = try SwiftWorkspaceExecution.resolve(
@@ -116,7 +116,7 @@ extension SwiftLang.Tools.ExecutableProducts {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         _ = input
         let execution = try SwiftWorkspaceExecution.resolve(
@@ -152,7 +152,7 @@ extension SwiftLang.Tools.ExecutableProducts {
 extension SwiftLang.Tools.PackageUpdate {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -200,7 +200,7 @@ extension SwiftLang.Tools.PackageUpdate {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -246,7 +246,7 @@ extension SwiftLang.Tools.PackageUpdate {
 extension SwiftLang.Tools.Resolve {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -294,7 +294,7 @@ extension SwiftLang.Tools.Resolve {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -340,7 +340,7 @@ extension SwiftLang.Tools.Resolve {
 extension SwiftLang.Tools.Clean {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -381,7 +381,7 @@ extension SwiftLang.Tools.Clean {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -401,7 +401,7 @@ extension SwiftLang.Tools.Clean {
 extension SwiftLang.Tools.Version {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -428,7 +428,7 @@ extension SwiftLang.Tools.Version {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -463,7 +463,7 @@ extension SwiftLang.Tools.Version {
 extension SwiftLang.Tools.IncrementVersion {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -494,7 +494,7 @@ extension SwiftLang.Tools.IncrementVersion {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -516,7 +516,7 @@ extension SwiftLang.Tools.IncrementVersion {
 extension SwiftLang.Tools.KillSwiftPM {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -553,7 +553,7 @@ extension SwiftLang.Tools.KillSwiftPM {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -581,7 +581,7 @@ extension SwiftLang.Tools.KillSwiftPM {
 extension SwiftLang.Tools.BuildLibrary {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -626,7 +626,7 @@ extension SwiftLang.Tools.BuildLibrary {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -659,7 +659,7 @@ extension SwiftLang.Tools.BuildLibrary {
 extension SwiftLang.Tools.PackageFrameInit {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -691,7 +691,7 @@ extension SwiftLang.Tools.PackageFrameInit {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -709,7 +709,7 @@ extension SwiftLang.Tools.PackageFrameInit {
 extension SwiftLang.Tools.AppBundle {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -751,7 +751,7 @@ extension SwiftLang.Tools.AppBundle {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -793,7 +793,7 @@ extension SwiftLang.Tools.AppBundle {
 extension SwiftLang.Tools.Deploy {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -854,7 +854,7 @@ extension SwiftLang.Tools.Deploy {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -947,7 +947,7 @@ extension SwiftLang.Tools.Deploy {
 extension SwiftLang.Tools.RunProduct {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -1025,7 +1025,7 @@ extension SwiftLang.Tools.RunProduct {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,

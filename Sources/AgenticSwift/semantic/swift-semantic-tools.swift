@@ -175,7 +175,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = input
 
@@ -191,7 +191,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         _ = input
 
@@ -280,7 +280,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -300,7 +300,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -407,7 +407,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -427,7 +427,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -538,7 +538,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -558,7 +558,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -656,7 +656,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         try SwiftSemanticToolSupport.preflight(
             context: context.workspace,
@@ -670,7 +670,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -762,7 +762,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         try SwiftSemanticToolSupport.preflight(
             context: context.workspace,
@@ -775,7 +775,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -867,7 +867,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -887,7 +887,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -985,7 +985,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -1005,7 +1005,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -1094,7 +1094,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         try SwiftSemanticToolSupport.preflight(
             context: context.workspace,
@@ -1108,7 +1108,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -1213,7 +1213,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -1233,7 +1233,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -1344,7 +1344,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -1364,7 +1364,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -1475,7 +1475,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -1495,7 +1495,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,
@@ -1603,7 +1603,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         _ = try SwiftSemanticToolSupport.position(
             line: input.line,
@@ -1623,7 +1623,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftSemanticToolSupport.resolve(
             context.workspace,

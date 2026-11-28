@@ -31,7 +31,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func call(_: Input, in context: ToolContext) async throws -> Output {
+        public func call(_: Input, in context: CapabilityContext) async throws -> Output {
             let store = try Scheduling.store(in: context)
             let problem: String?
             switch store.state() {
@@ -83,7 +83,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let check = await SchedulingConfigurationCheck.run(
                 input.text,
                 sources: Scheduling.sources(in: context) ?? []
@@ -132,7 +132,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let store = try Scheduling.store(in: context)
             let check = await SchedulingConfigurationCheck.run(
                 input.text,

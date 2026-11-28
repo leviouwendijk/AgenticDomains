@@ -78,7 +78,7 @@ private final class SchedulingLoadedState: @unchecked Sendable {
 
 public extension Scheduling {
     /// Where the application keeps `scheduling.frame`, the calendar sources
-    /// it reads, and how it loads the file. Inserted into `ToolServices` so
+    /// it reads, and how it loads the file. Inserted into `CapabilityServices` so
     /// scheduling can read and write its own configuration without access
     /// to the rest of the home, list calendars before any configuration
     /// exists, and pick up a saved file in the same session: `state()`
@@ -138,14 +138,14 @@ public extension Scheduling {
 
     /// The calendar sources: from the loaded runtime, or from the store
     /// when no configuration loads.
-    static func sources(in context: ToolContext) -> [any CalendarSource]? {
+    static func sources(in context: CapabilityContext) -> [any CalendarSource]? {
         if let runtime = try? runtime(in: context) {
             return runtime.sources
         }
         return (try? context.require(ConfigurationStore.self))?.sources
     }
 
-    static func store(in context: ToolContext) throws -> ConfigurationStore {
+    static func store(in context: CapabilityContext) throws -> ConfigurationStore {
         guard let store = try? context.require(ConfigurationStore.self) else {
             throw ConfigurationFailure.notProvided
         }

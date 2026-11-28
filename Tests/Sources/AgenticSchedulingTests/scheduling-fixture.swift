@@ -87,8 +87,8 @@ enum SchedulingFixture {
         )
     }
 
-    static func context(_ runtime: Scheduling.Runtime = runtime()) throws -> ToolContext {
-        ToolContext(services: try ToolServices().inserting(runtime))
+    static func context(_ runtime: Scheduling.Runtime = runtime()) throws -> CapabilityContext {
+        CapabilityContext(services: try CapabilityServices().inserting(runtime))
     }
 
     static let monday = (start: "2026-11-23T00:00:00+01:00", end: "2026-11-24T00:00:00+01:00")

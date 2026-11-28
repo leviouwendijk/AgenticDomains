@@ -1,5 +1,5 @@
 {
-  "originHash" : "ed83419175fcf72e1654ee321ed1ac662fec77f2af779c3c53757c92c15e0a44",
+  "originHash" : "6d94d90e73869a709ff438807a0d7a7bb9db7da5eb917574235455aa52506ffe",
   "pins" : [
     {
       "identity" : "agentic",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/swift-agentic/Agentic.git",
       "state" : {
         "branch" : "master",
-        "revision" : "9129be5aa5b0f81ed5f816b4d2e6ab710f632e0e"
+        "revision" : "55d0e894ae117856393be12ff23555a23fc6efd0"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/swift-agentic/AgenticIO.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3aa2f7f066676d16a87681efba342bd00240c25b"
+        "revision" : "f7c633be9813457d30e2d7de7f6711d7e196ef63"
       }
     },
     {
@@ -224,15 +224,6 @@
       "state" : {
         "branch" : "master",
         "revision" : "142a5a82cf7590a56046e35dc08b2bba7e57b14b"
-      }
-    },
-    {
-      "identity" : "loa",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/loa-lang/loa.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "6ec50b5130a7737d67cdc9dc09c70d029488c04d"
       }
     },
     {
@@ -538,7 +529,7 @@
       "location" : "https://github.com/swift-lco/Terminal.git",
       "state" : {
         "branch" : "master",
-        "revision" : "c83d36e41b456f21f30aa6fee1c207181a736a96"
+        "revision" : "f77be6e94db37f19a0150458d95ec3f91062f71a"
       }
     },
     {

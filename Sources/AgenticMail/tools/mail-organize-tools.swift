@@ -43,7 +43,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             try Email.requireWholeAccounts(runtime)
@@ -128,7 +128,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             try Email.requireWholeAccounts(authorization.runtime)
             let account = try authorization.runtime.account(input.account)
@@ -211,7 +211,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             try Email.requireWholeAccounts(runtime)
@@ -287,7 +287,7 @@ public extension Email.Tools {
         public init() {}
 
         /// Trust silences future warnings, so the owner approves it.
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let decision = try await Self.decision(input, in: context)
             return ToolPreflight(
                 tool: Self.definition.identifier,
@@ -299,7 +299,7 @@ public extension Email.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let decision = try await Self.decision(input, in: context)
             let authorization = try await Email.authorization(in: context)
             let account = try authorization.runtime.account(input.account)
@@ -309,7 +309,7 @@ public extension Email.Tools {
 
         static func decision(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> MailDecision {
             let authorization = try await Email.authorization(in: context)
             try Email.requireWholeAccounts(authorization.runtime)
@@ -408,7 +408,7 @@ public extension Email.Tools {
         public init() {}
 
         /// Only stores a proposal in the local index; the summary says what it picks.
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let selection: String
             if input.suspicious == true {
                 selection = "the suspects (score \(input.threshold ?? 50)+)"
@@ -426,7 +426,7 @@ public extension Email.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             try Email.requireWholeAccounts(runtime)
@@ -537,7 +537,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             try Email.requireWholeAccounts(authorization.runtime)
             let account = try authorization.runtime.account(input.account)
@@ -604,7 +604,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let (account, index, plan) = try await Self.load(input, in: context)
             return ToolPreflight(
                 tool: Self.definition.identifier,
@@ -620,7 +620,7 @@ public extension Email.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let (account, index, plan) = try await Self.load(input, in: context)
             let report = try await Email.execute(plan, account: account, index: index, in: context)
             return Output(
@@ -633,7 +633,7 @@ public extension Email.Tools {
 
         static func load(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> (MailAccounts.Account, MailIndex, MailPlan) {
             let authorization = try await Email.authorization(in: context)
             try authorization.runtime.access.checkDrafting()
@@ -672,7 +672,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let (account, index, undo) = try await Self.load(input, in: context)
             return ToolPreflight(
                 tool: Self.definition.identifier,
@@ -688,7 +688,7 @@ public extension Email.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let (account, index, undo) = try await Self.load(input, in: context)
             let report = try await Email.execute(undo, account: account, index: index, in: context)
             return Output(
@@ -701,7 +701,7 @@ public extension Email.Tools {
 
         static func load(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> (MailAccounts.Account, MailIndex, MailPlan) {
             let authorization = try await Email.authorization(in: context)
             try authorization.runtime.access.checkDrafting()
@@ -725,7 +725,7 @@ extension Email {
         _ plan: MailPlan,
         account: MailAccounts.Account,
         index: MailIndex,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> MailPlanReport {
         let runtime = try Email.runtime(in: context)
         return try await runtime.imap(account).session { session in

@@ -17,7 +17,7 @@ public extension Email {
     }
 
     static func downloads(
-        in context: ToolContext
+        in context: CapabilityContext
     ) throws -> URL {
         if let downloads = try? context.require(Downloads.self) {
             return downloads.directory

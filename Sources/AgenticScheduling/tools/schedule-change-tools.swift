@@ -90,7 +90,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let runtime = try Scheduling.runtime(in: context)
             let plan = try await Plan(input, runtime: runtime)
             return ToolPreflight(
@@ -118,7 +118,7 @@ public extension Scheduling.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
             let plan = try await Plan(input, runtime: runtime)
             let changed = try await plan.source.update(plan.event, with: plan.change)
@@ -171,7 +171,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let runtime = try Scheduling.runtime(in: context)
             let event = try await runtime.event(startingAt: input.event_start, title: input.event_title, calendar: input.event_calendar)
             let zone = runtime.owners(of: event.calendar).first?.timeZone ?? runtime.defaults.timeZone
@@ -195,7 +195,7 @@ public extension Scheduling.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
             let event = try await runtime.event(startingAt: input.event_start, title: input.event_title, calendar: input.event_calendar)
             let zone = runtime.owners(of: event.calendar).first?.timeZone ?? runtime.defaults.timeZone

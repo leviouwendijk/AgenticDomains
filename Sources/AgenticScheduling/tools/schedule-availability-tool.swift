@@ -144,7 +144,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func preflight(_ input: Input, in _: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in _: CapabilityContext) async throws -> ToolPreflight {
             let who = input.requirements.participants?.joined(separator: ", ") ?? "the primary participant"
             let rows = input.starts.map { "\($0.count) given starts" } ?? (input.rows == .days ? "days" : "fitting stretches")
             return .init(
@@ -155,7 +155,7 @@ public extension Scheduling.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
             let window = try ScheduleTimestamp.window(start: input.window_start, end: input.window_end)
             let given = try ResolvedRequirements(input.requirements, runtime: runtime)

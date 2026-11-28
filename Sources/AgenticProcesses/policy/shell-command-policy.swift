@@ -4,7 +4,7 @@ import Processes
 
 public extension Shell {
     /// Trusted, host-injected policy for shell execution.
-    /// Inject through ToolServices; without one, `.standard` applies and every command is privileged.
+    /// Inject through CapabilityServices; without one, `.standard` applies and every command is privileged.
     struct CommandPolicy:
         Sendable
     {

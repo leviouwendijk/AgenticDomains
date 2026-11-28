@@ -22,7 +22,7 @@ public extension Email {
     /// Where attachments may come from: the workspace, the exports directory
     /// of `settings.frame`, and the attachment downloads directory.
     static func attachmentRoots(
-        in context: ToolContext
+        in context: CapabilityContext
     ) -> [URL] {
         let workspace = context.workspace?.rootURL ?? URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         var roots = [workspace]
@@ -39,7 +39,7 @@ public extension Email {
     /// resolved, each inside an attachment root, and together within the limit.
     static func attachmentFiles(
         _ paths: [String]?,
-        in context: ToolContext
+        in context: CapabilityContext
     ) throws -> [AttachmentFile] {
         let paths = (paths ?? []).compactMap(nonEmpty)
         guard !paths.isEmpty else {

@@ -101,17 +101,17 @@ enum SchedulingFrameTests {
     }
 
     static func reportsConfigurationState() async throws {
-        let missing = ToolContext(services: try ToolServices().inserting(
+        let missing = CapabilityContext(services: try CapabilityServices().inserting(
             Scheduling.ConfigurationState.missing(expected: "/home/.agentic/domains/scheduling.frame")
         ))
         try await expectToolFailure(missing, containing: "/home/.agentic/domains/scheduling.frame")
 
-        let invalid = ToolContext(services: try ToolServices().inserting(
+        let invalid = CapabilityContext(services: try CapabilityServices().inserting(
             Scheduling.ConfigurationState.invalid(file: "scheduling.frame", message: "line 3: unknown type")
         ))
         try await expectToolFailure(invalid, containing: "line 3: unknown type")
 
-        try await expectToolFailure(ToolContext(), containing: "does not provide scheduling")
+        try await expectToolFailure(CapabilityContext(), containing: "does not provide scheduling")
     }
 
     private static func expectFailure(_ label: String, containing text: String, _ source: () -> String) throws {
@@ -125,7 +125,7 @@ enum SchedulingFrameTests {
         try Expect.true(false, "\(label) must fail")
     }
 
-    private static func expectToolFailure(_ context: ToolContext, containing text: String) async throws {
+    private static func expectToolFailure(_ context: CapabilityContext, containing text: String) async throws {
         do {
             _ = try await Scheduling.Tools.ListCalendars().call(.init(), in: context)
         } catch {

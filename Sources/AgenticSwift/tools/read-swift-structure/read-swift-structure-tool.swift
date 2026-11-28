@@ -139,7 +139,7 @@ public extension SwiftLang.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
 
         _ = try input.structuralQuery()
@@ -164,7 +164,7 @@ public extension SwiftLang.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let workspace = try AgenticSwiftToolSupport.requireWorkspace(
             context.workspace,

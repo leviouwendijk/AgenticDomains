@@ -119,7 +119,7 @@ public extension SwiftLang.Tools {
 
         public func preflight(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> ToolPreflight {
             _ = try AgenticSwiftToolSupport.requireWorkspace(
                 context.workspace,
@@ -149,7 +149,7 @@ public extension SwiftLang.Tools {
 
         public func call(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> Output {
             _ = try AgenticSwiftToolSupport.requireWorkspace(
                 context.workspace,

@@ -94,7 +94,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func preflight(_ input: Input, in _: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in _: CapabilityContext) async throws -> ToolPreflight {
             .init(
                 tool: Self.definition.identifier,
                 risk: Self.definition.risk,
@@ -103,7 +103,7 @@ public extension Scheduling.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
             let requirements = try ResolvedRequirements(input.requirements, runtime: runtime)
             let options = [input.recommendation] + (input.alternatives ?? []).prefix(3)

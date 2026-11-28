@@ -66,7 +66,7 @@ public extension SwiftLang.Tools {
 
         public func prepare(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> CapabilityPreparation<ToolPreflight> {
             let workspace = try SwiftSemanticToolSupport.resolve(
                 context.workspace,
@@ -186,14 +186,14 @@ public extension SwiftLang.Tools {
 
         public func preflight(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> ToolPreflight {
             try await prepare(input, in: context).review
         }
 
         public func call(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> Output {
             throw ToolPreparationError.prepared_operation_required
         }
@@ -201,7 +201,7 @@ public extension SwiftLang.Tools {
         public func call(
             _ input: Input,
             prepared operation: PreparedOperation.Envelope?,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> Output {
             guard let operation else {
                 throw ToolPreparationError.prepared_operation_required

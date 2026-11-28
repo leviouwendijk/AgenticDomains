@@ -55,7 +55,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
             let window = try ScheduleTimestamp.window(start: input.window_start, end: input.window_end)
             let requirements = try ResolvedRequirements(input.requirements, runtime: runtime)
@@ -135,7 +135,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
             let requirements = try ResolvedRequirements(input.requirements, runtime: runtime)
             let start = try ScheduleTimestamp.parse(input.start, field: "start")

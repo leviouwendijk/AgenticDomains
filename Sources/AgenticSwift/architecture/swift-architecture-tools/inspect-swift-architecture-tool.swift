@@ -99,7 +99,7 @@ public extension SwiftLang.Tools {
 
         public func preflight(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> ToolPreflight {
             _ = input
 
@@ -113,7 +113,7 @@ public extension SwiftLang.Tools {
 
         public func call(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> Output {
             let snapshot = try await SwiftArchitectureToolSupport.localSnapshot(
                 context: context.workspace,

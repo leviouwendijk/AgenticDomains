@@ -135,7 +135,7 @@ public extension Email {
 
     /// The runtime with the session's grants; fails when the host keeps no session access.
     static func authorization(
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Authorization {
         let runtime = try runtime(in: context)
         guard let access = try? context.require(SessionAccess.self) else {

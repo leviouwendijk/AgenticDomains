@@ -49,7 +49,7 @@ enum GrantTests {
         }
 
         do {
-            _ = try await Email.Tools.Search().call(.init(), in: ToolContext(services: try ToolServices().inserting(MailFixture.runtime(recorder: recorder))))
+            _ = try await Email.Tools.Search().call(.init(), in: CapabilityContext(services: try CapabilityServices().inserting(MailFixture.runtime(recorder: recorder))))
             throw TestFlowAssertionFailure(label: "no store", message: "should fail")
         } catch Email.Failure.accessNotProvided {
         }

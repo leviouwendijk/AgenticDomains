@@ -78,7 +78,7 @@ private actor WritableFixtureSource: CalendarSource {
 enum SchedulingBookingTests {
     private static let openSlot = F.event("Open slot", "2026-11-23T15:00:00+01:00", "2026-11-23T17:00:00+01:00", calendar: "Slots")
 
-    private static func fixture() throws -> (WritableFixtureSource, ToolContext) {
+    private static func fixture() throws -> (WritableFixtureSource, CapabilityContext) {
         let source = WritableFixtureSource(
             entries: F.events + [openSlot],
             calendars: ["Levi", "Anna", "Sam", "Slots", "Cancelled"]

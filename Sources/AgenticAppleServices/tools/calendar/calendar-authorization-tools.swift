@@ -32,7 +32,7 @@ public extension AppleServices.Tools {
 
         public func call(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> Output {
             _ = input
             return await provider.authorizationStatus()
@@ -66,7 +66,7 @@ public extension AppleServices.Tools {
 
         public func call(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> Output {
             _ = input
             return try await provider.requestFullAccess()

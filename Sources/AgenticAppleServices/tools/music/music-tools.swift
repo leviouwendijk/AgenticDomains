@@ -15,7 +15,7 @@ public extension AppleServices.Tools {
         public init(provider: any AppleMusicProvider = ScriptingBridgeMusicProvider()) {
             self.provider = provider
         }
-        public func call(_ input: Input, in _: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in _: CapabilityContext) async throws -> Output {
             try await provider.search(input)
         }
     }
@@ -34,7 +34,7 @@ public extension AppleServices.Tools {
         public init(provider: any AppleMusicProvider = ScriptingBridgeMusicProvider()) {
             self.provider = provider
         }
-        public func call(_ input: Input, in _: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in _: CapabilityContext) async throws -> Output {
             try await provider.play(input.identifier)
         }
     }
@@ -50,7 +50,7 @@ public extension AppleServices.Tools {
         public init(provider: any AppleMusicProvider = ScriptingBridgeMusicProvider()) {
             self.provider = provider
         }
-        public func call(_ input: Input, in _: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in _: CapabilityContext) async throws -> Output {
             _ = input
             return try await provider.nowPlaying()
         }
@@ -70,7 +70,7 @@ public extension AppleServices.Tools {
         public init(provider: any AppleMusicProvider = ScriptingBridgeMusicProvider()) {
             self.provider = provider
         }
-        public func call(_ input: Input, in _: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in _: CapabilityContext) async throws -> Output {
             try await provider.control(input.action)
         }
     }
@@ -89,7 +89,7 @@ public extension AppleServices.Tools {
         public init(provider: any AppleMusicProvider = ScriptingBridgeMusicProvider()) {
             self.provider = provider
         }
-        public func call(_ input: Input, in _: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in _: CapabilityContext) async throws -> Output {
             try await provider.setVolume(input.volume)
         }
     }
@@ -102,7 +102,7 @@ public extension AppleServices.Tools {
         public static let purpose = "Observe MusicKit authorization for the app-owned Apple Music catalog player. No prompt."
         public static let risk: ActionRisk = .observe
         public init() {}
-        public func call(_ input: Input, in _: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in _: CapabilityContext) async throws -> Output {
             _ = input
             return await MusicKitCatalogProvider.shared.authorizationStatus()
         }
@@ -116,7 +116,7 @@ public extension AppleServices.Tools {
         public static let purpose = "Request MusicKit consent in a properly bundled MusicKit-enabled host; may show a system permission prompt."
         public static let risk: ActionRisk = .boundedmutate
         public init() {}
-        public func call(_ input: Input, in _: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in _: CapabilityContext) async throws -> Output {
             _ = input
             return try await MusicKitCatalogProvider.shared.authorize()
         }
@@ -129,7 +129,7 @@ public extension AppleServices.Tools {
         public static let purpose = "Search the entire Apple Music song catalog using MusicKit. Return exact song IDs; do not change playback."
         public static let risk: ActionRisk = .observe
         public init() {}
-        public func call(_ input: Input, in _: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in _: CapabilityContext) async throws -> Output {
             try await MusicKitCatalogProvider.shared.search(input)
         }
     }
@@ -145,7 +145,7 @@ public extension AppleServices.Tools {
         public static let purpose = "Play an exact song from apple_tool_music_catalog_search through MusicKit ApplicationMusicPlayer. Playback belongs to the host app, not Music.app."
         public static let risk: ActionRisk = .boundedmutate
         public init() {}
-        public func call(_ input: Input, in _: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in _: CapabilityContext) async throws -> Output {
             try await MusicKitCatalogProvider.shared.play(input.identifier)
         }
     }

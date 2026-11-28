@@ -71,8 +71,8 @@ enum OrganizeTests {
     static func context(
         _ directory: URL,
         level: Email.Level
-    ) throws -> ToolContext {
-        ToolContext(services: try ToolServices()
+    ) throws -> CapabilityContext {
+        CapabilityContext(services: try CapabilityServices()
             .inserting(MailFixture.runtime(recorder: MailRecorder()))
             .inserting(Email.SessionAccess(grants: [Email.Grant(try MailSelector(parsing: "work"), level: level, reason: "test")]))
             .inserting(Email.IndexLocation(directory: directory)))
@@ -127,7 +127,7 @@ enum OrganizeTests {
 
     static func mailboxLimitedGrantRefused() async throws {
         let directory = try await indexed()
-        let context = ToolContext(services: try ToolServices()
+        let context = CapabilityContext(services: try CapabilityServices()
             .inserting(MailFixture.runtime(recorder: MailRecorder()))
             .inserting(Email.SessionAccess(grants: [Email.Grant(try MailSelector(parsing: "work:INBOX"), level: .organize, reason: "test")]))
             .inserting(Email.IndexLocation(directory: directory)))

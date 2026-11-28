@@ -23,7 +23,7 @@ private struct CalendarListSource: CalendarSource {
 enum SchedulingConfigurationStoreTests {
     static let exampleTitles = ["Appointments Alex", "Appointments Sam", "Joint", "Open slots Alex", "Internal", "Cancelled"]
 
-    static func fixture() throws -> (ToolContext, Scheduling.ConfigurationStore, URL) {
+    static func fixture() throws -> (CapabilityContext, Scheduling.ConfigurationStore, URL) {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("scheduling-store-\(UUID().uuidString)", isDirectory: true)
         let file = root.appendingPathComponent("domains/\(SchedulingFrame.fileName)")
@@ -43,7 +43,7 @@ enum SchedulingConfigurationStoreTests {
                 return .invalid(file: file.path, message: error.localizedDescription)
             }
         }
-        return (ToolContext(services: try ToolServices().inserting(store)), store, root)
+        return (CapabilityContext(services: try CapabilityServices().inserting(store)), store, root)
     }
 
     static func calendarsWithoutConfiguration() async throws {

@@ -97,7 +97,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let runtime = try Scheduling.runtime(in: context)
             let plan = try await Plan(input, runtime: runtime)
             var sideEffects = ["Adds one event to \(plan.draft.calendar.title)"]
@@ -127,7 +127,7 @@ public extension Scheduling.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
             let plan = try await Plan(input, runtime: runtime)
             let event = try await plan.source.create(plan.draft)

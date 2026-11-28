@@ -89,7 +89,7 @@ public extension Web.Tools {
 
         public func preflight(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> ToolPreflight {
             let query = try normalizedQuery(
                 input.query
@@ -120,7 +120,7 @@ public extension Web.Tools {
 
         public func call(
             _ input: Input,
-            in _: ToolContext
+            in _: CapabilityContext
         ) async throws -> Output {
             let query = try normalizedQuery(
                 input.query

@@ -3,7 +3,7 @@ import Foundation
 
 public extension Scheduling {
     /// What the application found when it looked for scheduling
-    /// configuration. Inserted into `ToolServices` instead of a runtime when
+    /// configuration. Inserted into `CapabilityServices` instead of a runtime when
     /// there is none to give, so tools can say why.
     enum ConfigurationState: Sendable {
         case loaded(Runtime)
@@ -33,7 +33,7 @@ public extension Scheduling {
     /// The session's runtime, from a directly inserted `Runtime`, the
     /// store's current file, or a loaded `ConfigurationState`; otherwise a
     /// failure saying why not.
-    static func runtime(in context: ToolContext) throws -> Runtime {
+    static func runtime(in context: CapabilityContext) throws -> Runtime {
         if let runtime = try? context.require(Runtime.self) {
             return runtime
         }

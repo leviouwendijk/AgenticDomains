@@ -2,7 +2,7 @@ import Foundation
 
 public extension Scheduling {
     /// What the scheduling tools work against, supplied by the application
-    /// through `ToolServices`.
+    /// through `CapabilityServices`.
     struct Runtime: Sendable {
         public struct Defaults: Sendable, Hashable {
             /// Zone for requests that name none.

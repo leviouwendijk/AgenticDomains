@@ -53,7 +53,7 @@ public extension Scheduling.Tools {
 
         public init() {}
 
-        public func call(_: Input, in context: ToolContext) async throws -> Output {
+        public func call(_: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Scheduling.runtime(in: context)
             let defaults = runtime.defaults
             return .init(

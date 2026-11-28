@@ -84,7 +84,7 @@ public extension Shell.Tools {
 
         public func preflight(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> ToolPreflight {
             let run = try resolvedContext(
                 input,
@@ -144,7 +144,7 @@ public extension Shell.Tools {
 
         public func call(
             _ input: Input,
-            in context: ToolContext
+            in context: CapabilityContext
         ) async throws -> Output {
             let run = try resolvedContext(
                 input,
@@ -201,7 +201,7 @@ private extension Shell.Tools.Run {
 
     func resolvedContext(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) throws -> RunContext {
         let toolName = Self.definition.identifier.rawValue
 

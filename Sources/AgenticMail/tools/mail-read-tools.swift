@@ -58,7 +58,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func call(_: Input, in context: ToolContext) async throws -> Output {
+        public func call(_: Input, in context: CapabilityContext) async throws -> Output {
             let runtime = try Email.runtime(in: context)
             let grants = (try? await Email.authorization(in: context))?.grants ?? []
             let authorization = Email.Authorization(runtime: runtime, grants: grants)
@@ -129,7 +129,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             let account = try runtime.account(input.account)
@@ -272,7 +272,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             let query = try Self.query(input)
@@ -435,7 +435,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             let account = try runtime.account(input.account)

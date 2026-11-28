@@ -73,7 +73,7 @@ public extension Email {
     static func compose(
         _ input: Composition,
         with authorization: Authorization,
-        in context: ToolContext,
+        in context: CapabilityContext,
         grantRequired: Bool = true
     ) async throws -> Composed {
         let runtime = authorization.runtime

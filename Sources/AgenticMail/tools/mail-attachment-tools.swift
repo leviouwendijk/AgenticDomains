@@ -51,7 +51,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let runtime = try Email.runtime(in: context)
             let account = try runtime.account(input.account)
             let mailbox = input.mailbox.flatMap(Email.nonEmpty) ?? "INBOX"
@@ -66,7 +66,7 @@ public extension Email.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             let account = try runtime.account(input.account)

@@ -33,7 +33,7 @@ public extension Email.Tools {
 
         public init() {}
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             let composed = try await Email.compose(input, with: authorization, in: context)
@@ -80,7 +80,7 @@ public extension Email.Tools {
         public init() {}
 
         /// The account's policy decides the risk: drafts forbids, confirm needs review, allowed is bounded.
-        public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+        public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             let account = try runtime.account(input.account)
@@ -131,7 +131,7 @@ public extension Email.Tools {
             )
         }
 
-        public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+        public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
             let authorization = try await Email.authorization(in: context)
             let runtime = authorization.runtime
             let account = try runtime.account(input.account)

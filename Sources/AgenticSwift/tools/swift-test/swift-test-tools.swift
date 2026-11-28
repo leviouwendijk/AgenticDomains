@@ -148,11 +148,11 @@ public extension SwiftLang.Tools {
 }
 
 extension SwiftLang.Tools.RunTests {
-    public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+    public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
         try await SwiftTestToolSupport.preflight(input, kind: .tests, tool: Self.definition.identifier, risk: risk, context: context)
     }
 
-    public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+    public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
         try await SwiftTestToolSupport.run(input, kind: .tests, toolName: Self.definition.identifier.rawValue, context: context)
     }
 
@@ -162,11 +162,11 @@ extension SwiftLang.Tools.RunTests {
 }
 
 extension SwiftLang.Tools.RunBenchmarks {
-    public func preflight(_ input: Input, in context: ToolContext) async throws -> ToolPreflight {
+    public func preflight(_ input: Input, in context: CapabilityContext) async throws -> ToolPreflight {
         try await SwiftTestToolSupport.preflight(input, kind: .benchmarks, tool: Self.definition.identifier, risk: risk, context: context)
     }
 
-    public func call(_ input: Input, in context: ToolContext) async throws -> Output {
+    public func call(_ input: Input, in context: CapabilityContext) async throws -> Output {
         try await SwiftTestToolSupport.run(input, kind: .benchmarks, toolName: Self.definition.identifier.rawValue, context: context)
     }
 
@@ -196,7 +196,7 @@ enum SwiftTestToolSupport {
         kind: Tests.Kind,
         tool: ToolIdentifier,
         risk: ActionRisk,
-        context: ToolContext
+        context: CapabilityContext
     ) async throws -> ToolPreflight {
         let toolName = tool.rawValue
         let execution = try SwiftWorkspaceExecution.resolve(context.workspace, toolName: toolName)
@@ -241,7 +241,7 @@ enum SwiftTestToolSupport {
         _ input: SwiftTestRunInput,
         kind: Tests.Kind,
         toolName: String,
-        context: ToolContext
+        context: CapabilityContext
     ) async throws -> SwiftTestRunOutput {
         let execution = try SwiftWorkspaceExecution.resolve(context.workspace, toolName: toolName)
         let plan = try await Tests.resolve(

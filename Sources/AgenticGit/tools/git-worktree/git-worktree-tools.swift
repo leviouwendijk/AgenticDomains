@@ -21,7 +21,7 @@ public extension Git.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let workspace = try await agenticGitWorkspace(
             context.workspace,
@@ -52,7 +52,7 @@ public extension Git.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let workspace = try await agenticGitWorkspace(
             context.workspace,
@@ -150,7 +150,7 @@ public extension Git.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let workspace = try await agenticGitWorkspace(
             context.workspace,
@@ -201,7 +201,7 @@ public extension Git.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let workspace = try await agenticGitWorkspace(
             context.workspace,
@@ -294,7 +294,7 @@ public extension Git.Tools {
 
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let context = try await resolvedContext(
             input,
@@ -336,7 +336,7 @@ public extension Git.Tools {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let context = try await resolvedContext(
             input,

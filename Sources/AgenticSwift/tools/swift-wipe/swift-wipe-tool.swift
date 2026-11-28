@@ -119,7 +119,7 @@ public extension SwiftLang.Tools {
 extension SwiftLang.Tools.WipeCaches {
     public func preflight(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> ToolPreflight {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
@@ -162,7 +162,7 @@ extension SwiftLang.Tools.WipeCaches {
 
     public func call(
         _ input: Input,
-        in context: ToolContext
+        in context: CapabilityContext
     ) async throws -> Output {
         let execution = try SwiftWorkspaceExecution.resolve(
             context.workspace,
